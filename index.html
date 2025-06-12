@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diplomado en Estrategias de Datos con Python, SQL y Big Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    
+    <!-- React y Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- D3.js y Mermaid.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+        /* Colores Institucionales USTA - Basado en el manual de marca */
+        .bg-usta-blue { background-color: #003366; }
+        .text-usta-blue { color: #003366; }
+        
+        .bg-usta-yellow { background-color: #FFCC00; }
+        .text-usta-yellow { color: #FFCC00; }
+
+        .bg-usta-red { background-color: #DA291C; }
+        .text-usta-red { color: #DA291C; }
+
+        /* Estilos para el acordeón interactivo */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+            padding: 0 1.5rem;
+        }
+        .accordion-button.active + .accordion-content {
+            max-height: 500px;
+            padding: 1.5rem 1.5rem;
+        }
+        .accordion-button .icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        .accordion-button.active .icon {
+            transform: rotate(180deg);
+        }
+        .carousel-item {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.6s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-usta-blue shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <img src="https://usantotomas.edu.co/hs-fs/hubfs/social-suggested-images/usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png?width=282&height=65&name=usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png" 
+                 alt="Logo Universidad Santo Tomás" 
+                 class="h-12"
+                 onerror="this.onerror=null;this.src='https://placehold.co/282x65/003366/FFFFFF?text=Universidad+Santo+Tomás';">
+            <h1 class="hidden md:block text-xl lg:text-2xl font-bold text-white text-right">Diplomado en Estrategias de Datos</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="bg-white">
+            <div class="container mx-auto px-6 py-16 text-center">
+                <div class="max-w-4xl mx-auto">
+                    <div id="carousel-root" class="mb-8"></div>
+                    <h2 class="text-3xl md:text-5xl font-bold text-black mb-4">Domina el Universo de los Datos</h2>
+                    <p class="text-gray-600 text-lg md:text-xl mb-8">
+                        Transforma tu carrera profesional y conviértete en un experto en la gestión y análisis de datos. Aprende las tecnologías que lideran la industria con un enfoque 100% práctico.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Target Audience Section -->
+        <section class="py-16 bg-gray-50">
+            <div class="container mx-auto px-6">
+                 <div class="max-w-4xl mx-auto text-center">
+                    <h3 class="text-3xl font-bold text-usta-blue mb-6">¿A Quién va Dirigido?</h3>
+                    <p class="text-lg text-gray-700">
+                        Este diplomado está diseñado para <strong class="text-usta-red">profesionales de todas las áreas, emprendedores, tecnólogos, técnicos y estudiantes</strong> que deseen afianzar sus conocimientos en el manejo de datos y que estén interesados en dar un paso adelante en la analítica y la ciencia de datos.
+                    </p>
+                 </div>
+            </div>
+        </section>
+        
+        <!-- Classes Section -->
+        <section class="py-16">
+            <div class="container mx-auto px-6">
+                 <div class="max-w-4xl mx-auto text-center">
+                    <h3 class="text-3xl font-bold text-black mb-8">Clases del Diplomado</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Card para la Clase de SQL -->
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                           <div class="p-6">
+                               <h4 class="text-xl font-bold text-usta-blue mb-2">Clase de SQL</h4>
+                               <p class="text-gray-600 mb-4">Fundamentos de manipulación y consulta de datos con SQL y Python.</p>
+                               <a href="Clase_SQL.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full">
+                                   Ver Contenido
+                               </a>
+                           </div>
+                        </div>
+
+                        <!-- Aquí puedes agregar más tarjetas para futuras clases -->
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden flex items-center justify-center p-6 border-2 border-dashed border-gray-300">
+                           <span class="text-gray-400">Próximamente...</span>
+                        </div>
+                         <div class="bg-white rounded-lg shadow-lg overflow-hidden flex items-center justify-center p-6 border-2 border-dashed border-gray-300">
+                           <span class="text-gray-400">Próximamente...</span>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </section>
+
+
+        <!-- Objectives Section -->
+        <section class="py-16 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="max-w-4xl mx-auto">
+                    <h3 class="text-3xl font-bold text-black mb-8 text-center">Objetivos de Aprendizaje</h3>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h4 class="text-2xl font-bold text-usta-red mb-4">Objetivo General</h4>
+                        <p class="text-gray-700 mb-6">
+                            Proporcionar a los participantes las competencias que les permitan el manejo de datos con Python, así como la administración, gestión y consulta de bases de datos relacionales y no relacionales, utilizando los lenguajes y plataformas más demandados en el mercado como Microsoft SQL Server y Databricks, para potenciar sus perfiles profesionales.
+                        </p>
+                        <h4 class="text-2xl font-bold text-usta-red mb-4">Objetivos Específicos</h4>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2">
+                            <li>Manejar el lenguaje de programación Python y sus librerías para el análisis de datos.</li>
+                            <li>Identificar los diferentes tipos de bases de datos y sus ventajas.</li>
+                            <li>Administrar y gestionar bases de datos relacionales con Microsoft SQL Server.</li>
+                            <li>Administrar y gestionar ecosistemas de Big Data con Databricks y Apache Spark.</li>
+                            <li>Crear modelos de minería de datos y redes neuronales.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Interactive Modules Section -->
+        <section class="py-16">
+            <div class="container mx-auto px-6">
+                <div class="max-w-4xl mx-auto">
+                    <h3 class="text-3xl font-bold text-black mb-8 text-center">Explora Nuestro Plan de Estudios</h3>
+                    <div id="accordion-container" class="space-y-4">
+                        <!-- Módulo 1 -->
+                        <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
+                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
+                                <span>Módulo 1: Introducción a bases de datos con Python</span>
+                                <span class="icon text-usta-yellow">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </span>
+                            </button>
+                            <div class="accordion-content bg-gray-100 text-gray-700">
+                                <p><strong>Temas:</strong> Tipos y estructuras de datos, Programación Orientada a Objetos, librerías Numpy y Pandas, conexión a bases de datos y visualización con Matplotlib y Seaborn.</p>
+                            </div>
+                        </div>
+                        <!-- Módulo 2 -->
+                        <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
+                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
+                                <span>Módulo 2: Bases de Datos MICROSOFT SQL SERVER</span>
+                                <span class="icon text-usta-yellow">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </span>
+                            </button>
+                            <div class="accordion-content bg-gray-100 text-gray-700">
+                               <p><strong>Temas:</strong> Introducción a bases de datos relacionales, comandos DDL, DML y DCL. Creación y uso de Vistas, Funciones, Procedimientos Almacenados y Triggers.</p>
+                            </div>
+                        </div>
+                        <!-- Módulo 3 -->
+                        <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
+                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
+                                <span>Módulo 3: Databricks y Apache Spark para Big Data</span>
+                                <span class="icon text-usta-yellow">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </span>
+                            </button>
+                            <div class="accordion-content bg-gray-100 text-gray-700">
+                                <p><strong>Temas:</strong> Introducción a Big Data y el ecosistema Hadoop. Manejo de la plataforma Databricks, RDDs, Dataframes, Spark SQL y Machine Learning con Spark.</p>
+                            </div>
+                        </div>
+                        <!-- Módulo 4 -->
+                        <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
+                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
+                                <span>Módulo 4: Introducción a Minería de Datos y Redes Neuronales</span>
+                                <span class="icon text-usta-yellow">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </span>
+                            </button>
+                            <div class="accordion-content bg-gray-100 text-gray-700">
+                               <p><strong>Temas:</strong> Introducción a la minería de datos, tipos de modelos de Machine Learning (Clasificación y Regresión), y fundamentos de Redes Neuronales.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Schedule Section -->
+        <section class="py-16 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="max-w-4xl mx-auto">
+                    <h3 class="text-3xl font-bold text-black mb-8 text-center">Cronograma</h3>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+                        <table class="min-w-full divide-y-2 divide-gray-200 text-sm">
+                             <thead class="bg-usta-blue text-white">
+                                <tr>
+                                    <th class="whitespace-nowrap px-4 py-3 font-semibold text-left">Módulo</th>
+                                    <th class="whitespace-nowrap px-4 py-3 font-semibold text-left">Fechas</th>
+                                    <th class="whitespace-nowrap px-4 py-3 font-semibold text-left">Horario</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">Módulo 1</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">16/06/2025 - 24/06/2025</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">Lunes a viernes 6pm-10pm</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">Módulo 2</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">25/06/2025 - 07/07/2025</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">Lunes a viernes 6pm-10pm</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">Módulo 3</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">08/07/2025 - 15/07/2025</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">Lunes a viernes 6pm-10pm</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">Módulo 4</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">16/07/2025 - 28/07/2025</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">Lunes a viernes 6pm-10pm</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-usta-blue text-white py-6">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2024. Universidad Santo Tomás.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Acordeón
+        document.addEventListener('DOMContentLoaded', function () {
+            const accordionContainer = document.getElementById('accordion-container');
+            if (accordionContainer) {
+                accordionContainer.addEventListener('click', function(event) {
+                    const button = event.target.closest('.accordion-button');
+                    if (!button) return;
+                    const allButtons = accordionContainer.querySelectorAll('.accordion-button');
+                    if (button.classList.contains('active')) {
+                        button.classList.remove('active');
+                    } else {
+                        allButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                    }
+                });
+            }
+            mermaid.initialize({ startOnLoad: false, theme: 'base', themeVariables: {
+                primaryColor: '#f3f4f6', primaryTextColor: '#1f2937',
+                lineColor: '#003366', textColor: '#1f2937'
+            }});
+        });
+    </script>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const carouselItems = [
+            {
+                type: 'mermaid',
+                title: 'Diseño de Bases de Datos Relacionales',
+                code: `erDiagram
+    CLIENTE ||--o{ ORDEN : "realiza"
+    ORDEN ||--|{ DETALLE_ORDEN : "contiene"
+    PRODUCTO }|--|| DETALLE_ORDEN : "es parte de"
+
+    CLIENTE {
+        int id PK
+        string nombre
+        string email
+    }
+    ORDEN {
+        int id PK
+        int cliente_id FK
+        date fecha
+    }
+    PRODUCTO {
+        int id PK
+        string nombre
+        float precio
+    }
+    DETALLE_ORDEN {
+        int orden_id PK
+        int producto_id PK
+        int cantidad
+    }`
+            },
+            {
+                type: 'mermaid',
+                title: 'Flujo de una Consulta SQL',
+                code: `graph TD
+    A[Tabla Ventas] --> C{JOIN};
+    B[Tabla Clientes] --> C;
+    C --> D[Filtro WHERE Region='LATAM'];
+    D --> E[Agrupar GROUP BY Pais];
+    E --> F(Resultado Final);
+
+    style A fill:#FFCC00,stroke:#333,stroke-width:2px;
+    style B fill:#FFCC00,stroke:#333,stroke-width:2px;
+    style F fill:#DA291C,stroke:#333,stroke-width:2px,color:#fff;`
+            },
+            { type: 'd3', title: 'Flujo de Datos (ETL)', component: 'ETLVisualization' },
+            { type: 'd3', title: 'Procesamiento Distribuido (Big Data)', component: 'SparkVisualization' },
+            { type: 'd3', title: 'Inteligencia Artificial y Redes Neuronales', component: 'NeuralNetwork' }
+        ];
+
+        const MermaidDiagram = ({ code }) => {
+            const ref = useRef(null);
+            useEffect(() => {
+                if (ref.current) {
+                    try {
+                        ref.current.removeAttribute('data-processed');
+                        ref.current.innerHTML = code;
+                        mermaid.run({ nodes: [ref.current] });
+                    } catch (e) {
+                        console.error("Error rendering Mermaid diagram:", e);
+                        ref.current.innerHTML = "Error al renderizar el diagrama.";
+                    }
+                }
+            }, [code]);
+            return <div className="mermaid w-full h-full flex items-center justify-center" ref={ref}></div>;
+        };
+        
+        const D3Visualization = ({ componentType }) => {
+             const ref = useRef();
+             useEffect(() => {
+                let timer;
+                if(componentType === 'NeuralNetwork'){
+                    timer = drawNeuralNetwork(ref.current);
+                } else if(componentType === 'SparkVisualization') {
+                    timer = drawSparkVisualization(ref.current);
+                } else if(componentType === 'ETLVisualization') {
+                    timer = drawETLVisualization(ref.current);
+                }
+                return () => {
+                    if (timer) timer.stop();
+                    const svgElement = d3.select(ref.current);
+                    if (svgElement) svgElement.selectAll("*").remove();
+                }
+             }, [componentType]);
+             return <svg ref={ref} className="w-full h-full"></svg>;
+        };
+
+        const drawETLVisualization = (svgNode) => {
+            const svgElement = d3.select(svgNode);
+            svgElement.selectAll("*").remove();
+            const width = 500, height = 300;
+            const svg = svgElement.attr("viewBox", `0 0 ${width} ${height}`);
+            const sources = [ { x: 50, y: 80, type: 'db' }, { x: 50, y: 220, type: 'cloud' } ];
+            const transformNode = { x: 250, y: 150 };
+            const destinationNode = { x: 450, y: 150 };
+            svg.append("defs").append("marker").attr("id", "arrow").attr("viewBox", "0 -5 10 10").attr("refX", 5).attr("refY", 0).attr("markerWidth", 4).attr("markerHeight", 4).attr("orient", "auto").append("path").attr("d", "M0,-5L10,0L0,5").attr("class","arrowhead").style("fill", "#003366");
+            sources.forEach(source => { svg.append("line").attr('x1', source.x + 30).attr('y1', source.y).attr('x2', transformNode.x - 45).attr('y2', transformNode.y).attr("stroke", "#003366").attr("stroke-width", 2).attr("marker-end", "url(#arrow)"); });
+            svg.append("line").attr('x1', transformNode.x + 45).attr('y1', transformNode.y).attr('x2', destinationNode.x - 30).attr('y2', destinationNode.y).attr("stroke", "#003366").attr("stroke-width", 2).attr("marker-end", "url(#arrow)");
+            const db = svg.append('g').attr('transform', `translate(${sources[0].x}, ${sources[0].y})`);
+            db.append('path').attr('d', 'M0-20c0-8.284,13.43-15,30-15s30,6.716,30,15v40c0,8.284-13.43,15-30,15s-30-6.716-30-15z').attr('fill', '#FFCC00');
+            db.append('path').attr('d', 'M0-20c0,8.284,13.43,15,30,15s30-6.716,30-15').attr('fill', 'none').attr('stroke', '#003366').attr('stroke-width', 2);
+            db.append('text').text('SQL').attr('x', 15).attr('y', 5).style('fill', '#003366').style('font-weight', 'bold');
+            const cloud = svg.append('g').attr('transform', `translate(${sources[1].x}, ${sources[1].y})`);
+            cloud.append('path').attr('d', 'M43.7,18.5c-0.2-7.8-6.7-14.1-14.6-14.1c-6.1,0-11.3,3.7-13.5,8.8c-1.4-0.8-3-1.3-4.7-1.3c-4.8,0-8.8,3.9-8.8,8.8c0,0.5,0,1,0.1,1.4C1.1,23.3,0,25.9,0,28.8C0,33.9,4.1,38,9.2,38h34.3c5,0,9.1-4.1,9.1-9.1C52.6,23.8,48.8,19.6,43.7,18.5z').attr('fill', '#FFCC00');
+            cloud.append('text').text('APIs').attr('x', 26).attr('y', 23).attr('text-anchor', 'middle').style('fill', '#003366').style('font-weight', 'bold');
+            svg.append('rect').attr('x', transformNode.x-40).attr('y', transformNode.y-25).attr('width', 80).attr('height', 50).attr('rx', 5).attr('fill', '#DA291C');
+            svg.append('text').text('Transform').attr('x', transformNode.x).attr('y', transformNode.y).attr('text-anchor', 'middle').attr('dy', '.3em').style('fill', 'white').style('font-weight', 'bold');
+            const dest = svg.append('g').attr('transform', `translate(${destinationNode.x}, ${destinationNode.y})`);
+            dest.append('rect').attr('x', -25).attr('y', 0).attr('width', 10).attr('height', -25).attr('fill', '#FFCC00');
+            dest.append('rect').attr('x', -10).attr('y', 0).attr('width', 10).attr('height', -40).attr('fill', '#FFCC00');
+            dest.append('rect').attr('x', 5).attr('y', 0).attr('width', 10).attr('height', -20).attr('fill', '#FFCC00');
+            dest.append('text').text('DWH').attr('x', -5).attr('y', 15).attr('text-anchor', 'middle').style('fill', '#003366').style('font-weight', 'bold');
+            const timer = d3.interval(() => {
+                const source = sources[Math.floor(Math.random() * sources.length)];
+                const packet = svg.append('circle').attr('r', 5).attr('cx', source.x+30).attr('cy', source.y).style('fill', '#003366');
+                packet.transition().duration(1500).attr('cx', transformNode.x).attr('cy', transformNode.y).on('end', () => { packet.style('fill', '#009B77').transition().duration(1500).attr('cx', destinationNode.x).attr('cy', destinationNode.y).remove(); });
+            }, 1000);
+            return timer;
+        };
+
+        const drawNeuralNetwork = (svgNode) => {
+            const svgElement = d3.select(svgNode);
+            svgElement.selectAll("*").remove();
+            const width = 500, height = 300;
+            const layers = [{ count: 4, x: 50 }, { count: 5, x: 250 }, { count: 3, x: 450 }];
+            const nodes = [], links = [];
+            layers.forEach((layer, i) => {
+                const layerNodes = d3.range(layer.count).map(j => ({ layer: i, y: (height / (layer.count + 1)) * (j + 1) }));
+                nodes.push(...layerNodes);
+                if (i > 0) {
+                    const prevLayerNodes = nodes.filter(n => n.layer === i - 1);
+                    layerNodes.forEach(node => { prevLayerNodes.forEach(prevNode => { links.push({ source: prevNode, target: node }); }); });
+                }
+            });
+            nodes.forEach(node => { node.x = layers[node.layer].x; });
+            const svg = svgElement.attr("viewBox", `0 0 ${width} ${height}`);
+            svg.selectAll(".link").data(links).join("line").attr("x1", d => d.source.x).attr("y1", d => d.source.y).attr("x2", d => d.target.x).attr("y2", d => d.target.y).attr("stroke", "#003366").attr("stroke-opacity", 0.4).attr("stroke-width", 1.5);
+            svg.selectAll(".node").data(nodes).join("circle").attr("cx", d => d.x).attr("cy", d => d.y).attr("r", 10).attr("fill", "#FFCC00");
+            const timer = d3.interval(() => {
+                const link = links[Math.floor(Math.random() * links.length)];
+                const circle = svg.append("circle").attr("r", 5).attr("fill", "#DA291C").attr("cx", link.source.x).attr("cy", link.source.y);
+                circle.transition().duration(1500).attr("cx", link.target.x).attr("cy", link.target.y).on("end", () => circle.remove());
+            }, 500);
+            return timer;
+        };
+
+        const drawSparkVisualization = (svgNode) => {
+             const svgElement = d3.select(svgNode);
+             svgElement.selectAll("*").remove();
+             const width = 500, height = 300;
+             const svg = svgElement.attr("viewBox", `0 0 ${width} ${height}`);
+             const masterNode = { x: width / 2, y: 50, label: "Master" };
+             const workerNodes = d3.range(4).map(i => ({ x: (width / 5) * (i + 1), y: 250, label: `Worker ${i+1}` }));
+             svg.append("circle").attr("cx", masterNode.x).attr("cy", masterNode.y).attr("r", 25).attr("fill", "#003366");
+             svg.append("text").text(masterNode.label).attr("x", masterNode.x).attr("y", masterNode.y).attr("text-anchor", "middle").attr("dy", ".3em").attr("fill", "white").attr("font-size", "10px");
+             workerNodes.forEach(node => {
+                svg.append("circle").attr("cx", node.x).attr("cy", node.y).attr("r", 20).attr("fill", "#FFCC00");
+                svg.append("text").text(node.label).attr("x", node.x).attr("y", node.y).attr("text-anchor", "middle").attr("dy", ".3em").attr("fill", "#003366").attr("font-size", "8px");
+             });
+            const timer = d3.interval(() => {
+                const worker = workerNodes[Math.floor(Math.random() * workerNodes.length)];
+                const dataPacket = svg.append("circle").attr("r", 6).attr("fill", "#DA291C").attr("cx", masterNode.x).attr("cy", masterNode.y);
+                dataPacket.transition().duration(1000).attr("cx", worker.x).attr("cy", worker.y).transition().duration(500).style("opacity", 0)
+                .on("end", () => {
+                    const resultPacket = svg.append("circle").attr("r", 4).attr("fill", "#009B77").attr("cx", worker.x).attr("cy", worker.y);
+                    resultPacket.transition().duration(1000).attr("cx", masterNode.x).attr("cy", masterNode.y).on("end", () => resultPacket.remove());
+                }).remove();
+            }, 2000);
+            return timer;
+        };
+
+        const Carousel = () => {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const nextSlide = () => setCurrentIndex(prev => (prev + 1) % carouselItems.length);
+            const prevSlide = () => setCurrentIndex(prev => (prev - 1 + carouselItems.length) % carouselItems.length);
+            
+            useEffect(() => {
+                const autoPlay = setInterval(nextSlide, 8000);
+                return () => clearInterval(autoPlay);
+            }, []);
+
+            return (
+                <div className="relative w-full max-w-3xl mx-auto h-80 bg-gray-100 rounded-lg shadow-2xl overflow-hidden group">
+                    {carouselItems.map((item, index) => (
+                        <div key={index} className={`carousel-item flex items-center justify-center p-4`} style={{ opacity: index === currentIndex ? 1 : 0, zIndex: index === currentIndex ? 1 : 0 }}>
+                            {item.type === 'mermaid' && <MermaidDiagram code={item.code} />}
+                            {item.type === 'd3' && <D3Visualization componentType={item.component} />}
+                        </div>
+                    ))}
+                    <div className="absolute inset-0 flex items-center justify-between p-4">
+                        <button onClick={prevSlide} className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full bg-black bg-opacity-40 text-white hover:bg-opacity-60 z-10">
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <button onClick={nextSlide} className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-full bg-black bg-opacity-40 text-white hover:bg-opacity-60 z-10">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                        </button>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 text-center text-white bg-black bg-opacity-60 p-2 text-md font-semibold z-10">
+                        {carouselItems[currentIndex].title}
+                    </div>
+                </div>
+            );
+        };
+
+        const container = document.getElementById('carousel-root');
+        if (container) {
+            const root = ReactDOM.createRoot(container);
+            root.render(<Carousel />);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html><html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase: Análisis de Datos con SQL</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+        pre code {
+            font-family: 'Source Code Pro', monospace;
+            text-align: left;
+        }
+        /* Colores Institucionales USTA */
+        .bg-usta-blue { background-color: #003366; }
+        .text-usta-blue { color: #003366; }
+        
+        .bg-usta-yellow { background-color: #FFCC00; }
+        .text-usta-yellow { color: #FFCC00; }
+        
+        .bg-usta-red { background-color: #DA291C; }
+        .text-usta-red { color: #DA291C; }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-usta-blue shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="index.html">
+                <img src="https://usantotomas.edu.co/hs-fs/hubfs/social-suggested-images/usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png?width=282&height=65&name=usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png" 
+                     alt="Logo Universidad Santo Tomás" 
+                     class="h-12"
+                     onerror="this.onerror=null;this.src='https://placehold.co/282x65/003366/FFFFFF?text=Universidad+Santo+Tomás';">
+            </a>
+            <h1 class="hidden md:block text-xl lg:text-2xl font-bold text-white text-right">Clase de SQL y Python</h1>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 sm:px-6 py-12">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white p-8 rounded-lg shadow-xl mb-8">
+                <h2 class="text-3xl font-bold text-usta-red mb-4 text-center">Análisis de Datos con Python, Pandas y SQL</h2>
+                <p class="text-lg text-gray-700 text-center">Un resumen práctico de los conceptos clave para la manipulación y consulta de datos.</p>
+            </div>
+
+            <!-- Contenido de la Clase -->
+            <div class="space-y-12">
+                <!-- Herramientas del Proyecto -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">1. Herramientas del Proyecto</h3>
+                    <ul class="list-disc list-inside text-gray-700 text-lg space-y-3">
+                        <li><b>Python:</b> Lenguaje de programación versátil y potente para el análisis de datos.</li>
+                        <li><b>Pandas:</b> Librería fundamental para la manipulación y análisis de datos en Python.</li>
+                        <li><b>SQLite:</b> Sistema de gestión de bases de datos ligero, ideal para prototipado.</li>
+                    </ul>
+                </div>
+                
+                <!-- DDL -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">2. Gestión de BD: DDL (Lenguaje de Definición de Datos)</h3>
+                    <p class="text-gray-700 text-lg mb-4">Controlamos la estructura de la base de datos con comandos DDL.</p>
+                    <pre><code class="sql rounded-lg text-left">
+-- Crear una tabla
+CREATE TABLE EMPLOYEE(
+    FIRST_NAME CHAR(20) NOT NULL,
+    LAST_NAME CHAR(20),
+    AGE INT
+);
+
+-- Modificar una tabla para añadir una columna
+ALTER TABLE EMPLOYEE
+ADD COLUMN EMPLOYEE_CODE INT;
+
+-- Eliminar una tabla
+DROP TABLE EMPLOYEE;</code></pre>
+                </div>
+                
+                <!-- DML -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">3. Gestión de BD: DML (Lenguaje de Manipulación de Datos)</h3>
+                    <p class="text-gray-700 text-lg mb-4">Manipulamos los registros almacenados en las tablas.</p>
+                    <pre><code class="sql rounded-lg text-left">
+-- Insertar nuevos registros
+INSERT INTO EMPLOYEE (FIRST_NAME, LAST_NAME, AGE)
+VALUES ('Wilmer', 'Pineda', 33);
+
+-- Actualizar registros existentes
+UPDATE EMPLOYEE
+SET LAST_NAME = 'González'
+WHERE FIRST_NAME = 'Pepito';</code></pre>
+                </div>
+
+                <!-- Carga de Datos -->
+                 <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">4. Carga de Datos: Pandas y SQL</h3>
+                    <p class="text-gray-700 text-lg mb-4">Una de las grandes ventajas de Pandas es su capacidad para interactuar con bases de datos SQL de forma sencilla.</p>
+                    <pre><code class="python rounded-lg text-left">
+import pandas as pd
+import sqlite3
+
+# Cargar datos desde un archivo (ej. Parquet)
+df = pd.read_parquet("data/SB11_20232.parquet")
+
+# Conectar a la base de datos
+conn = sqlite3.connect('data_icfes.db')
+
+# Cargar el DataFrame en una tabla SQL
+# 'if_exists='replace'' borra la tabla si ya existe.
+df.to_sql('data_icfes', conn, index=False, if_exists='replace')</code></pre>
+                </div>
+
+                <!-- Consultas -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">5. Consultas de Datos con `read_sql_query`</h3>
+                    <p class="text-gray-700 text-lg mb-4">Ejecutamos consultas SQL y cargamos los resultados directamente en un DataFrame de Pandas.</p>
+                    <pre><code class="python rounded-lg text-left">
+query = """
+    SELECT ESTU_DEPTO_RESIDE, AVG(PUNT_GLOBAL) as Promedio
+    FROM data_icfes
+    GROUP BY ESTU_DEPTO_RESIDE
+    ORDER BY Promedio DESC
+"""
+
+# Ejecutar la consulta y obtener un DataFrame
+df_resultados = pd.read_sql_query(query, conn)
+
+print(df_resultados.head())</code></pre>
+                </div>
+
+                <!-- Alternativa con Pandas -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">6. Alternativa de Análisis con Pandas</h3>
+                    <p class="text-gray-700 text-lg mb-4">Muchas operaciones SQL tienen un equivalente directo y muy expresivo en Pandas. El método <code>.agg()</code> es especialmente potente.</p>
+                     <pre><code class="python rounded-lg text-left">
+df.groupby('ESTU_DEPTO_RESIDE').agg(
+    number_of_students = ('ESTU_TIPODOCUMENTO', "count"),
+    average_global_score = ('PUNT_GLOBAL', "mean"),
+    median_global_score = ('PUNT_GLOBAL', "median"),
+)</code></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-usta-blue text-white py-6 mt-12">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2024. Universidad Santo Tomás.</p>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+        });
+    </script>
+
+</body>
+</html>
