@@ -1,8 +1,9 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clase: Análisis de Datos con SQL</title>
+    <title>Clase Avanzada: SQL para Análisis de Datos</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- highlight.js for code syntax highlighting -->
@@ -49,105 +50,192 @@
     <main class="flex-grow container mx-auto px-4 sm:px-6 py-12">
         <div class="max-w-4xl mx-auto">
             <div class="bg-white p-8 rounded-lg shadow-xl mb-8">
-                <h2 class="text-3xl font-bold text-usta-red mb-4 text-center">Análisis de Datos con Python, Pandas y SQL</h2>
-                <p class="text-lg text-gray-700 text-center">Un resumen práctico de los conceptos clave para la manipulación y consulta de datos.</p>
+                <h2 class="text-3xl font-bold text-usta-red mb-4 text-center">Análisis de Datos de Seguridad con SQL y Python</h2>
+                <p class="text-lg text-gray-700 text-center">Una inmersión profunda en la manipulación y consulta de datos utilizando un caso de estudio sobre el delito de secuestro en Colombia.</p>
+            </div>
+
+            <div class="text-center mb-10">
+                <a href="index.html" class="text-usta-blue hover:text-usta-red font-semibold underline transition-colors duration-300">
+                    &larr; Volver a la página principal
+                </a>
             </div>
 
             <!-- Contenido de la Clase -->
             <div class="space-y-12">
-                <!-- Herramientas del Proyecto -->
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">1. Herramientas del Proyecto</h3>
-                    <ul class="list-disc list-inside text-gray-700 text-lg space-y-3">
-                        <li><b>Python:</b> Lenguaje de programación versátil y potente para el análisis de datos.</li>
-                        <li><b>Pandas:</b> Librería fundamental para la manipulación y análisis de datos en Python.</li>
-                        <li><b>SQLite:</b> Sistema de gestión de bases de datos ligero, ideal para prototipado.</li>
-                    </ul>
-                </div>
-                
-                <!-- DDL -->
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">2. Gestión de BD: DDL (Lenguaje de Definición de Datos)</h3>
-                    <p class="text-gray-700 text-lg mb-4">Controlamos la estructura de la base de datos con comandos DDL.</p>
-                    <pre><code class="sql rounded-lg text-left">
--- Crear una tabla
-CREATE TABLE EMPLOYEE(
-    FIRST_NAME CHAR(20) NOT NULL,
-    LAST_NAME CHAR(20),
-    AGE INT
-);
 
--- Modificar una tabla para añadir una columna
-ALTER TABLE EMPLOYEE
-ADD COLUMN EMPLOYEE_CODE INT;
-
--- Eliminar una tabla
-DROP TABLE EMPLOYEE;</code></pre>
-                </div>
-                
-                <!-- DML -->
+                <!-- 1. El Rol de SQL en el Análisis de Datos de Seguridad -->
                 <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">3. Gestión de BD: DML (Lenguaje de Manipulación de Datos)</h3>
-                    <p class="text-gray-700 text-lg mb-4">Manipulamos los registros almacenados en las tablas.</p>
-                    <pre><code class="sql rounded-lg text-left">
--- Insertar nuevos registros
-INSERT INTO EMPLOYEE (FIRST_NAME, LAST_NAME, AGE)
-VALUES ('Wilmer', 'Pineda', 33);
-
--- Actualizar registros existentes
-UPDATE EMPLOYEE
-SET LAST_NAME = 'González'
-WHERE FIRST_NAME = 'Pepito';</code></pre>
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">1. El Rol de SQL en el Análisis de Datos de Seguridad</h3>
+                    <p class="text-gray-700 text-lg mb-4">Analizar datos de seguridad, como las estadísticas de delitos, requiere herramientas robustas capaces de manejar grandes volúmenes de información y establecer relaciones complejas. SQL es el lenguaje por excelencia para esta tarea, permitiendo a los analistas filtrar, agregar y cruzar datos directamente en la base de datos para identificar patrones, tendencias y puntos críticos.</p>
+                    <p class="text-gray-700 text-lg">Dominar SQL es esencial para responder preguntas como: ¿Qué departamentos tienen la mayor incidencia de un delito? ¿Cómo ha evolucionado un crimen a lo largo del tiempo? ¿Existe una correlación entre diferentes tipos de delitos?</p>
                 </div>
 
-                <!-- Carga de Datos -->
-                 <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">4. Carga de Datos: Pandas y SQL</h3>
-                    <p class="text-gray-700 text-lg mb-4">Una de las grandes ventajas de Pandas es su capacidad para interactuar con bases de datos SQL de forma sencilla.</p>
+                <!-- 2. Caso de Estudio: Secuestros en Colombia -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">2. Caso de Estudio: Secuestros en Colombia</h3>
+                    <p class="text-gray-700 text-lg mb-4">Para este análisis, utilizaremos el conjunto de datos sobre **Secuestro** publicado por la Policía Nacional en la plataforma de <strong>Datos Abiertos de Colombia</strong>. Nuestro objetivo es cargar estos datos, estructurarlos en una base de datos relacional y realizar un análisis exploratorio.</p>
+                    <h4 class="text-xl font-semibold text-gray-800 mt-6 mb-2">Paso 1: Carga y Limpieza de Datos con Python</h4>
+                    <p class="text-gray-700 text-lg mb-4">Primero, extraemos los datos de la API, los cargamos en Pandas y realizamos una limpieza inicial para asegurar la calidad de los datos.</p>
                     <pre><code class="python rounded-lg text-left">
 import pandas as pd
+import requests
 import sqlite3
 
-# Cargar datos desde un archivo (ej. Parquet)
-df = pd.read_parquet("data/SB11_20232.parquet")
+# API endpoint para el delito de secuestro
+api_url = "https://www.datos.gov.co/resource/886s-p2i3.json?$limit=10000"
 
-# Conectar a la base de datos
-conn = sqlite3.connect('data_icfes.db')
+response = requests.get(api_url)
+data = response.json()
+df_secuestros = pd.DataFrame(data)
 
-# Cargar el DataFrame en una tabla SQL
-# 'if_exists='replace'' borra la tabla si ya existe.
-df.to_sql('data_icfes', conn, index=False, if_exists='replace')</code></pre>
+# --- Limpieza y Transformación ---
+# Convertir 'cantidad' a numérico, manejando errores
+df_secuestros['cantidad'] = pd.to_numeric(df_secuestros['cantidad'], errors='coerce').fillna(0).astype(int)
+# Convertir 'fecha_hecho' a datetime
+df_secuestros['fecha_hecho'] = pd.to_datetime(df_secuestros['fecha_hecho'], errors='coerce')
+# Extraer el año para análisis temporal
+df_secuestros['año'] = df_secuestros['fecha_hecho'].dt.year
+
+# Eliminar registros sin departamento o año
+df_secuestros.dropna(subset=['departamento', 'año'], inplace=True)
+df_secuestros['año'] = df_secuestros['año'].astype(int)
+
+# --- Crear Base de Datos y Cargar Datos ---
+conn = sqlite3.connect('seguridad.db') # Creamos una base de datos física
+df_secuestros.to_sql('secuestros', conn, index=False, if_exists='replace')
+
+print("Base de datos 'seguridad.db' creada y tabla 'secuestros' cargada.")
+print(f"Total de registros procesados: {len(df_secuestros)}")
+                    </code></pre>
+                </div>
+                
+                <!-- 3. DDL: Definiendo la Estructura -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">3. DDL: Definiendo la Estructura de la Base de Datos</h3>
+                    <p class="text-gray-700 text-lg mb-4">Para enriquecer nuestro análisis, crearemos una segunda tabla con datos de población por departamento. Esto nos permitirá calcular tasas y normalizar nuestros resultados. Usamos `CREATE TABLE` para definir su estructura y `ALTER TABLE` para modificarla si es necesario.</p>
+                    <pre><code class="sql rounded-lg text-left">
+-- Crear una tabla para la población de los departamentos
+CREATE TABLE poblacion_deptos (
+    id_depto INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_depto TEXT NOT NULL UNIQUE,
+    poblacion INTEGER NOT NULL,
+    region TEXT
+);
+
+-- Modificar la tabla 'secuestros' para añadir una clave foránea (opcional, para integridad)
+-- Nota: SQLite tiene soporte limitado para añadir FK a tablas existentes.
+-- Esto es más conceptual para mostrar el comando.
+ALTER TABLE secuestros
+ADD COLUMN depto_id INTEGER;
+                    </code></pre>
+                </div>
+                
+                <!-- 4. DML: Poblando y Actualizando Nuestra Base de Datos -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">4. DML: Poblando y Actualizando Nuestra Base de Datos</h3>
+                    <p class="text-gray-700 text-lg mb-4">Ahora usamos DML para insertar los datos de población en nuestra nueva tabla y realizar actualizaciones.</p>
+                    <pre><code class="sql rounded-lg text-left">
+-- Insertar datos de población para algunos departamentos (ejemplo)
+INSERT INTO poblacion_deptos (nombre_depto, poblacion, region) VALUES
+('ANTIOQUIA', 6677930, 'Andina'),
+('CUNDINAMARCA', 3242996, 'Andina'),
+('VALLE DEL CAUCA', 4532152, 'Pacífico'),
+('ATLÁNTICO', 2722128, 'Caribe'),
+('BOGOTÁ, D.C.', 7743955, 'Andina');
+
+
+-- Actualizar un registro. Corregir un nombre mal escrito (hipotético)
+UPDATE secuestros
+SET departamento = 'BOGOTÁ, D.C.'
+WHERE departamento = 'BOGOTA'; -- Asumiendo una posible inconsistencia
+
+-- Eliminar registros antiguos para un análisis más enfocado (ejemplo)
+DELETE FROM secuestros
+WHERE año < 2015;
+                    </code></pre>
                 </div>
 
-                <!-- Consultas -->
+                <!-- 5. DQL: Consultas Avanzadas para el Análisis -->
                 <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">5. Consultas de Datos con `read_sql_query`</h3>
-                    <p class="text-gray-700 text-lg mb-4">Ejecutamos consultas SQL y cargamos los resultados directamente en un DataFrame de Pandas.</p>
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">5. DQL: Consultas Avanzadas para el Análisis</h3>
+                    <p class="text-gray-700 text-lg mb-4">Con nuestras tablas listas, podemos empezar a extraer insights valiosos. DQL (`SELECT`) es la herramienta para ello.</p>
+                    
+                    <h4 class="text-xl font-semibold text-gray-800 mt-6 mb-2">Consulta 1: Total de víctimas de secuestro por tipo y departamento</h4>
                     <pre><code class="python rounded-lg text-left">
-query = """
-    SELECT ESTU_DEPTO_RESIDE, AVG(PUNT_GLOBAL) as Promedio
-    FROM data_icfes
-    GROUP BY ESTU_DEPTO_RESIDE
-    ORDER BY Promedio DESC
+query1 = """
+    SELECT 
+        departamento,
+        descripcion_conducta,
+        SUM(cantidad) AS total_victimas
+    FROM 
+        secuestros
+    WHERE 
+        descripcion_conducta IN ('SECUESTRO EXTORSIVO', 'SECUESTRO SIMPLE')
+    GROUP BY 
+        departamento, descripcion_conducta
+    ORDER BY 
+        departamento, total_victimas DESC;
 """
+df1 = pd.read_sql_query(query1, conn)
+print("--- Víctimas de secuestro por tipo y departamento ---")
+print(df1.head(10))
+                    </code></pre>
 
-# Ejecutar la consulta y obtener un DataFrame
-df_resultados = pd.read_sql_query(query, conn)
-
-print(df_resultados.head())</code></pre>
+                    <h4 class="text-xl font-semibold text-gray-800 mt-6 mb-2">Consulta 2: Tasa de secuestros por 100,000 habitantes (usando JOIN)</h4>
+                    <p class="text-gray-700 text-lg mb-4">Aquí combinamos nuestras dos tablas para obtener un indicador más justo: la tasa de secuestros en lugar del número absoluto.</p>
+                    <pre><code class="python rounded-lg text-left">
+query2 = """
+    SELECT
+        s.departamento,
+        p.poblacion,
+        SUM(s.cantidad) AS total_secuestros,
+        -- Usamos CAST para asegurar la división de punto flotante
+        (CAST(SUM(s.cantidad) AS REAL) / p.poblacion) * 100000 AS tasa_por_100k
+    FROM 
+        secuestros s
+    JOIN 
+        poblacion_deptos p ON s.departamento = p.nombre_depto
+    GROUP BY 
+        s.departamento
+    ORDER BY 
+        tasa_por_100k DESC;
+"""
+df2 = pd.read_sql_query(query2, conn)
+print("\n--- Tasa de secuestros por 100,000 habitantes ---")
+print(df2.head())
+                    </code></pre>
                 </div>
-
-                <!-- Alternativa con Pandas -->
+                
+                <!-- 6. El Equivalente en Pandas -->
                 <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">6. Alternativa de Análisis con Pandas</h3>
-                    <p class="text-gray-700 text-lg mb-4">Muchas operaciones SQL tienen un equivalente directo y muy expresivo en Pandas. El método <code>.agg()</code> es especialmente potente.</p>
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">6. El Equivalente en Pandas: ¿Cuándo usar cuál?</h3>
+                    <p class="text-gray-700 text-lg mb-4">Pandas ofrece una sintaxis fluida y poderosa para realizar las mismas operaciones. La decisión de usar SQL o Pandas a menudo depende de dónde residen los datos y la complejidad de la tarea.</p>
+                    <ul class="list-disc list-inside text-gray-700 text-lg space-y-3 mb-6">
+                        <li><b>Usa SQL cuando:</b> Los datos son muy grandes y residen en una base de datos optimizada. Es mejor dejar que el motor de la BD haga el trabajo pesado.</li>
+                        <li><b>Usa Pandas cuando:</b> Ya tienes los datos en memoria, necesitas flexibilidad para la manipulación compleja, o para la integración con librerías de visualización y machine learning.</li>
+                    </ul>
                      <pre><code class="python rounded-lg text-left">
-df.groupby('ESTU_DEPTO_RESIDE').agg(
-    number_of_students = ('ESTU_TIPODOCUMENTO', "count"),
-    average_global_score = ('PUNT_GLOBAL', "mean"),
-    median_global_score = ('PUNT_GLOBAL', "median"),
-)</code></pre>
+# Equivalente en Pandas para la Consulta 2 (Tasa de secuestros)
+
+# Creamos el DataFrame de población
+poblacion_data = {
+    'nombre_depto': ['ANTIOQUIA', 'CUNDINAMARCA', 'VALLE DEL CAUCA', 'ATLÁNTICO', 'BOGOTÁ, D.C.'],
+    'poblacion': [6677930, 3242996, 4532152, 2722128, 7743955]
+}
+df_poblacion = pd.DataFrame(poblacion_data)
+
+# Realizamos el 'merge' (equivalente al JOIN)
+df_merged = pd.merge(df_secuestros, df_poblacion, left_on='departamento', right_on='nombre_depto')
+
+# Agrupamos y calculamos
+df_tasa_pandas = df_merged.groupby(['departamento', 'poblacion'])['cantidad'].sum().reset_index()
+df_tasa_pandas['tasa_por_100k'] = (df_tasa_pandas['cantidad'] / df_tasa_pandas['poblacion']) * 100000
+
+print("--- Tasa de secuestros (calculada con Pandas) ---")
+print(df_tasa_pandas.sort_values('tasa_por_100k', ascending=False).head())
+                    </code></pre>
                 </div>
+
             </div>
         </div>
     </main>
@@ -159,9 +247,34 @@ df.groupby('ESTU_DEPTO_RESIDE').agg(
         </div>
     </footer>
     
+    <!-- Botón para volver arriba -->
+    <a href="#" id="to-top-btn" class="fixed bottom-8 right-8 bg-usta-red text-white p-3 rounded-full shadow-lg hover:bg-red-700 transition-all duration-300 opacity-0 z-20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+        </svg>
+    </a>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             hljs.highlightAll();
+
+            const toTopBtn = document.getElementById('to-top-btn');
+
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) { // Muestra el botón después de 300px de scroll
+                    toTopBtn.classList.remove('opacity-0');
+                } else {
+                    toTopBtn.classList.add('opacity-0');
+                }
+            });
+
+            toTopBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
         });
     </script>
 
