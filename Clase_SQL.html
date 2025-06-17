@@ -3,280 +3,448 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clase Avanzada: SQL para Análisis de Datos</title>
+    <title>Fundamentos de Bases de Datos: Del Diseño a la Consulta Eficiente</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- highlight.js for code syntax highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Code+Pro&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --usta-blue: #003366;
+            --usta-red: #DA291C;
+            --usta-yellow: #FFCC00;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
         body {
             font-family: 'Montserrat', sans-serif;
         }
-        pre code {
-            font-family: 'Source Code Pro', monospace;
-            text-align: left;
+        pre code.hljs {
+            border-radius: 0.5rem;
+            padding: 1em;
         }
-        /* Colores Institucionales USTA */
-        .bg-usta-blue { background-color: #003366; }
-        .text-usta-blue { color: #003366; }
-        
-        .bg-usta-yellow { background-color: #FFCC00; }
-        .text-usta-yellow { color: #FFCC00; }
-        
-        .bg-usta-red { background-color: #DA291C; }
-        .text-usta-red { color: #DA291C; }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+            border-left: 4px solid transparent;
+        }
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: var(--usta-red);
+            color: white;
+            border-left-color: var(--usta-yellow);
+            transform: translateX(5px);
+        }
+        .mermaid {
+            text-align: center;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        details > summary {
+            cursor: pointer;
+            font-weight: 600;
+        }
     </style>
 </head>
-<body class="bg-gray-100 flex flex-col min-h-screen">
+<body class="bg-gray-100">
 
-    <!-- Header -->
-    <header class="bg-usta-blue shadow-md sticky top-0 z-10">
-        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="index.html">
-                <img src="https://usantotomas.edu.co/hs-fs/hubfs/social-suggested-images/usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png?width=282&height=65&name=usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png" 
-                     alt="Logo Universidad Santo Tomás" 
-                     class="h-12"
-                     onerror="this.onerror=null;this.src='https://placehold.co/282x65/003366/FFFFFF?text=Universidad+Santo+Tomás';">
-            </a>
-            <h1 class="hidden md:block text-xl lg:text-2xl font-bold text-white text-right">Clase de SQL y Python</h1>
-        </div>
-    </header>
-
-    <main class="flex-grow container mx-auto px-4 sm:px-6 py-12">
-        <div class="max-w-4xl mx-auto">
-            <div class="bg-white p-8 rounded-lg shadow-xl mb-8">
-                <h2 class="text-3xl font-bold text-usta-red mb-4 text-center">Análisis de Datos de Seguridad con SQL y Python</h2>
-                <p class="text-lg text-gray-700 text-center">Una inmersión profunda en la manipulación y consulta de datos utilizando un caso de estudio sobre el delito de secuestro en Colombia.</p>
-            </div>
-
-            <div class="text-center mb-10">
-                <a href="index.html" class="text-usta-blue hover:text-usta-red font-semibold underline transition-colors duration-300">
-                    &larr; Volver a la página principal
+    <div class="flex">
+        <!-- Sidebar de Navegación -->
+        <aside id="sidebar" class="sidebar text-white w-72 min-h-screen p-4 fixed top-0 left-0 flex-shrink-0 z-20 flex flex-col" style="background-color: #003366;">
+            <div class="mb-8">
+                <a href="index.html">
+                    <img src="https://usantotomas.edu.co/hs-fs/hubfs/social-suggested-images/usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png?width=282&height=65&name=usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png" alt="Logo USTA" class="h-12 mx-auto" onerror="this.onerror=null;this.src='https://placehold.co/200x50/003366/FFFFFF?text=Universidad';">
                 </a>
+                <h2 class="text-xl font-bold text-center mt-4">Fundamentos de BD</h2>
             </div>
+            <nav id="sidebar-nav" class="flex-grow">
+                <a href="#modulo1" class="sidebar-link active block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 1: Introducción y Conceptos Clave</a>
+                <a href="#modulo2" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 2: Diseño y Normalización</a>
+                <a href="#modulo3" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 3: SQL a Profundidad</a>
+                <a href="#modulo4" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 4: Taller y Optimización Avanzada</a>
+            </nav>
+            <div class="mt-auto text-center pt-8">
+                <a href="index.html" class="text-sm text-gray-300 hover:text-white underline"> &larr; Volver al Diplomado</a>
+            </div>
+        </aside>
 
-            <!-- Contenido de la Clase -->
-            <div class="space-y-12">
-
-                <!-- 1. El Rol de SQL en el Análisis de Datos de Seguridad -->
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">1. El Rol de SQL en el Análisis de Datos de Seguridad</h3>
-                    <p class="text-gray-700 text-lg mb-4">Analizar datos de seguridad, como las estadísticas de delitos, requiere herramientas robustas capaces de manejar grandes volúmenes de información y establecer relaciones complejas. SQL es el lenguaje por excelencia para esta tarea, permitiendo a los analistas filtrar, agregar y cruzar datos directamente en la base de datos para identificar patrones, tendencias y puntos críticos.</p>
-                    <p class="text-gray-700 text-lg">Dominar SQL es esencial para responder preguntas como: ¿Qué departamentos tienen la mayor incidencia de un delito? ¿Cómo ha evolucionado un crimen a lo largo del tiempo? ¿Existe una correlación entre diferentes tipos de delitos?</p>
+        <!-- Contenido Principal -->
+        <main class="ml-72 flex-1 p-6 md:p-10">
+            
+            <!-- Módulo 1 -->
+            <section id="modulo1" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 1: Introducción y Conceptos Clave</h1>
+                    <p class="text-lg text-gray-700">Sentando las bases: qué son las bases de datos, por qué son cruciales y cuáles son los principios que garantizan su fiabilidad.</p>
                 </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">1.1. El Ecosistema de Datos: Más allá de los Archivos</h3>
+                        <p class="text-gray-700 text-lg mb-4">No todos los almacenamientos de datos son iguales. Es crucial entender el propósito de cada uno:</p>
+                        <ul class="list-disc list-inside space-y-3 pl-4 text-gray-700">
+                            <li><strong>Archivos Planos (CSV, Excel):</strong> Excelentes para compartir y para análisis rápidos y pequeños. No gestionan concurrencia, seguridad ni integridad.</li>
+                            <li><strong>Bases de Datos (SGBD):</strong> Sistemas optimizados para transacciones operativas del día a día (lectura y escritura constante). Son la fuente de verdad para las aplicaciones.</li>
+                            <li><strong>Data Warehouse (Almacén de Datos):</strong> Bases de datos especializadas y optimizadas para el análisis y la generación de informes (Business Intelligence). Consolidan datos históricos de múltiples fuentes.</li>
+                            <li><strong>Data Lake (Lago de Datos):</strong> Repositorio centralizado para almacenar enormes cantidades de datos en su formato nativo (estructurados, semi-estructurados y no estructurados). Ideal para Machine Learning y Big Data.</li>
+                        </ul>
+                        <div id="d3-ecosystem" class="w-full h-96 mt-6" style="position: relative; z-index: 1;"></div>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">1.2. El Modelo Relacional y sus Garantías: ACID</h3>
+                        <p class="text-gray-700 text-lg mb-4">Las bases de datos relacionales garantizan la fiabilidad de las transacciones a través de las propiedades ACID:</p>
+                        <details class="bg-gray-50 p-4 rounded-lg">
+                            <summary class="text-lg text-usta-blue">Propiedades ACID (Click para expandir)</summary>
+                            <div class="mt-4 space-y-4">
+                                <p><strong><span class="font-bold text-red-600">A</span>tomicidad:</strong> Una transacción se ejecuta completamente o no se ejecuta en absoluto. Si falla a mitad de camino, todo se revierte (rollback). <em>Analogía: Una transferencia bancaria. O el dinero sale de una cuenta y llega a la otra, o no ocurre nada.</em></p>
+                                <p><strong><span class="font-bold text-red-600">C</span>onsistencia:</strong> La base de datos siempre se mantiene en un estado válido. Ninguna transacción puede dejar los datos en un estado "roto" que viole las reglas definidas (constraints). <em>Analogía: El saldo de una cuenta no puede ser negativo si existe esa regla.</em></p>
+                                <p><strong><span class="font-bold text-red-600">I</span>solamiento (Isolation):</strong> Las transacciones concurrentes no se interfieren entre sí. Cada una opera como si fuera la única que se está ejecutando en el sistema. <em>Analogía: Dos personas intentando comprar el último tiquete de avión al mismo tiempo. Solo una puede tener éxito.</em></p>
+                                <p><strong><span class="font-bold text-red-600">D</span>urabilidad:</strong> Una vez que una transacción se ha confirmado (commit), sus cambios son permanentes y sobrevivirán a cualquier fallo del sistema (como un corte de energía). <em>Analogía: Una vez que el cajero te da el dinero y el recibo, la transacción es final.</em></p>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </section>
 
-                <!-- 2. Caso de Estudio: Secuestros en Colombia -->
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">2. Caso de Estudio: Secuestros en Colombia</h3>
-                    <p class="text-gray-700 text-lg mb-4">Para este análisis, utilizaremos el conjunto de datos sobre **Secuestro** publicado por la Policía Nacional en la plataforma de <strong>Datos Abiertos de Colombia</strong>. Nuestro objetivo es cargar estos datos, estructurarlos en una base de datos relacional y realizar un análisis exploratorio.</p>
-                    <h4 class="text-xl font-semibold text-gray-800 mt-6 mb-2">Paso 1: Carga y Limpieza de Datos con Python</h4>
-                    <p class="text-gray-700 text-lg mb-4">Primero, extraemos los datos de la API, los cargamos en Pandas y realizamos una limpieza inicial para asegurar la calidad de los datos.</p>
-                    <pre><code class="python rounded-lg text-left">
+            <!-- Módulo 2 -->
+            <section id="modulo2" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 2: Diseño y Normalización</h1>
+                    <p class="text-lg text-gray-700">El arte de construir bases de datos robustas y eficientes. Aprenderemos a planificar con diagramas ERD, a eliminar la redundancia con las formas normales y a entender cuándo romper las reglas.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">2.1. El Arte de la Normalización</h3>
+                        <p class="text-gray-700 text-lg mb-4">La normalización es un proceso sistemático para reducir la redundancia y mejorar la integridad de los datos. Exploraremos las formas más comunes con ejemplos prácticos.</p>
+                        <div class="mermaid">
+                            stateDiagram-v2
+                                [*] --> NoNormalizada: "Tabla Plana"
+                                NoNormalizada --> 1FN : Aplicar atomicidad
+                                1FN --> 2FN : Eliminar dependencias parciales
+                                2FN --> 3FN : Eliminar dependencias transitivas
+                                3FN --> BCNF : Reforzar dependencias de clave
+                                BCNF --> [*] : "Esquema Normalizado"
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">2.2. Las Formas Normales en la Práctica</h3>
+                        <details class="mb-4 bg-gray-50 p-4 rounded-lg">
+                            <summary class="text-xl text-usta-blue">Primera Forma Normal (1FN): Valores Atómicos</summary>
+                            <div class="mt-4">
+                                <p class="text-gray-700 mb-4"><strong>Regla:</strong> Cada celda de una tabla debe contener un solo valor (atómico), y no puede haber grupos de columnas repetidas.</p>
+                                <h5 class="font-semibold">Anti-ejemplo (Viola 1FN):</h5>
+                                <table class="w-full text-sm text-left text-gray-500 my-2 border">
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">id_cliente</th><th class="px-6 py-3">nombre</th><th class="px-6 py-3">telefonos</th></tr></thead>
+                                    <tbody><tr class="bg-white border-b"><td class="px-6 py-4">1</td><td class="px-6 py-4">Juan Pérez</td><td class="px-6 py-4 text-red-600 font-bold">"310-123, 311-456"</td></tr></tbody>
+                                </table>
+                                <h5 class="font-semibold mt-4">Solución (Cumple 1FN):</h5>
+                                <p class="text-sm text-gray-600">Se divide en dos tablas.</p>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <table class="w-full text-sm text-left text-gray-500 my-2 border">
+                                        <thead class="text-xs text-gray-700 uppercase bg-green-50"><tr><th class="px-6 py-3">id_cliente (PK)</th><th class="px-6 py-3">nombre</th></tr></thead>
+                                        <tbody><tr class="bg-white border-b"><td class="px-6 py-4">1</td><td class="px-6 py-4">Juan Pérez</td></tr></tbody>
+                                    </table>
+                                    <table class="w-full text-sm text-left text-gray-500 my-2 border">
+                                        <thead class="text-xs text-gray-700 uppercase bg-green-50"><tr><th class="px-6 py-3">id_telefono</th><th class="px-6 py-3">id_cliente (FK)</th><th class="px-6 py-3">telefono</th></tr></thead>
+                                        <tbody><tr class="bg-white border-b"><td class="px-6 py-4">101</td><td class="px-6 py-4">1</td><td class="px-6 py-4">310-123</td></tr><tr class="bg-white border-b"><td class="px-6 py-4">102</td><td class="px-6 py-4">1</td><td class="px-6 py-4">311-456</td></tr></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </details>
+                        <details class="mb-4 bg-gray-50 p-4 rounded-lg">
+                            <summary class="text-xl text-usta-blue">Segunda Forma Normal (2FN): Dependencia Total</summary>
+                            <div class="mt-4">
+                                <p class="text-gray-700 mb-4"><strong>Regla:</strong> La tabla debe estar en 1FN y cada atributo que no es clave debe depender de la <strong>totalidad</strong> de la clave primaria (aplica a claves compuestas).</p>
+                                <h5 class="font-semibold">Anti-ejemplo (Viola 2FN):</h5>
+                                <p class="text-sm text-gray-600">Clave primaria compuesta: (id_pedido, id_producto). `nombre_producto` depende solo de `id_producto`.</p>
+                                <table class="w-full text-sm text-left text-gray-500 my-2 border">
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">id_pedido</th><th class="px-6 py-3">id_producto</th><th class="px-6 py-3">nombre_producto</th><th class="px-6 py-3">cantidad</th></tr></thead>
+                                    <tbody><tr class="bg-white border-b"><td class="px-6 py-4">1001</td><td class="px-6 py-4">55</td><td class="px-6 py-4 text-red-600 font-bold">Laptop XYZ</td><td class="px-6 py-4">1</td></tr></tbody>
+                                </table>
+                                <h5 class="font-semibold mt-4">Solución (Cumple 2FN):</h5>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <table class="w-full text-sm text-left text-gray-500 my-2 border">
+                                        <thead class="text-xs text-gray-700 uppercase bg-green-50"><tr><th class="px-6 py-3">id_pedido</th><th class="px-6 py-3">id_producto</th><th class="px-6 py-3">cantidad</th></tr></thead>
+                                        <tbody><tr class="bg-white border-b"><td class="px-6 py-4">1001</td><td class="px-6 py-4">55</td><td class="px-6 py-4">1</td></tr></tbody>
+                                    </table>
+                                    <table class="w-full text-sm text-left text-gray-500 my-2 border">
+                                        <thead class="text-xs text-gray-700 uppercase bg-green-50"><tr><th class="px-6 py-3">id_producto</th><th class="px-6 py-3">nombre_producto</th></tr></thead>
+                                        <tbody><tr class="bg-white border-b"><td class="px-6 py-4">55</td><td class="px-6 py-4">Laptop XYZ</td></tr></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </details>
+                        <details class="bg-gray-50 p-4 rounded-lg">
+                            <summary class="text-xl text-usta-blue">Tercera Forma Normal (3FN) y FNBC</summary>
+                            <div class="mt-4">
+                                <p class="text-gray-700 mb-4"><strong>Regla (3FN):</strong> La tabla debe estar en 2FN y ningún atributo no-clave debe depender de otro atributo no-clave (dependencia transitiva).</p>
+                                <h5 class="font-semibold">Anti-ejemplo (Viola 3FN):</h5>
+                                <p class="text-sm text-gray-600">`nombre_departamento` depende de `id_departamento`, que no es la clave primaria.</p>
+                                <table class="w-full text-sm text-left text-gray-500 my-2 border">
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">id_empleado</th><th class="px-6 py-3">nombre</th><th class="px-6 py-3">id_departamento</th><th class="px-6 py-3">nombre_departamento</th></tr></thead>
+                                    <tbody><tr class="bg-white border-b"><td class="px-6 py-4">E10</td><td class="px-6 py-4">Ana</td><td class="px-6 py-4">D5</td><td class="px-6 py-4 text-red-600 font-bold">Ventas</td></tr></tbody>
+                                </table>
+                                <h5 class="font-semibold mt-4">Solución (Cumple 3FN y FNBC):</h5>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <table class="w-full text-sm text-left text-gray-500 my-2 border">
+                                        <thead class="text-xs text-gray-700 uppercase bg-green-50"><tr><th class="px-6 py-3">id_empleado</th><th class="px-6 py-3">nombre</th><th class="px-6 py-3">id_departamento</th></tr></thead>
+                                        <tbody><tr class="bg-white border-b"><td class="px-6 py-4">E10</td><td class="px-6 py-4">Ana</td><td class="px-6 py-4">D5</td></tr></tbody>
+                                    </table>
+                                    <table class="w-full text-sm text-left text-gray-500 my-2 border">
+                                        <thead class="text-xs text-gray-700 uppercase bg-green-50"><tr><th class="px-6 py-3">id_departamento</th><th class="px-6 py-3">nombre_departamento</th></tr></thead>
+                                        <tbody><tr class="bg-white border-b"><td class="px-6 py-4">D5</td><td class="px-6 py-4">Ventas</td></tr></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Módulo 3 -->
+            <section id="modulo3" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 3: SQL a Profundidad</h1>
+                    <div class="text-gray-700 text-lg space-y-4">
+                        <p>Si el diseño de la base de datos es el esqueleto, SQL es el sistema nervioso que le da vida. No es solo un lenguaje de programación; es un <strong>lenguaje declarativo</strong>. Esto significa que le decimos a la base de datos <strong>QUÉ</strong> datos queremos, no <strong>CÓMO</strong> obtenerlos. Esta es la genialidad del trabajo de Codd y la fundación del modelo relacional.</p>
+                        <p>Detrás de cada consulta `SELECT` que escribimos, hay un complejo <strong>optimizador de consultas</strong> (Query Optimizer) trabajando. Este componente del SGBD es un motor de inteligencia artificial increíblemente sofisticado que analiza nuestra solicitud y determina el plan de ejecución más eficiente. Considera los índices disponibles, las estadísticas de las tablas, y la estructura de los `JOIN` para crear la ruta más rápida hacia los datos. Por eso, una consulta bien escrita en SQL puede superar en rendimiento a un script de Pandas que intenta hacer lo mismo en memoria, especialmente con grandes volúmenes de datos.</p>
+                         <p>En este módulo, aprenderemos a "hablar" este lenguaje de manera fluida, entendiendo que cada cláusula es una instrucción para que el optimizador construya el mejor plan posible para responder a nuestras preguntas analíticas.</p>
+                    </div>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.1. Dominando los JOINs</h3>
+                        <p class="text-gray-700 text-lg mb-4">Unir tablas es el pan de cada día en SQL. Es crucial entender cómo funciona cada tipo de `JOIN`.</p>
+                        <div class="mermaid">
+                            graph LR
+                                subgraph "Tablas Originales"
+                                    A(Tabla A); B(Tabla B);
+                                end
+                                subgraph "Resultados del JOIN"
+                                    C("INNER JOIN<br/>Solo Intersección");
+                                    D("LEFT JOIN<br/>Todo de A<br/>+ Coincidencias");
+                                    E("RIGHT JOIN<br/>Todo de B<br/>+ Coincidencias");
+                                    F("FULL OUTER JOIN<br/>Todo de A y B");
+                                end
+                                A -- "Coincidencia en Clave" --> C; B -- "Coincidencia en Clave" --> C;
+                                A -- " " --> D; B -- " " --> D;
+                                A -- " " --> E; B -- " " --> E;
+                                A -- " " --> F; B -- " " --> F;
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.2. Subconsultas vs. Expresiones Comunes de Tabla (CTE)</h3>
+                        <p class="text-gray-700 text-lg mb-4">Ambas permiten construir consultas complejas, pero las CTEs (`WITH`) son a menudo más legibles y reutilizables dentro de una misma consulta.</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-bold">Subconsulta</h4>
+                                <pre><code class="sql">SELECT * FROM Empleados
+WHERE salario > (SELECT AVG(salario) FROM Empleados);</code></pre>
+                            </div>
+                            <div>
+                                <h4 class="font-bold">CTE (Más legible)</h4>
+                                <pre><code class="sql">WITH SalarioPromedio AS (
+    SELECT AVG(salario) as avg_sal FROM Empleados
+)
+SELECT * FROM Empleados, SalarioPromedio
+WHERE salario > SalarioPromedio.avg_sal;</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.3. La Magia de las Funciones de Ventana</h3>
+                        <p class="text-gray-700 text-lg mb-4">Las funciones de ventana realizan cálculos sobre un conjunto de filas relacionadas con la fila actual, sin colapsar el resultado como lo hace `GROUP BY`.</p>
+                         <pre><code class="sql rounded-lg text-left">
+-- Ranking de ventas por vendedor y mes
+SELECT
+    vendedor,
+    mes,
+    ventas,
+    -- Ranking de ventas dentro de cada mes
+    RANK() OVER (PARTITION BY mes ORDER BY ventas DESC) as ranking_mensual,
+    -- Venta del mes anterior para este vendedor
+    LAG(ventas, 1, 0) OVER (PARTITION BY vendedor ORDER BY mes) as ventas_mes_anterior,
+    -- Venta acumulada para este vendedor
+    SUM(ventas) OVER (PARTITION BY vendedor ORDER BY mes) as venta_acumulada
+FROM Ventas_Mensuales;
+                        </code></pre>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Módulo 4 -->
+            <section id="modulo4" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 4: Taller y Optimización Avanzada</h1>
+                    <p class="text-lg text-gray-700">¡Manos a la obra! Aplicaremos todo lo aprendido en un taller práctico y descubriremos los secretos para que nuestras consultas vuelen.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">4.1. Taller Avanzado de Análisis</h3>
+                         <p class="text-gray-700 text-lg mb-4">Usa la base de datos `taller_seguridad.db` para resolver estos retos. ¡Algunos requieren las técnicas avanzadas que acabamos de ver!</p>
+                        <details class="bg-gray-50 rounded-lg p-4 mb-6">
+                            <summary class="font-semibold cursor-pointer">Script de Configuración en Python (Ejecutar primero)</summary>
+                            <pre class="mt-4"><code class="python rounded-lg text-left">
+# Este código prepara la base de datos para el taller.
 import pandas as pd
 import requests
 import sqlite3
 
-# API endpoint para el delito de secuestro
+# Cargar datos de secuestros
 api_url = "https://www.datos.gov.co/resource/886s-p2i3.json?$limit=10000"
-
 response = requests.get(api_url)
 data = response.json()
 df_secuestros = pd.DataFrame(data)
-
-# --- Limpieza y Transformación ---
-# Convertir 'cantidad' a numérico, manejando errores
 df_secuestros['cantidad'] = pd.to_numeric(df_secuestros['cantidad'], errors='coerce').fillna(0).astype(int)
-# Convertir 'fecha_hecho' a datetime
-df_secuestros['fecha_hecho'] = pd.to_datetime(df_secuestros['fecha_hecho'], errors='coerce')
-# Extraer el año para análisis temporal
-df_secuestros['año'] = df_secuestros['fecha_hecho'].dt.year
-
-# Eliminar registros sin departamento o año
+df_secuestros['año'] = pd.to_datetime(df_secuestros['fecha_hecho'], errors='coerce').dt.year
 df_secuestros.dropna(subset=['departamento', 'año'], inplace=True)
 df_secuestros['año'] = df_secuestros['año'].astype(int)
 
-# --- Crear Base de Datos y Cargar Datos ---
-conn = sqlite3.connect('seguridad.db') # Creamos una base de datos física
-df_secuestros.to_sql('secuestros', conn, index=False, if_exists='replace')
-
-print("Base de datos 'seguridad.db' creada y tabla 'secuestros' cargada.")
-print(f"Total de registros procesados: {len(df_secuestros)}")
-                    </code></pre>
-                </div>
-                
-                <!-- 3. DDL: Definiendo la Estructura -->
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">3. DDL: Definiendo la Estructura de la Base de Datos</h3>
-                    <p class="text-gray-700 text-lg mb-4">Para enriquecer nuestro análisis, crearemos una segunda tabla con datos de población por departamento. Esto nos permitirá calcular tasas y normalizar nuestros resultados. Usamos `CREATE TABLE` para definir su estructura y `ALTER TABLE` para modificarla si es necesario.</p>
-                    <pre><code class="sql rounded-lg text-left">
--- Crear una tabla para la población de los departamentos
-CREATE TABLE poblacion_deptos (
-    id_depto INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_depto TEXT NOT NULL UNIQUE,
-    poblacion INTEGER NOT NULL,
-    region TEXT
-);
-
--- Modificar la tabla 'secuestros' para añadir una clave foránea (opcional, para integridad)
--- Nota: SQLite tiene soporte limitado para añadir FK a tablas existentes.
--- Esto es más conceptual para mostrar el comando.
-ALTER TABLE secuestros
-ADD COLUMN depto_id INTEGER;
-                    </code></pre>
-                </div>
-                
-                <!-- 4. DML: Poblando y Actualizando Nuestra Base de Datos -->
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">4. DML: Poblando y Actualizando Nuestra Base de Datos</h3>
-                    <p class="text-gray-700 text-lg mb-4">Ahora usamos DML para insertar los datos de población en nuestra nueva tabla y realizar actualizaciones.</p>
-                    <pre><code class="sql rounded-lg text-left">
--- Insertar datos de población para algunos departamentos (ejemplo)
-INSERT INTO poblacion_deptos (nombre_depto, poblacion, region) VALUES
-('ANTIOQUIA', 6677930, 'Andina'),
-('CUNDINAMARCA', 3242996, 'Andina'),
-('VALLE DEL CAUCA', 4532152, 'Pacífico'),
-('ATLÁNTICO', 2722128, 'Caribe'),
-('BOGOTÁ, D.C.', 7743955, 'Andina');
-
-
--- Actualizar un registro. Corregir un nombre mal escrito (hipotético)
-UPDATE secuestros
-SET departamento = 'BOGOTÁ, D.C.'
-WHERE departamento = 'BOGOTA'; -- Asumiendo una posible inconsistencia
-
--- Eliminar registros antiguos para un análisis más enfocado (ejemplo)
-DELETE FROM secuestros
-WHERE año < 2015;
-                    </code></pre>
-                </div>
-
-                <!-- 5. DQL: Consultas Avanzadas para el Análisis -->
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">5. DQL: Consultas Avanzadas para el Análisis</h3>
-                    <p class="text-gray-700 text-lg mb-4">Con nuestras tablas listas, podemos empezar a extraer insights valiosos. DQL (`SELECT`) es la herramienta para ello.</p>
-                    
-                    <h4 class="text-xl font-semibold text-gray-800 mt-6 mb-2">Consulta 1: Total de víctimas de secuestro por tipo y departamento</h4>
-                    <pre><code class="python rounded-lg text-left">
-query1 = """
-    SELECT 
-        departamento,
-        descripcion_conducta,
-        SUM(cantidad) AS total_victimas
-    FROM 
-        secuestros
-    WHERE 
-        descripcion_conducta IN ('SECUESTRO EXTORSIVO', 'SECUESTRO SIMPLE')
-    GROUP BY 
-        departamento, descripcion_conducta
-    ORDER BY 
-        departamento, total_victimas DESC;
-"""
-df1 = pd.read_sql_query(query1, conn)
-print("--- Víctimas de secuestro por tipo y departamento ---")
-print(df1.head(10))
-                    </code></pre>
-
-                    <h4 class="text-xl font-semibold text-gray-800 mt-6 mb-2">Consulta 2: Tasa de secuestros por 100,000 habitantes (usando JOIN)</h4>
-                    <p class="text-gray-700 text-lg mb-4">Aquí combinamos nuestras dos tablas para obtener un indicador más justo: la tasa de secuestros en lugar del número absoluto.</p>
-                    <pre><code class="python rounded-lg text-left">
-query2 = """
-    SELECT
-        s.departamento,
-        p.poblacion,
-        SUM(s.cantidad) AS total_secuestros,
-        -- Usamos CAST para asegurar la división de punto flotante
-        (CAST(SUM(s.cantidad) AS REAL) / p.poblacion) * 100000 AS tasa_por_100k
-    FROM 
-        secuestros s
-    JOIN 
-        poblacion_deptos p ON s.departamento = p.nombre_depto
-    GROUP BY 
-        s.departamento
-    ORDER BY 
-        tasa_por_100k DESC;
-"""
-df2 = pd.read_sql_query(query2, conn)
-print("\n--- Tasa de secuestros por 100,000 habitantes ---")
-print(df2.head())
-                    </code></pre>
-                </div>
-                
-                <!-- 6. El Equivalente en Pandas -->
-                <div class="bg-white p-8 rounded-lg shadow-lg">
-                    <h3 class="text-2xl font-bold text-usta-blue mb-4">6. El Equivalente en Pandas: ¿Cuándo usar cuál?</h3>
-                    <p class="text-gray-700 text-lg mb-4">Pandas ofrece una sintaxis fluida y poderosa para realizar las mismas operaciones. La decisión de usar SQL o Pandas a menudo depende de dónde residen los datos y la complejidad de la tarea.</p>
-                    <ul class="list-disc list-inside text-gray-700 text-lg space-y-3 mb-6">
-                        <li><b>Usa SQL cuando:</b> Los datos son muy grandes y residen en una base de datos optimizada. Es mejor dejar que el motor de la BD haga el trabajo pesado.</li>
-                        <li><b>Usa Pandas cuando:</b> Ya tienes los datos en memoria, necesitas flexibilidad para la manipulación compleja, o para la integración con librerías de visualización y machine learning.</li>
-                    </ul>
-                     <pre><code class="python rounded-lg text-left">
-# Equivalente en Pandas para la Consulta 2 (Tasa de secuestros)
-
-# Creamos el DataFrame de población
+# Datos de población (ejemplo)
 poblacion_data = {
-    'nombre_depto': ['ANTIOQUIA', 'CUNDINAMARCA', 'VALLE DEL CAUCA', 'ATLÁNTICO', 'BOGOTÁ, D.C.'],
-    'poblacion': [6677930, 3242996, 4532152, 2722128, 7743955]
+    'nombre_depto': ['ANTIOQUIA', 'CUNDINAMARCA', 'VALLE DEL CAUCA', 'ATLÁNTICO', 'BOGOTÁ, D.C.', 'SANTANDER', 'BOLÍVAR'],
+    'poblacion': [6677930, 3242996, 4532152, 2722128, 7743955, 2280908, 2180976]
 }
 df_poblacion = pd.DataFrame(poblacion_data)
 
-# Realizamos el 'merge' (equivalente al JOIN)
-df_merged = pd.merge(df_secuestros, df_poblacion, left_on='departamento', right_on='nombre_depto')
+# Crear y poblar la base de datos
+conn = sqlite3.connect('taller_seguridad.db')
+df_secuestros.to_sql('secuestros', conn, index=False, if_exists='replace')
+df_poblacion.to_sql('poblacion_deptos', conn, index=False, if_exists='replace')
+conn.close()
 
-# Agrupamos y calculamos
-df_tasa_pandas = df_merged.groupby(['departamento', 'poblacion'])['cantidad'].sum().reset_index()
-df_tasa_pandas['tasa_por_100k'] = (df_tasa_pandas['cantidad'] / df_tasa_pandas['poblacion']) * 100000
-
-print("--- Tasa de secuestros (calculada con Pandas) ---")
-print(df_tasa_pandas.sort_values('tasa_por_100k', ascending=False).head())
-                    </code></pre>
+print("Base de datos 'taller_seguridad.db' lista para el taller.")
+                            </code></pre>
+                        </details>
+                        <div class="space-y-4">
+                            <details class="border rounded-lg p-4">
+                                <summary class="font-bold cursor-pointer">Reto 4: Departamento con mayor crecimiento de secuestros entre 2020 y 2021</summary>
+                                 <pre class="mt-4"><code class="sql rounded-lg text-left">
+-- Solución con Funciones de Ventana
+WITH CasosAnuales AS (
+    SELECT
+        departamento,
+        año,
+        SUM(cantidad) as total_anual
+    FROM
+        secuestros
+    WHERE año IN (2020, 2021)
+    GROUP BY departamento, año
+)
+SELECT
+    departamento,
+    total_anual - LAG(total_anual, 1, 0) OVER (PARTITION BY departamento ORDER BY año) AS crecimiento
+FROM CasosAnuales
+WHERE año = 2021
+ORDER BY crecimiento DESC
+LIMIT 1;
+                                 </code></pre>
+                            </details>
+                            <details class="border rounded-lg p-4">
+                                <summary class="font-bold cursor-pointer">Reto 5: Ranking de departamentos por tasa de secuestros dentro de su región</summary>
+                                 <pre class="mt-4"><code class="sql rounded-lg text-left">
+-- Solución
+WITH TasaDepartamental AS (
+    SELECT
+        s.departamento,
+        p.region,
+        (CAST(SUM(s.cantidad) AS REAL) / p.poblacion) * 100000 AS tasa_por_100k
+    FROM
+        secuestros s
+    JOIN
+        poblacion_deptos p ON s.departamento = p.nombre_depto
+    GROUP BY s.departamento, p.region, p.poblacion
+)
+SELECT
+    departamento,
+    region,
+    tasa_por_100k,
+    RANK() OVER (PARTITION BY region ORDER BY tasa_por_100k DESC) as ranking_regional
+FROM TasaDepartamental;
+                                 </code></pre>
+                            </details>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">4.2. Optimización: Entendiendo al Gestor de Consultas</h3>
+                        <p class="text-gray-700 text-lg mb-4">Cuando envías una consulta, el SGBD no la ejecuta ciegamente. Primero, crea un <strong>Plan de Ejecución</strong>, que es el "mapa" de la forma más eficiente de obtener los datos. Entender estos planes es clave para la optimización.</p>
+                         <ul class="list-disc list-inside space-y-3">
+                            <li><strong>Planes de Ejecución:</strong> Usando comandos como `EXPLAIN QUERY PLAN` en SQLite, puedes ver si la base de datos está usando un "Full Table Scan" (lento) o un "Search using index" (rápido).</li>
+                            <li><strong>Índices Clustered vs. Non-Clustered:</strong>
+                                <ul class="list-decimal list-inside ml-6 mt-2">
+                                    <li>Un índice <strong>Clustered</strong> ordena físicamente los datos en el disco según la columna del índice. Solo puede haber uno por tabla (generalmente la Clave Primaria).</li>
+                                    <li>Un índice <strong>Non-Clustered</strong> es una estructura separada que apunta a los datos. Puede haber muchos por tabla.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <div id="d3-index" class="w-full h-80 mt-6" style="position: relative; z-index: 1;"></div>
+                    </div>
                 </div>
+            </section>
+        </main>
+    </div>
 
-            </div>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-usta-blue text-white py-6 mt-12">
-        <div class="container mx-auto px-6 text-center">
-            <p>&copy; 2024. Universidad Santo Tomás.</p>
-        </div>
-    </footer>
-    
-    <!-- Botón para volver arriba -->
-    <a href="#" id="to-top-btn" class="fixed bottom-8 right-8 bg-usta-red text-white p-3 rounded-full shadow-lg hover:bg-red-700 transition-all duration-300 opacity-0 z-20">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-        </svg>
-    </a>
-    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             hljs.highlightAll();
 
-            const toTopBtn = document.getElementById('to-top-btn');
+            const sections = document.querySelectorAll('main section[id]');
+            const navLinks = document.querySelectorAll('#sidebar-nav a');
 
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 300) { // Muestra el botón después de 300px de scroll
-                    toTopBtn.classList.remove('opacity-0');
-                } else {
-                    toTopBtn.classList.add('opacity-0');
-                }
-            });
-
-            toTopBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
+            const onScroll = () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (window.pageYOffset >= sectionTop - 70) {
+                        current = section.getAttribute('id');
+                    }
                 });
-            });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            };
+
+            window.addEventListener('scroll', onScroll);
+            onScroll();
+            
+            // D3 Visualizations
+            // Ecosystem
+            const ecosystemData = [{ name: 'Archivos Planos', size: 50, color: '#FFCC00'},{ name: 'Bases de Datos', size: 60, color: '#DA291C'},{ name: 'Data Warehouse', size: 80, color: '#003366'},{ name: 'Data Lake', size: 100, color: '#6E7A8F'}];
+            const width = 600, height = 384;
+            const svg = d3.select('#d3-ecosystem').append('svg').attr('viewBox', `0 0 ${width} ${height}`);
+            const simulation = d3.forceSimulation(ecosystemData).force('charge', d3.forceManyBody().strength(5)).force('center', d3.forceCenter(width / 2, height / 2)).force('collision', d3.forceCollide().radius(d => d.size + 5));
+            const nodes = svg.append('g').selectAll('g').data(ecosystemData).enter().append('g').call(d3.drag().on("start", (e,d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }).on("drag", (e,d) => { d.fx = e.x; d.fy = e.y; }).on("end", (e,d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+            nodes.append('circle').attr('r', d => d.size).attr('fill', d => d.color);
+            nodes.append('text').attr('text-anchor', 'middle').attr('dy', '.3em').text(d => d.name).style('fill', 'white').style('font-size', '12px').style('pointer-events', 'none');
+            simulation.on('tick', () => nodes.attr('transform', d => `translate(${d.x},${d.y})`));
+
+            // B-Tree Index
+            const indexData = {name: "Index Root", children: [{ name: "A-M", children: [{name: "A-F"}, {name: "G-M"}] },{ name: "N-Z", children: [{name: "N-S"}, {name: "T-Z"}] }]};
+            const treeLayout = d3.tree().size([600, 300]);
+            const root = d3.hierarchy(indexData);
+            treeLayout(root);
+            const svgIndex = d3.select('#d3-index').append('svg').attr('viewBox', '0 0 650 350');
+            svgIndex.append('g').selectAll('line').data(root.links()).enter().append('line').attr('x1', d => d.source.x + 25).attr('y1', d => d.source.y + 20).attr('x2', d => d.target.x + 25).attr('y2', d => d.target.y + 20).attr('stroke', '#999');
+            const nodesIndex = svgIndex.append('g').selectAll('g').data(root.descendants()).enter().append('g').attr('transform', d => `translate(${d.x}, ${d.y})`);
+            nodesIndex.append('circle').attr('r', 25).attr('fill', '#003366');
+            nodesIndex.append('text').text(d => d.data.name).attr('dy', '0.3em').attr('text-anchor', 'middle').attr('fill', 'white').style('font-size', '10px');
         });
     </script>
-
 </body>
 </html>
