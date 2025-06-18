@@ -205,21 +205,129 @@
                     </div>
                 </div>
             </section>
-            
-            <!-- Módulo 3 -->
+            <!-- Módulo 3 -->             
             <section id="modulo3" class="mb-16 scroll-mt-20">
                 <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
                     <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 3: SQL a Profundidad</h1>
                     <div class="text-gray-700 text-lg space-y-4">
-                        <p>Si el diseño de la base de datos es el esqueleto, SQL es el sistema nervioso que le da vida. No es solo un lenguaje de programación; es un <strong>lenguaje declarativo</strong>. Esto significa que le decimos a la base de datos <strong>QUÉ</strong> datos queremos, no <strong>CÓMO</strong> obtenerlos. Esta es la genialidad del trabajo de Codd y la fundación del modelo relacional.</p>
-                        <p>Detrás de cada consulta `SELECT` que escribimos, hay un complejo <strong>optimizador de consultas</strong> (Query Optimizer) trabajando. Este componente del SGBD es un motor de inteligencia artificial increíblemente sofisticado que analiza nuestra solicitud y determina el plan de ejecución más eficiente. Considera los índices disponibles, las estadísticas de las tablas, y la estructura de los `JOIN` para crear la ruta más rápida hacia los datos. Por eso, una consulta bien escrita en SQL puede superar en rendimiento a un script de Pandas que intenta hacer lo mismo en memoria, especialmente con grandes volúmenes de datos.</p>
-                         <p>En este módulo, aprenderemos a "hablar" este lenguaje de manera fluida, entendiendo que cada cláusula es una instrucción para que el optimizador construya el mejor plan posible para responder a nuestras preguntas analíticas.</p>
+                        <p>Si el diseño de la base de datos es el esqueleto, SQL es el sistema nervioso que le da vida. En este módulo, vamos a diseccionar el lenguaje para entender no solo cómo pedir datos, sino cómo definirlos, manipularlos, controlarlos y asegurar su integridad. Dominarás SQL como un conjunto de herramientas completo, entendiendo el rol de cada comando y la lógica que el motor de base de datos aplica para ejecutar tus peticiones de la forma más eficiente.</p>
                     </div>
                 </div>
+
                 <div class="space-y-12">
+
                     <div class="bg-white p-8 rounded-lg shadow-lg">
-                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.1. Dominando los JOINs</h3>
-                        <p class="text-gray-700 text-lg mb-4">Unir tablas es el pan de cada día en SQL. Es crucial entender cómo funciona cada tipo de `JOIN`.</p>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.1. Las Cuatro Caras de SQL: DDL, DML, DCL y TCL</h3>
+                        <p class="text-gray-700 text-lg mb-6">SQL se divide en cuatro sub-lenguajes. Cada uno tiene una misión específica y es crucial entender sus diferencias para ser un profesional de datos completo.</p>
+
+                        <div class="border-l-4 border-usta-blue pl-4 mb-8">
+                            <h4 class="text-xl font-bold text-usta-blue mb-2">A. DDL (Data Definition Language - Lenguaje de Definición de Datos)</h4>
+                            <p class="text-gray-700 mb-4">El arquitecto de tu base de datos. Define y gestiona la estructura de las tablas y otros objetos.</p>
+                            <div class="mermaid w-full md:w-3/4 mx-auto my-4 p-4 border rounded-lg bg-gray-50">
+                                graph TD
+                                    subgraph "Ciclo de Vida de un Objeto (DDL)"
+                                        A[Inicio] --> B(CREATE TABLE);
+                                        B --> C{¿Estructura correcta?};
+                                        C -- No --> D(ALTER TABLE);
+                                        D --> C;
+                                        C -- Sí --> E{¿Objeto necesario?};
+                                        E -- No --> F(DROP TABLE);
+                                        E -- Sí --> G[Fin];
+                                    end
+                            </div>
+                            <details class="bg-gray-50 p-3 rounded-lg mt-2">
+                                <summary class="font-semibold cursor-pointer">Ver Comandos Clave de DDL</summary>
+                                <ul class="list-disc list-inside space-y-3 mt-4 text-gray-700">
+                                    <li><strong>CREATE:</strong> Construye un nuevo objeto en la base de datos. `CREATE TABLE` es el más común, definiendo columnas y sus tipos de datos, pero también se usa para `INDEX`, `VIEW`, `SCHEMA`, etc.</li>
+                                    <li><strong>ALTER:</strong> Modifica la estructura de un objeto existente sin eliminarlo. Permite añadir, eliminar o cambiar columnas, cambiar sus tipos de datos, o añadir restricciones (`CONSTRAINTS`).</li>
+                                    <li><strong>DROP:</strong> Elimina un objeto de la base de datos de forma permanente. Es una operación irreversible que borra la estructura y todos sus datos. Usar con extrema precaución.</li>
+                                    <li><strong>TRUNCATE:</strong> Vacía una tabla eliminando todas sus filas de forma masiva. Es mucho más rápido que `DELETE` porque no registra cada borrado de fila, pero a cambio, no se puede revertir fácilmente (no dispara `TRIGGERS`).</li>
+                                </ul>
+                            </details>
+                        </div>
+
+                        <div class="border-l-4 border-usta-red pl-4 mb-8">
+                            <h4 class="text-xl font-bold text-usta-red mb-2">B. DML (Data Manipulation Language - Lenguaje de Manipulación de Datos)</h4>
+                            <p class="text-gray-700 mb-4">El operador del día a día. Se utiliza para consultar, insertar, modificar y eliminar los datos dentro de las tablas.</p>
+                            <div class="mermaid w-full md:w-3/4 mx-auto my-4 p-4 border rounded-lg bg-gray-50">
+                                graph LR
+                                    subgraph "Flujo de Datos (DML)"
+                                        direction LR
+                                        D[(Tabla de Datos)]
+                                    end
+                                    A[INSERT] -- Añade datos --> D;
+                                    D -- Se consultan con --> B(SELECT);
+                                    B -- ¿Requiere cambio? --> E(UPDATE);
+                                    B -- ¿Requiere borrado? --> G(DELETE);
+                                    E -- Modifica datos en --> D;
+                                    G -- Elimina datos de --> D;
+                            </div>
+                            <details class="bg-gray-50 p-3 rounded-lg mt-2">
+                                <summary class="font-semibold cursor-pointer">Ver Comandos Clave de DML</summary>
+                                <ul class="list-disc list-inside space-y-3 mt-4 text-gray-700">
+                                    <li><strong>SELECT:</strong> El comando fundamental para el análisis. Extrae datos de las tablas, permitiendo filtrar, ordenar, agrupar y combinar información. Los JOINs y Funciones de Ventana son parte de su poder.</li>
+                                    <li><strong>INSERT:</strong> Añade nuevas filas (registros) a una tabla. Se debe proporcionar valores para las columnas requeridas.</li>
+                                    <li><strong>UPDATE:</strong> Modifica los valores de una o más columnas en filas existentes que cumplan una condición especificada en la cláusula `WHERE`.</li>
+                                    <li><strong>DELETE:</strong> Elimina filas completas de una tabla que cumplan una condición en la cláusula `WHERE`. Si no se especifica `WHERE`, borra todas las filas.</li>
+                                </ul>
+                            </details>
+                        </div>
+
+                        <div class="border-l-4 border-usta-yellow pl-4 mb-8">
+                            <h4 class="text-xl font-bold text-usta-yellow mb-2">C. DCL (Data Control Language - Lenguaje de Control de Datos)</h4>
+                            <p class="text-gray-700 mb-4">El guardia de seguridad. Administra los permisos y derechos de acceso de los usuarios.</p>
+                            <div class="mermaid w-full md:w-3/4 mx-auto my-4 p-4 border rounded-lg bg-gray-50">
+                                graph TD
+                                    subgraph "Control de Acceso (DCL)"
+                                        Admin(Administrador) --> G(GRANT);
+                                        Admin --> R(REVOKE);
+                                        G -- Otorga Permiso --> User(Usuario);
+                                        R -- Quita Permiso --> User;
+                                        User -- Intenta acceder --> DB(Base de Datos);
+                                    end
+                            </div>
+                            <details class="bg-gray-50 p-3 rounded-lg mt-2">
+                                <summary class="font-semibold cursor-pointer">Ver Comandos Clave de DCL</summary>
+                                <ul class="list-disc list-inside space-y-3 mt-4 text-gray-700">
+                                    <li><strong>GRANT:</strong> Otorga a un usuario o rol permisos específicos (como `SELECT`, `INSERT`, `UPDATE`, `EXECUTE`) sobre un objeto de la base de datos (como una tabla o vista).</li>
+                                    <li><strong>REVOKE:</strong> Es la operación inversa a `GRANT`. Remueve permisos previamente concedidos a un usuario o rol, restringiendo su acceso.</li>
+                                </ul>
+                            </details>
+                        </div>
+                        
+                        <div class="border-l-4 border-gray-500 pl-4">
+                            <h4 class="text-xl font-bold text-gray-600 mb-2">D. TCL (Transaction Control Language - Lenguaje de Control de Transacciones)</h4>
+                            <p class="text-gray-700 mb-4">El gerente de operaciones. Gestiona las transacciones para asegurar la integridad y consistencia de los datos (propiedades ACID).</p>
+                            <div class="mermaid w-full md:w-3/4 mx-auto my-4 p-4 border rounded-lg bg-gray-50">
+                                graph TD
+                                    subgraph "Flujo de Transacción (TCL)"
+                                        A(BEGIN TRANSACTION) --> B{Operación 1};
+                                        B --> C(SAVEPOINT A);
+                                        C --> D{Operación 2};
+                                        D -- Falla --> E(ROLLBACK TO SAVEPOINT A);
+                                        E --> F{Continuar?};
+                                        F -- Sí --> D;
+                                        D -- Éxito --> G{Operación 3};
+                                        G -- Falla Crítica --> H(ROLLBACK);
+                                        H --> Z(Fin Transacción);
+                                        G -- Éxito Total --> I(COMMIT);
+                                        I --> Z;
+                                    end
+                            </div>
+                            <details class="bg-gray-50 p-3 rounded-lg mt-2">
+                                <summary class="font-semibold cursor-pointer">Ver Comandos Clave de TCL</summary>
+                                <ul class="list-disc list-inside space-y-3 mt-4 text-gray-700">
+                                    <li><strong>COMMIT:</strong> Confirma y guarda permanentemente todos los cambios realizados durante la transacción actual.</li>
+                                    <li><strong>ROLLBACK:</strong> Deshace todos los cambios realizados en la transacción actual, revirtiendo la base de datos a su estado anterior.</li>
+                                    <li><strong>SAVEPOINT:</strong> Crea un punto de guardado intermedio dentro de una transacción. Permite hacer un `ROLLBACK` parcial a este punto sin deshacer toda la transacción.</li>
+                                </ul>
+                            </details>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.2. El Arte de Unir Tablas: Dominando los JOINs</h3>
+                        <p class="text-gray-700 text-lg mb-4">Unir tablas es el pan de cada día en SQL. Es crucial entender cómo funciona cada tipo de `JOIN` para combinar datos de forma precisa.</p>
                         <div class="mermaid">
                             graph LR
                                 subgraph "Tablas Originales"
@@ -237,41 +345,43 @@
                                 A -- " " --> F; B -- " " --> F;
                         </div>
                     </div>
+
                     <div class="bg-white p-8 rounded-lg shadow-lg">
-                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.2. Subconsultas vs. Expresiones Comunes de Tabla (CTE)</h3>
-                        <p class="text-gray-700 text-lg mb-4">Ambas permiten construir consultas complejas, pero las CTEs (`WITH`) son a menudo más legibles y reutilizables dentro de una misma consulta.</p>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.3. Consultas Legibles: Subconsultas vs. Expresiones Comunes de Tabla (CTE)</h3>
+                        <p class="text-gray-700 text-lg mb-4">Ambas permiten construir consultas complejas, pero las CTEs (`WITH`) son a menudo más legibles y reutilizables dentro de una misma consulta, facilitando la lógica y la depuración.</p>
                         <div class="grid md:grid-cols-2 gap-6">
                             <div>
-                                <h4 class="font-bold">Subconsulta</h4>
+                                <h4 class="font-bold">Subconsulta (Menos legible)</h4>
                                 <pre><code class="sql">SELECT * FROM Empleados
-WHERE salario > (SELECT AVG(salario) FROM Empleados);</code></pre>
+            WHERE salario > (SELECT AVG(salario) FROM Empleados);</code></pre>
                             </div>
                             <div>
-                                <h4 class="font-bold">CTE (Más legible)</h4>
+                                <h4 class="font-bold">CTE (Más legible y organizada)</h4>
                                 <pre><code class="sql">WITH SalarioPromedio AS (
-    SELECT AVG(salario) as avg_sal FROM Empleados
-)
-SELECT * FROM Empleados, SalarioPromedio
-WHERE salario > SalarioPromedio.avg_sal;</code></pre>
+                SELECT AVG(salario) as avg_sal FROM Empleados
+            )
+            SELECT * FROM Empleados, SalarioPromedio
+            WHERE salario > SalarioPromedio.avg_sal;</code></pre>
                             </div>
                         </div>
                     </div>
+
                     <div class="bg-white p-8 rounded-lg shadow-lg">
-                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.3. La Magia de las Funciones de Ventana</h3>
-                        <p class="text-gray-700 text-lg mb-4">Las funciones de ventana realizan cálculos sobre un conjunto de filas relacionadas con la fila actual, sin colapsar el resultado como lo hace `GROUP BY`.</p>
-                         <pre><code class="sql rounded-lg text-left">
--- Ranking de ventas por vendedor y mes
-SELECT
-    vendedor,
-    mes,
-    ventas,
-    -- Ranking de ventas dentro de cada mes
-    RANK() OVER (PARTITION BY mes ORDER BY ventas DESC) as ranking_mensual,
-    -- Venta del mes anterior para este vendedor
-    LAG(ventas, 1, 0) OVER (PARTITION BY vendedor ORDER BY mes) as ventas_mes_anterior,
-    -- Venta acumulada para este vendedor
-    SUM(ventas) OVER (PARTITION BY vendedor ORDER BY mes) as venta_acumulada
-FROM Ventas_Mensuales;
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.4. La Magia del Análisis: Funciones de Ventana</h3>
+                        <p class="text-gray-700 text-lg mb-4">Las funciones de ventana realizan cálculos sobre un conjunto de filas relacionadas con la fila actual, sin colapsar el resultado como lo hace `GROUP BY`. Son esenciales para análisis avanzados como rankings, series temporales y cálculos acumulados.</p>
+                        <pre><code class="sql rounded-lg text-left">
+            -- Ranking de ventas por vendedor y mes
+            SELECT
+                vendedor,
+                mes,
+                ventas,
+                -- Ranking de ventas dentro de cada mes
+                RANK() OVER (PARTITION BY mes ORDER BY ventas DESC) as ranking_mensual,
+                -- Venta del mes anterior para este vendedor
+                LAG(ventas, 1, 0) OVER (PARTITION BY vendedor ORDER BY mes) as ventas_mes_anterior,
+                -- Venta acumulada para este vendedor
+                SUM(ventas) OVER (PARTITION BY vendedor ORDER BY mes) as venta_acumulada
+            FROM Ventas_Mensuales;
                         </code></pre>
                     </div>
                 </div>
