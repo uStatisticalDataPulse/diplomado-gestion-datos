@@ -4,16 +4,19 @@ from cargar_datos import show_data_tab
 from transformacion import show_transform_tab
 from visualizaciones import show_visualization_tab
 
+# Crear pestañas en el cuerpo de la aplicación
+tabs = st.tabs(["📥 Carga de Datos", "🔧 Transformación y Métricas", "📊 Visualizaciones", "🗺️ Mapa"])
 
-# Definir páginas o pestañas
-tab = st.sidebar.radio("Navegación", ["Carga de Datos", "Transformación y Métricas","Visualizaciones", "Mapa"])
-
-# Lógica según la pestaña seleccionada
-if tab == "Carga de Datos":
+# Mostrar contenido en cada pestaña
+with tabs[0]:
     show_data_tab()
-elif tab == "Transformación y Métricas":
+
+with tabs[1]:
     show_transform_tab()
-elif tab == "Visualizaciones":
+
+with tabs[2]:
     show_visualization_tab()
-elif tab == "Mapa":
-    st.write("🗺️ Mapa aquí...")
+
+with tabs[3]:
+    st.subheader("🗺️ Mapa")
+    st.write("Aquí irá el contenido del mapa.")

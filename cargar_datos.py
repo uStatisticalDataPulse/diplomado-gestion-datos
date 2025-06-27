@@ -42,7 +42,7 @@ def show_data_tab():
     Muestra la interfaz de la pestaña para cargar datos desde la API.
     Incluye instrucciones y un botón para iniciar la carga.
     """
-    st.header("📥 Carga de Datos desde API")  # Encabezado de la sección
+    st.header("📥 Carga de Datos del MEN vía API")  # Encabezado de la sección
 
     # Descripción del origen de los datos y instrucciones
     st.markdown("""
