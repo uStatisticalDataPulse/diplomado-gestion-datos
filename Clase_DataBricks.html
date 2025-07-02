@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introducción Práctica a Databricks: Tu Primer Lakehouse</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --usta-blue: #003366;
+            --usta-red: #DA291C;
+            --usta-yellow: #FFCC00;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+        pre code.hljs {
+            font-family: 'Source Code Pro', monospace;
+            border-radius: 0.5rem;
+            padding: 1em;
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+            border-left: 4px solid transparent;
+        }
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: var(--usta-red);
+            color: white;
+            border-left-color: var(--usta-yellow);
+            transform: translateX(5px);
+        }
+        details > summary {
+            cursor: pointer;
+            font-weight: 600;
+        }
+        details div {
+            border-left: 2px solid var(--usta-yellow);
+            padding-left: 1rem;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="flex">
+        <!-- Sidebar de Navegación -->
+        <aside id="sidebar" class="sidebar text-white w-72 min-h-screen p-4 fixed top-0 left-0 flex-shrink-0 z-20 flex flex-col" style="background-color: #003366;">
+            <div class="mb-8">
+                <a href="index.html">
+                    <img src="https://usantotomas.edu.co/hs-fs/hubfs/social-suggested-images/usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png?width=282&height=65&name=usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png" alt="Logo USTA" class="h-12 mx-auto" onerror="this.onerror=null;this.src='https://placehold.co/200x50/003366/FFFFFF?text=Universidad';">
+                </a>
+                <h2 class="text-xl font-bold text-center mt-4">Clase de Databricks</h2>
+            </div>
+            <nav id="sidebar-nav" class="flex-grow">
+                <a href="#modulo0" class="sidebar-link active block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 0: Creación de Cuenta</a>
+                <a href="#modulo1" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 1: Bienvenida al Lakehouse</a>
+                <a href="#modulo2" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 2: Ingesta de Datos</a>
+                <a href="#modulo3" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 3: Consultas con Spark SQL</a>
+                <a href="#modulo4" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 4: Manejo de Datos Estáticos</a>
+                <a href="#modulo5" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 5: Próximos Pasos</a>
+            </nav>
+            <div class="mt-auto text-center pt-8">
+                <a href="index.html" class="text-sm text-gray-300 hover:text-white underline"> &larr; Volver al Diplomado</a>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="ml-0 md:ml-72 flex-1 p-6 md:p-10">
+            
+            <!-- Módulo 0 -->
+            <section id="modulo0" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 0: Creación de una Cuenta en Databricks</h1>
+                    <p class="text-lg text-gray-700">Para iniciar nuestra aventura en el mundo del Big Data, el primer paso es configurar nuestro propio entorno en la nube. Usaremos la <b>Databricks Free Edition</b> (antes Community Edition), una versión gratuita ideal para aprender y experimentar.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Paso 1: Ir a la Página de "Try Databricks"</h3>
+                        <p class="text-gray-700 text-lg mb-4">Abre tu navegador y dirígete a la página de registro. Puedes encontrarla buscando en Google "Try Databricks" o yendo directamente a <a href="https://www.databricks.com/try-databricks" class="text-usta-red underline" target="_blank">databricks.com/try-databricks</a>.</p>
+                        <img src="images/DB_signup.png" alt="Página de registro de Databricks" class="rounded-lg shadow-md my-6 mx-auto border" onerror="this.onerror=null;this.src='https://placehold.co/800x400/FFFFFF/000000?text=Página+de+Registro+de+Databricks';">
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Paso 2: Buscar la Edición Gratuita</h3>
+                        <p class="text-gray-700 text-lg mb-4">La página te ofrecerá iniciar una prueba completa. Ignora esas opciones. Desplázate hasta la parte inferior y busca la frase "Looking for Databricks Free Edition?".</p>
+                         <div class="mt-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+                            <p class="font-bold">¡Atención!</p>
+                            <p>Haz clic en el enlace "<strong>Click here</strong>" para acceder al formulario de la versión gratuita. Este es el paso más importante.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Paso 3: Completa el Formulario y Verifica tu Correo</h3>
+                        <p class="text-gray-700 text-lg mb-4">Ahora sí, completa el formulario con tus datos. Recibirás un correo de Databricks para verificar tu dirección. Haz clic en el enlace que contiene para confirmar tu cuenta y establecer una contraseña. ¡Felicitaciones! Ya tienes acceso a tu propio <b>workspace</b> (espacio de trabajo) de Databricks.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Módulo 1 -->
+            <section id="modulo1" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 1: Bienvenida a la Plataforma de Inteligencia de Datos</h1>
+                    <p class="text-lg text-gray-700">Databricks ha evolucionado a una "Plataforma de Inteligencia de Datos". Combina Data Warehousing, Data Engineering y Machine Learning en un solo lugar, sobre una arquitectura abierta llamada <b>Lakehouse</b>.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">1.1. La Evolución de las Arquitecturas de Datos</h3>
+                        <p class="text-gray-700 text-lg mb-4">Antes de sumergirnos en el "Lakehouse", debemos entender qué es una <b>arquitectura de datos</b>. Piénsalo como los planos de una ciudad: no solo define dónde están los edificios, sino también las carreteras que los conectan, las tuberías que llevan agua y las redes eléctricas que les dan energía. La arquitectura define cómo funciona el sistema en su conjunto.</p>
+                        <p class="text-gray-700 text-lg mb-4">Una buena arquitectura garantiza que los datos sean seguros, fiables, accesibles y que puedan responder a las preguntas del negocio de manera eficiente. A lo largo de los años, han surgido diferentes arquitecturas para resolver distintos problemas. Vamos a explorar su evolución.</p>
+                        
+                        <div class="mt-8 bg-blue-50 border-l-8 border-blue-400 p-6 rounded-r-lg shadow-inner">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4 flex-grow">
+                                    <h4 class="font-bold text-lg text-blue-800 mb-3">Nota del Arquitecto: La Evolución de los Datos</h4>
+                                    <div class="space-y-8">
+                                        
+                                        <div>
+                                            <h5 class="font-bold text-gray-800 text-lg">1. El Mundo Ordenado: Data Warehouse</h5>
+                                            <p class="text-gray-700 mt-1 mb-4">El Data Warehouse fue el rey durante décadas. Su filosofía es simple: antes de que cualquier dato entre al almacén central, debe ser <b>extraído, transformado y limpiado</b> rigurosamente. Este proceso se conoce como <b>ETL (Extract, Transform, Load)</b>. El resultado es una fuente de verdad altamente fiable y optimizada para consultas de Business Intelligence (BI), pero a costa de una gran inflexibilidad. Su lema es <b>"schema-on-write"</b>: el esquema se impone al escribir los datos.</p>
+                                            <div class="mermaid bg-white p-2 rounded border">
+                                                graph TD
+                                                    subgraph "Fuentes de Datos"
+                                                        A[Aplicación 1]
+                                                        B[CRM]
+                                                        C[Archivos]
+                                                    end
+                                                    subgraph "Proceso ETL"
+                                                        D{Transformación y Limpieza}
+                                                    end
+                                                    subgraph "Almacén Central"
+                                                        E["<b>Data Warehouse</b><br>Datos Estructurados<br>Esquema Rígido"]
+                                                    end
+                                                    subgraph "Consumidores"
+                                                        F[Reportes de BI]
+                                                        G[Dashboards]
+                                                    end
+                                                    A --> D; B --> D; C --> D;
+                                                    D -- Carga Datos Limpios --> E;
+                                                    E --> F; E --> G;
+                                                    style E fill:#f0f9ff,stroke:#003366
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h5 class="font-bold text-gray-800 text-lg">2. El Caos Flexible: Data Lake</h5>
+                                            <p class="text-gray-700 mt-1 mb-4">Con la llegada del Big Data, el Data Warehouse se quedó corto. Se necesitaba un lugar barato y flexible para almacenar terabytes de datos de cualquier tipo (videos, logs, sensores). Así nació el Data Lake. Su filosofía es <b>ELT (Extract, Load, Transform)</b>: primero se cargan todos los datos en su formato original y <b>la transformación se hace después</b>, según la necesidad. Esto ofrece una flexibilidad inmensa para la ciencia de datos, pero a menudo conduce a <b>"pantanos de datos" (data swamps)</b> desorganizados y de bajo rendimiento para BI. Su lema es <b>"schema-on-read"</b>: el esquema se aplica al leer los datos.</p>
+                                            <div class="mermaid bg-white p-2 rounded border">
+                                                graph TD
+                                                    subgraph "Fuentes de Datos"
+                                                        A[Aplicación 1]
+                                                        B[Sensores IoT]
+                                                        C[Videos]
+                                                        D[Logs JSON]
+                                                    end
+                                                    subgraph "Almacén Central"
+                                                        E["<b>Data Lake</b><br>Datos Crudos (Raw)<br>Todo Formato"]
+                                                    end
+                                                    subgraph "Proceso ELT"
+                                                        F{Transformación y Limpieza}
+                                                        G{Exploración ML}
+                                                    end
+                                                    subgraph "Consumidores"
+                                                        H[Reportes de BI]
+                                                        I[Modelos de Machine Learning]
+                                                    end
+                                                    A --> E; B --> E; C --> E; D --> E;
+                                                    E -- Datos para BI --> F --> H;
+                                                    E -- Datos para ML --> G --> I;
+                                                    style E fill:#f7fee7,stroke:#3f6212
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h5 class="font-bold text-gray-800 text-lg">3. La Síntesis Inteligente: Lakehouse</h5>
+                                            <p class="text-gray-700 mt-1 mb-4">El Lakehouse es la arquitectura moderna que resuelve esta dualidad. Implementa una capa de gestión de transacciones y metadatos (como <b>Delta Lake</b>) directamente sobre un Data Lake de bajo costo. Esto permite que los mismos datos sean utilizados <b>directamente y de forma fiable</b> tanto para cargas de trabajo de BI (que necesitan velocidad y estructura) como para cargas de Machine Learning (que necesitan flexibilidad y acceso a datos crudos). Elimina la necesidad de duplicar datos en sistemas separados, simplificando la arquitectura y reduciendo costos.</p>
+                                            <div class="mermaid bg-white p-2 rounded border">
+                                                graph TD
+                                                    subgraph "Fuentes de Datos"
+                                                        A[Aplicación 1]
+                                                        B[Sensores IoT]
+                                                        C[Videos]
+                                                        D[Logs JSON]
+                                                    end
+                                                    subgraph "Almacén Central Unificado"
+                                                        E["<b>Lakehouse (sobre Data Lake)</b><br><b>+ Delta Lake</b><br>Fiabilidad y Gobernanza"]
+                                                    end
+                                                    subgraph "Consumidores Directos"
+                                                        F[Reportes de BI]
+                                                        G[Dashboards]
+                                                        H[Modelos de Machine Learning]
+                                                        I[Inteligencia Artificial]
+                                                    end
+                                                    A --> E; B --> E; C --> E; D --> E;
+                                                    E -- Acceso Directo y Rápido --> F;
+                                                    E --> G;
+                                                    E --> H;
+                                                    E --> I;
+                                                    style E fill:#ffe4e6,stroke:#DA291C
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">1.2. Recorrido por la Interfaz Moderna</h3>
+                        <p class="text-gray-700 text-lg mb-4">Ahora que entendemos el "porqué" del Lakehouse, exploremos el "cómo" en Databricks. El menú de la izquierda es nuestro centro de comando, organizado por roles:</p>
+                        <img src="images/DB_first.png" alt="Interfaz del workspace de Databricks" class="rounded-lg shadow-md my-6 mx-auto border" onerror="this.onerror=null;this.src='https://placehold.co/800x450/FFFFFF/000000?text=Interfaz+de+Databricks';">
+                        
+                        <!-- Inicio del nuevo bloque de tarjetas interactivas -->
+                        <div class="mt-6">
+                            <!-- Estilos para el efecto de volteo de las tarjetas -->
+                            <style>
+                                .flip-card { perspective: 1000px; }
+                                .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
+                                .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+                                .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 0.5rem; text-align: center; }
+                                .flip-card-back { transform: rotateY(180deg); }
+                            </style>
+
+                            <!-- Contenedor de las tarjetas -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                                <!-- Tarjeta 1: Workspace -->
+                                <div class="flip-card h-52 rounded-lg">
+                                    <div class="flip-card-inner shadow-lg">
+                                        <div class="flip-card-front bg-gray-100 border border-gray-200 p-4">
+                                            <svg class="w-12 h-12 text-usta-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.75h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <h4 class="mt-3 text-xl font-bold text-gray-800">Workspace</h4>
+                                        </div>
+                                        <div class="flip-card-back text-usta-blue p-4">
+                                            <h5 class="font-bold text-lg">Espacio de Trabajo</h5>
+                                            <p class="text-sm mt-2">Es tu centro de colaboración. Aquí organizas tus proyectos en carpetas, creas <b>notebooks</b> para desarrollar código, y gestionas el control de versiones con <b>Git</b>.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tarjeta 2: Catalog -->
+                                <div class="flip-card h-52 rounded-lg">
+                                    <div class="flip-card-inner shadow-lg">
+                                        <div class="flip-card-front bg-gray-100 border border-gray-200 p-4">
+                                            <svg class="w-12 h-12 text-usta-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>
+                                            <h4 class="mt-3 text-xl font-bold text-gray-800">Catalog</h4>
+                                        </div>
+                                        <div class="flip-card-back text-usta-blue p-4">
+                                            <h5 class="font-bold text-lg">Catálogo de Datos</h5>
+                                            <p class="text-sm mt-2">El corazón de la gobernanza de datos. <b>Unity Catalog</b> te permite explorar todos tus activos de datos usando una jerarquía de 3 niveles: <b>Catálogo > Esquema > Tabla</b>. Aquí defines permisos y linaje de datos.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tarjeta 3: Compute -->
+                                <div class="flip-card h-52 rounded-lg">
+                                    <div class="flip-card-inner shadow-lg">
+                                        <div class="flip-card-front bg-gray-100 border border-gray-200 p-4">
+                                            <svg class="w-12 h-12 text-usta-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5M19.5 8.25h-1.5m-15 3.75h1.5m15 0h1.5m-15 3.75h1.5m15 0h1.5" /></svg>
+                                            <h4 class="mt-3 text-xl font-bold text-gray-800">Compute</h4>
+                                        </div>
+                                        <div class="flip-card-back text-usta-blue p-4">
+                                             <h5 class="font-bold text-lg">Potencia de Cálculo</h5>
+                                            <p class="text-sm mt-2">El "músculo" de Databricks. Aquí administras los <b>Clusters</b> para desarrollo en notebooks y los <b>SQL Warehouses</b>, que son motores ultra-rápidos optimizados para tus consultas de BI y SQL.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tarjeta 4: SQL -->
+                                <div class="flip-card h-52 rounded-lg">
+                                    <div class="flip-card-inner shadow-lg">
+                                        <div class="flip-card-front bg-gray-100 border border-gray-200 p-4">
+                                             <svg class="w-12 h-12 text-usta-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9.75h4.875a2.625 2.625 0 010 5.25H12M8.25 9.75L12 5.25m0 4.5l-3.75 3.75" /></svg>
+                                            <h4 class="mt-3 text-xl font-bold text-gray-800">SQL</h4>
+                                        </div>
+                                        <div class="flip-card-back text-usta-blue p-4">
+                                            <h5 class="font-bold text-lg">Herramientas de Analítica</h5>
+                                            <p class="text-sm mt-2">El entorno del analista de datos. Incluye el <b>SQL Editor</b> para lanzar consultas, el creador de <b>Dashboards</b> para visualizar KPIs y el historial de consultas para optimizar el rendimiento.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tarjeta 5: Data Engineering -->
+                                <div class="flip-card h-52 rounded-lg">
+                                    <div class="flip-card-inner shadow-lg">
+                                        <div class="flip-card-front bg-gray-100 border border-gray-200 p-4">
+                                            <svg class="w-12 h-12 text-usta-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-4.243-4.243l3.275-3.275a4.5 4.5 0 00-6.336 4.486c.046.58.143 1.193.372 1.743" /></svg>
+                                            <h4 class="mt-3 text-xl font-bold text-gray-800">Data Engineering</h4>
+                                        </div>
+                                        <div class="flip-card-back text-usta-blue p-4">
+                                            <h5 class="font-bold text-lg">Automatización de Datos</h5>
+                                             <p class="text-sm mt-2">El centro de control para la producción. Aquí creas <b>Pipelines</b> de datos con Delta Live Tables y orquestas la ejecución de tus notebooks con <b>Jobs</b>, programándolos para que se ejecuten de forma automática.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <!-- Fin del nuevo bloque de tarjetas interactivas -->
+                    </div>
+
+<div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">1.3. Entendiendo el "Compute": El Músculo de Databricks</h3>
+                        <p class="text-gray-700 text-lg mb-6">En Databricks, nada sucede sin "Compute". Es el motor, el "músculo" que ejecuta todas nuestras tareas, desde simples consultas SQL hasta complejos entrenamientos de modelos de Machine Learning. Sin embargo, no todo el "músculo" es igual. Databricks nos ofrece dos tipos principales de cómputo, cada uno especializado para un propósito diferente. Entender cuándo usar cada uno es clave para trabajar de manera eficiente y rentable.</p>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+                            
+                            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg shadow-md flex flex-col">
+                                <div class="p-6">
+                                    <h4 class="text-2xl font-bold text-blue-800">SQL Warehouse</h4>
+                                    <p class="font-semibold text-blue-600 mt-1">El Auto de Fórmula 1 🏎️</p>
+                                    <p class="text-gray-700 mt-4">Piensa en un SQL Warehouse como un motor de carreras: está diseñado y optimizado para una sola cosa: ejecutar consultas SQL a la <b>máxima velocidad posible</b>. Utiliza múltiples optimizaciones bajo el capó (como el motor Photon) para acelerar las lecturas y los joins, haciendo que tus dashboards de BI y consultas analíticas vuelen.</p>
+                                </div>
+                                <div class="bg-blue-100 p-6 mt-auto rounded-b-lg">
+                                    <h5 class="font-bold text-blue-900">Casos de Uso Principales:</h5>
+                                    <ul class="list-disc list-inside mt-2 space-y-1 text-sm text-gray-800">
+                                        <li>Conectar herramientas de Business Intelligence (Tableau, Power BI).</li>
+                                        <li>Ejecutar consultas en el <b>SQL Editor</b> de Databricks.</li>
+                                        <li>Alimentar <b>Dashboards</b> y visualizaciones.</li>
+                                        <li>Análisis exploratorio de datos por parte de analistas.</li>
+                                    </ul>
+                                    <p class="mt-4 text-center font-bold bg-blue-200 text-blue-900 rounded-full py-1">Clave: Velocidad y Eficiencia para SQL</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-green-50 border-2 border-green-200 rounded-lg shadow-md flex flex-col">
+                                <div class="p-6">
+                                    <h4 class="text-2xl font-bold text-green-800">All-Purpose Cluster</h4>
+                                    <p class="font-semibold text-green-600 mt-1">El Taller del Ingeniero 🛠️</p>
+                                    <p class="text-gray-700 mt-4">Un Cluster de propósito general es como un taller completo. No es el más rápido para una única tarea, pero tiene todas las herramientas necesarias para cualquier tipo de trabajo. Te da la <b>máxima flexibilidad</b> para ejecutar código en diferentes lenguajes (Python, R, Scala, SQL) dentro de un <b>notebook</b>, instalar librerías personalizadas y realizar tareas complejas de ingeniería de datos y ciencia de datos.</p>
+                                </div>
+                                <div class="bg-green-100 p-6 mt-auto rounded-b-lg">
+                                    <h5 class="font-bold text-green-900">Casos de Uso Principales:</h5>
+                                    <ul class="list-disc list-inside mt-2 space-y-1 text-sm text-gray-800">
+                                        <li>Desarrollo interactivo de código en <b>Notebooks</b>.</li>
+                                        <li>Ingesta y transformación de datos (procesos <b>ETL/ELT</b>).</li>
+                                        <li>Entrenamiento de modelos de <b>Machine Learning</b> y IA.</li>
+                                        <li>Análisis de datos que requiere librerías especializadas.</li>
+                                    </ul>
+                                     <p class="mt-4 text-center font-bold bg-green-200 text-green-900 rounded-full py-1">Clave: Flexibilidad Total para Desarrollo</p>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <p class="text-gray-700 text-lg mt-8">Para nuestra clase, la división es clara: usaremos un <b>Cluster</b> para ejecutar el notebook de Python que ingiere los datos, y luego nos apoyaremos en el <b>SQL Warehouse</b> que viene por defecto para realizar nuestras consultas de análisis directamente en el editor de SQL.</p>
+                        <img src="images/DB_compute.png" alt="Página de Compute mostrando SQL Warehouses" class="rounded-lg shadow-md my-6 mx-auto border" onerror="this.onerror=null;this.src='https://placehold.co/800x500/FFFFFF/000000?text=Página+de+Compute';">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Módulo 2 -->
+            <section id="modulo2" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 2: Ingesta de Datos con Apache Spark</h1>
+                    <p class="text-lg text-gray-700 mt-4">Ahora que entendemos la arquitectura, es hora de poner manos a la obra. Vamos a traer datos a nuestro Lakehouse. Para esta tarea, no usaremos una herramienta cualquiera, sino el motor que impulsa toda la plataforma Databricks: <b>Apache Spark</b>.</p>
+                    
+                    <div class="mt-8 bg-yellow-50 border-l-8 border-yellow-400 p-6 rounded-r-lg shadow-inner">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="h-8 w-8 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.375 3.375 0 0112 18.375V19.5m-3.364-1.636l.707.707" />
+                                </svg>
+                            </div>
+                            <div class="ml-4 flex-grow">
+                                <h4 class="font-bold text-lg text-yellow-800 mb-3">Concepto Clave: ¿Qué es Apache Spark y por qué es tan rápido?</h4>
+                                <div class="space-y-4 text-gray-700">
+                                    <p>Imagina que tienes que mover una pila gigante de 10,000 ladrillos. Podrías hacerlo tú solo, ladrillo por ladrillo, lo cual te tomaría días. Eso es el <b>procesamiento en una sola máquina</b>.</p>
+                                    <p>Apache Spark es como contratar a una cuadrilla de 100 trabajadores. Tú, como <b>"Driver" (Conductor)</b>, no mueves ningún ladrillo; tu trabajo es coordinar. Divides la pila de ladrillos en 100 montones más pequeños y le asignas un montón a cada <b>"Worker" (Trabajador)</b>. Todos los trabajadores mueven sus ladrillos al mismo tiempo. Al final, solo tienes que verificar que todos hayan terminado su parte. El trabajo se completa 100 veces más rápido.</p>
+                                    <p>Eso es, en esencia, la <b>computación distribuida</b> que hace Spark. Divide tareas masivas en partes más pequeñas y las distribuye entre las máquinas de un clúster para que se ejecuten en paralelo.</p>
+                                    <div class="mermaid bg-white p-4 rounded border">
+                                        graph LR
+                                            subgraph "Tu Notebook"
+                                                A("<b>Driver</b><br>Coordina el trabajo")
+                                            end
+                                            subgraph "Cluster de Workers (El Músculo)"
+                                                B(Worker 1)
+                                                C(Worker 2)
+                                                D(Worker 3)
+                                                E(...)
+                                                F(Worker N)
+                                            end
+                                            subgraph "Datos en el Lakehouse"
+                                                G[(Datos Divididos<br>en Particiones)]
+                                            end
+
+                                            A -- "1. Lee la consulta" --> G
+                                            A -- "2. Envía tareas" --> B
+                                            A -- "2. Envía tareas" --> C
+                                            A -- "2. Envía tareas" --> D
+                                            A -- "2. Envía tareas" --> E
+                                            A -- "2. Envía tareas" --> F
+                                            B -- "3. Procesa su parte" --> G
+                                            C -- "3. Procesa su parte" --> G
+                                            D -- "3. Procesa su parte" --> G
+                                            E -- "3. Procesa su parte" --> G
+                                            F -- "3. Procesa su parte" --> G
+                                            B -- "4. Devuelve resultados" --> A
+                                            C -- "4. Devuelve resultados" --> A
+                                            D -- "4. Devuelve resultados" --> A
+                                            E -- "4. Devuelve resultados" --> A
+                                            F -- "4. Devuelve resultados" --> A
+                                    </div>
+                                    <p class="mt-4"><b>Relación con Databricks:</b> Si Spark es el motor de alto rendimiento, Databricks es el chasis, la carrocería y la cabina de un auto de carreras. Databricks proporciona la interfaz (notebooks, editor de SQL), las herramientas de gestión (clústeres, jobs) y las optimizaciones que hacen que usar Spark sea fácil, rápido y seguro.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">2.1. Creación del Notebook</h3>
+                        <p class="text-gray-700 text-lg mb-4">En el <strong>Workspace</strong>, navega a tu carpeta de usuario, haz clic en el botón azul <strong>+ New</strong> y selecciona <strong>Notebook</strong>. Nómbralo `Ingesta_Datos_Abiertos` y conéctalo al clúster que creaste.</p>
+                        <img src="images/DB_workspace.png" alt="Workspace del usuario en Databricks" class="rounded-lg shadow-md my-6 mx-auto border" onerror="this.onerror=null;this.src='https://placehold.co/800x300/FFFFFF/000000?text=Workspace+del+Usuario';">
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">2.2. Ingesta desde APIs (SECOP y MEN)</h3>
+                        <p class="text-gray-700 text-lg mb-4">Con el siguiente código, le ordenaremos a Spark que se conecte a las URLs de los datos, los lea y los cargue en una estructura llamada DataFrame.</p>
+                        <div class="mt-8 bg-indigo-50 border-l-8 border-indigo-400 p-6 rounded-r-lg shadow-inner">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4 flex-grow">
+                                    <h4 class="font-bold text-lg text-indigo-800 mb-4">Concepto Clave: ¿Qué es un Spark DataFrame?</h4>
+                                    <p class="text-gray-700 mb-6">Un DataFrame es la principal estructura de datos en Spark. A primera vista, se parece a una tabla de una base de datos o a una hoja de cálculo con columnas con nombre. Sin embargo, bajo el capó, es una bestia completamente diferente, diseñada para la escala de Big Data. Sus características fundamentales son:</p>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+
+                                        <div class="bg-white p-6 rounded-lg border border-indigo-200 shadow-sm">
+                                            <div class="flex justify-center items-center h-12 w-12 rounded-full bg-indigo-100 mx-auto">
+                                                <svg class="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                                            </div>
+                                            <h5 class="font-bold text-lg text-gray-800 mt-4">Distribuido</h5>
+                                            <p class="text-sm text-gray-600 mt-2">El DataFrame no vive en una sola máquina, sino que está <b>dividido en particiones</b> a lo largo de todo el clúster. Cada Worker procesa su parte en paralelo.</p>
+                                            <p class="text-sm mt-3 font-semibold text-indigo-700"><i>Analogía:</i> Un rompecabezas gigante. Cada trabajador del clúster arma una pequeña sección. Al final, se unen todas las secciones para formar la imagen completa mucho más rápido.</p>
+                                        </div>
+
+                                        <div class="bg-white p-6 rounded-lg border border-indigo-200 shadow-sm">
+                                            <div class="flex justify-center items-center h-12 w-12 rounded-full bg-indigo-100 mx-auto">
+                                                <svg class="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                            </div>
+                                            <h5 class="font-bold text-lg text-gray-800 mt-4">Inmutable</h5>
+                                            <p class="text-sm text-gray-600 mt-2">Una vez que se crea un DataFrame, <b>nunca se modifica</b>. Cualquier "transformación" (como un filtro o agregar una columna) crea un DataFrame completamente nuevo.</p>
+                                            <p class="text-sm mt-3 font-semibold text-indigo-700"><i>Analogía:</i> Una fotografía. No puedes editar la foto original; en su lugar, creas una copia y aplicas tus cambios sobre ella. Esto garantiza que el original siempre esté intacto y previene errores.</p>
+                                        </div>
+
+                                        <div class="bg-white p-6 rounded-lg border border-indigo-200 shadow-sm">
+                                            <div class="flex justify-center items-center h-12 w-12 rounded-full bg-indigo-100 mx-auto">
+                                                <svg class="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                            </div>
+                                            <h5 class="font-bold text-lg text-gray-800 mt-4">Evaluación Perezosa</h5>
+                                            <p class="text-sm text-gray-600 mt-2">Spark no ejecuta tus comandos inmediatamente. En su lugar, construye un <b>plan de ejecución optimizado</b> y solo lo pone en marcha cuando pides un resultado final (una "acción").</p>
+                                            <p class="text-sm mt-3 font-semibold text-indigo-700"><i>Analogía:</i> Un GPS. Le das el origen y el destino (tus transformaciones), y en lugar de empezar a conducir al instante, primero calcula la ruta más rápida y eficiente. Solo cuando le dices "¡Vamos!" (una acción como `display()`), empieza el viaje.</p>
+                                        </div>
+
+                                    </div>
+                                    <div class="mt-6 mermaid bg-white p-2 rounded border">
+                                        graph TD
+                                            subgraph "DataFrame Lógico (df)"
+                                                direction LR
+                                                A["Col 1"]
+                                                B["Col 2"]
+                                                C["Col 3"]
+                                            end
+                                            subgraph "Cluster (Realidad Física)"
+                                                D["<b>Worker 1</b><br>Partición 1"]
+                                                E["<b>Worker 2</b><br>Partición 2"]
+                                                F["<b>Worker N</b><br>Partición N"]
+                                            end
+                                            A -- "Distribuido en" --> D
+                                            A -- "Distribuido en" --> E
+                                            A -- "Distribuido en" --> F
+                                            style A fill:#e0e7ff
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <pre><code class="python rounded-lg text-left">
+# Celda 1: Leer datos desde las APIs
+url_secop = "https://www.datos.gov.co/resource/rpmr-utcd.csv"
+url_men = "https://www.datos.gov.co/resource/nudc-7mev.csv"
+
+# Usamos spark.read para ingerir los datos.
+# option("header", "true") indica que la primera fila contiene los nombres de las columnas.
+# option("inferSchema", "true") le pide a Spark que adivine el tipo de cada columna.
+df_secop = spark.read.format("csv").option("header", "true").option("inferSchema", "true").load(url_secop)
+df_men = spark.read.format("csv").option("header", "true").option("inferSchema", "true").load(url_men)
+
+# display() es un comando especial de Databricks para una visualización interactiva.
+print("Datos del SECOP cargados:")
+display(df_secop)
+
+print("Datos del MEN cargados:")
+display(df_men)
+                        </code></pre>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">2.3. Guardado en Formato Delta Lake</h3>
+                        <p class="text-gray-700 text-lg mb-4">Los datos en memoria son volátiles. Para hacerlos permanentes, los guardaremos en formato <b>Delta Lake</b>.</p>
+                        <div class="mt-8 bg-indigo-50 border-l-8 border-indigo-400 p-6 rounded-r-lg shadow-inner">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m-9-5.747h18" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4 flex-grow">
+                                    <h4 class="font-bold text-lg text-indigo-800 mb-4">Concepto Clave: ¿Por qué Delta Lake es el Corazón del Lakehouse?</h4>
+                                    <p class="text-gray-700 mb-6">Si el Data Lake es el terreno, Delta Lake es la cimentación de concreto reforzado que construimos sobre él. Es una <b>capa de almacenamiento</b> de código abierto que se coloca sobre tus archivos de datos (como Parquet) y les añade superpoderes, transformando un simple lago de datos en un sistema fiable y de alto rendimiento. Sus características clave son:</p>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+
+                                        <div class="bg-white p-6 rounded-lg border border-indigo-200 shadow-sm">
+                                            <div class="flex justify-center items-center h-12 w-12 rounded-full bg-indigo-100 mx-auto">
+                                                <svg class="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                            </div>
+                                            <h5 class="font-bold text-lg text-gray-800 mt-4">Transacciones ACID</h5>
+                                            <p class="text-sm text-gray-600 mt-2">Garantiza que las operaciones de escritura se completen de forma íntegra o no se completen en absoluto. <b>Elimina la corrupción de datos</b>.</p>
+                                            <p class="text-sm mt-3 font-semibold text-indigo-700"><i>Analogía:</i> Una transferencia bancaria. O el dinero sale de una cuenta y llega a la otra, o no pasa nada. Nunca se queda a medias.</p>
+                                        </div>
+
+                                        <div class="bg-white p-6 rounded-lg border border-indigo-200 shadow-sm">
+                                            <div class="flex justify-center items-center h-12 w-12 rounded-full bg-indigo-100 mx-auto">
+                                                <svg class="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            </div>
+                                            <h5 class="font-bold text-lg text-gray-800 mt-4">Time Travel</h5>
+                                            <p class="text-sm text-gray-600 mt-2">Mantiene un historial de todas las versiones de tu tabla. Puedes <b>consultar, restaurar o comparar</b> datos de cualquier punto en el tiempo.</p>
+                                            <p class="text-sm mt-3 font-semibold text-indigo-700"><i>Analogía:</i> El historial de versiones de un documento de Google Docs. Puedes ver quién cambió qué y volver a una versión anterior si cometes un error.</p>
+                                        </div>
+
+                                        <div class="bg-white p-6 rounded-lg border border-indigo-200 shadow-sm">
+                                            <div class="flex justify-center items-center h-12 w-12 rounded-full bg-indigo-100 mx-auto">
+                                                <svg class="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            </div>
+                                            <h5 class="font-bold text-lg text-gray-800 mt-4">Schema Enforcement</h5>
+                                            <p class="text-sm text-gray-600 mt-2">Protege la calidad de tus datos al impedir que se inserten datos con un formato o tipo incorrecto, evitando que la tabla se "rompa".</p>
+                                            <p class="text-sm mt-3 font-semibold text-indigo-700"><i>Analogía:</i> Un guardia de seguridad en la puerta de un club que solo deja entrar a quienes cumplen el código de vestimenta (el esquema de la tabla).</p>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <pre><code class="python rounded-lg text-left">
+# Celda 2: Guardar los DataFrames como tablas Delta
+# La función .saveAsTable() guarda los datos y registra la tabla en el Unity Catalog.
+# El modo "overwrite" reemplaza la tabla si ya existe, ideal para actualizaciones.
+df_secop.write.format("delta").mode("overwrite").saveAsTable("main.diplomado_datos.secop")
+df_men.write.format("delta").mode("overwrite").saveAsTable("main.diplomado_datos.men_estadisticas")
+
+print("¡Tablas guardadas exitosamente en el catálogo 'main', esquema 'diplomado_datos'!")
+                        </code></pre>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Módulo 3 -->
+            <section id="modulo3" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 3: Consultando con el SQL Editor</h1>
+                    <p class="text-lg text-gray-700">Ahora que nuestros datos están en el Lakehouse, podemos usar el <b>SQL Editor</b> para explorarlos de forma interactiva, aprovechando la velocidad del SQL Warehouse.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.1. Navegando con el Catalog Explorer</h3>
+                        <p class="text-gray-700 text-lg mb-4">Antes de consultar, ve al <b>Catalog</b> en el menú izquierdo. Aquí verás la jerarquía de 3 niveles de <b>Unity Catalog</b>.</p>
+                        <div class="mt-8 bg-green-50 border-l-8 border-green-400 p-6 rounded-r-lg shadow-inner">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4 flex-grow">
+                                    <h4 class="font-bold text-lg text-green-800 mb-4">Concepto Clave: Unity Catalog, el "Cerebro" del Lakehouse</h4>
+                                    <p class="text-gray-700 mb-6">Si Delta Lake es la cimentación, Unity Catalog es el <b>sistema de gobierno centralizado</b> de toda la plataforma. Su misión es simple pero poderosa: proporcionar un único lugar para gestionar todos los activos de datos y de IA, asegurando que sean detectables, seguros y fiables. Para lograrlo, introduce una jerarquía estricta de 3 niveles.</p>
+                                    <p class="text-gray-700 mb-6"><b>Analogía:</b> Piensa en Unity Catalog como una gran <b>biblioteca universitaria</b>.</p>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                                        <div class="text-center">
+                                            <div class="mermaid bg-white p-4 rounded border">
+                                                graph TD
+                                                    A["<b>Catálogo</b><br>(Ej: Biblioteca de Ciencias)"] --> B["<b>Esquema</b><br>(Ej: Sección de Biología)"]
+                                                    B --> C["<b>Tabla</b><br>(Ej: Libro de Genética)"]
+                                                    B --> D["<b>Vista</b><br>(Ej: Resumen del Capítulo 3)"]
+                                                    B --> E["<b>Función</b><br>(Ej: Fórmula para Calcular X)"]
+                                                    
+                                                    style A fill:#e0f2fe,stroke:#3b82f6
+                                                    style B fill:#dcfce7,stroke:#16a34a
+                                                    style C fill:#fef9c3,stroke:#eab308
+                                                    style D fill:#fef9c3,stroke:#eab308
+                                                    style E fill:#fef9c3,stroke:#eab308
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-4">
+                                            <div class="flex items-start">
+                                                <div class="flex-shrink-0 h-6 w-6 flex items-center justify-center bg-blue-200 text-blue-800 rounded-full font-bold">1</div>
+                                                <div class="ml-3">
+                                                    <h5 class="font-bold text-gray-800">Catálogo (Catalog)</h5>
+                                                    <p class="text-sm text-gray-600">Es el nivel más alto. Es como un <b>edificio o facultad</b> en la universidad (ej. `Facultad_Ingenieria`). Agrupa áreas de negocio lógicas (`produccion`, `desarrollo`, `ventas`).</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-start">
+                                                <div class="flex-shrink-0 h-6 w-6 flex items-center justify-center bg-green-200 text-green-800 rounded-full font-bold">2</div>
+                                                <div class="ml-3">
+                                                    <h5 class="font-bold text-gray-800">Esquema (Schema)</h5>
+                                                    <p class="text-sm text-gray-600">Equivale a una base de datos. Es como un <b>piso o sección</b> dentro de la biblioteca (ej. `Piso_Quimica`). Agrupa tablas, vistas y funciones relacionadas (`recursos_humanos`, `marketing`).</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-start">
+                                                <div class="flex-shrink-0 h-6 w-6 flex items-center justify-center bg-yellow-200 text-yellow-800 rounded-full font-bold">3</div>
+                                                <div class="ml-3">
+                                                    <h5 class="font-bold text-gray-800">Tabla, Vista, etc.</h5>
+                                                    <p class="text-sm text-gray-600">Son los <b>libros y recursos</b> en las estanterías. Son los objetos finales que contienen los datos (`empleados`, `ventas_2024`).</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <p class="mt-6 font-semibold text-gray-800">Por eso, para referirnos a una tabla de forma inequívoca y evitar ambigüedades, siempre usamos la notación completa de 3 niveles: <code>catalogo.esquema.tabla</code>. En nuestro caso: <code>main.diplomado_datos.secop</code>.</p>
+                                </div>
+                            </div>
+                        </div>
+                         <img src="images/DB_catalog.png" alt="Vista del Catalog Explorer en Databricks" class="rounded-lg shadow-md my-6 mx-auto border" onerror="this.onerror=null;this.src='https://placehold.co/800x450/FFFFFF/000000?text=Catalog+Explorer';">
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">3.2. ¡A Consultar!</h3>
+                        <p class="text-gray-700 text-lg mb-4">Ve al <b>SQL Editor</b> en el menú, asegúrate de que esté seleccionado tu SQL Warehouse y ejecuta tus consultas usando el nombre completo de la tabla.</p>
+                        <pre><code class="sql rounded-lg text-left">
+-- ¿Cuáles son los 10 contratos más cuantiosos en el SECOP?
+-- Nota el nombre de 3 niveles: catalogo.esquema.tabla
+SELECT
+  nombre_entidad,
+  departamento_entidad,
+  descripcion_del_proceso,
+  valor_del_contrato
+FROM
+  main.diplomado_datos.secop
+ORDER BY
+  CAST(valor_del_contrato AS DOUBLE) DESC
+LIMIT 10;
+                        </code></pre>
+                        <pre><code class="sql rounded-lg text-left mt-4">
+-- ¿Cuántas instituciones educativas hay por departamento?
+SELECT
+  departamento,
+  COUNT(DISTINCT codigo_establecimiento) AS numero_de_instituciones
+FROM
+  main.diplomado_datos.men_estadisticas
+GROUP BY
+  departamento
+ORDER BY
+  numero_de_instituciones DESC;
+                        </code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Módulo 4 -->
+            <section id="modulo4" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 4: Manejo de Datos Estáticos (Censo DANE)</h1>
+                    <p class="text-lg text-gray-700">No todos los datos vienen de APIs. A menudo, trabajaremos con archivos estáticos como CSV o Excel. El proceso de ingesta es ligeramente diferente.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">4.1. Carga mediante la Interfaz Gráfica</h3>
+                        <p class="text-gray-700 text-lg mb-4">Para el archivo Excel del Censo, usaremos la interfaz de carga de datos.</p>
+                         <ol class="list-decimal list-inside space-y-3 pl-4 text-gray-700">
+                            <li>En el menú lateral, haz clic en <strong>+ New</strong> y luego en <strong>Add data</strong>.</li>
+                            <li>Selecciona <strong>Upload file</strong>. Arrastra tu archivo <code>CNPV-2018-VIHOPE-v2.xls</code> a la zona de carga.</li>
+                            <li>La interfaz te guiará para crear una tabla. Nómbrala `censo_2018_raw` y asegúrate de guardarla en el catálogo `main` y el esquema `diplomado_datos`.</li>
+                        </ol>
+                    </div>
+                     <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">4.2. Verificando la Tabla</h3>
+                        <p class="text-gray-700 text-lg mb-4">Una vez cargada, la tabla ya estará en formato Delta y registrada en el catálogo. Puedes consultarla inmediatamente desde el SQL Editor o un notebook.</p>
+                        <pre><code class="sql rounded-lg text-left">
+-- Verificamos el resultado
+SELECT * FROM main.diplomado_datos.censo_2018_raw LIMIT 10;
+                        </code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Módulo 5 -->
+            <section id="modulo5" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 5: Próximos Pasos: Automatización y Visualización</h1>
+                    <p class="text-lg text-gray-700">Hemos cubierto los fundamentos de la ingesta y consulta de datos. El siguiente paso en un proyecto real es automatizar la ingesta para que los datos se actualicen solos y visualizar los resultados para que sean fáciles de entender.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">5.1. Automatización con Jobs</h3>
+                        <p class="text-gray-700 text-lg mb-4">¿Recuerdan que nuestro notebook de ingesta tiene el modo "overwrite"? No queremos ejecutarlo manualmente todos los días. Para eso usamos los <b>Jobs</b> (en la sección de Data Engineering). Un Job nos permite programar la ejecución de un notebook a una hora específica, por ejemplo, todos los días a las 3 AM.</p>
+                        <img src="images/DB_jobs.png" alt="Interfaz de Jobs en Databricks" class="rounded-lg shadow-md my-6 mx-auto border" onerror="this.onerror=null;this.src='https://placehold.co/800x400/FFFFFF/000000?text=Interfaz+de+Jobs';">
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">5.2. Visualización con Dashboards</h3>
+                        <p class="text-gray-700 text-lg mb-4">Una vez que los datos están en el Lakehouse y se actualizan automáticamente, el paso final es crear visualizaciones para el negocio. En Databricks, podemos tomar los resultados de nuestras consultas SQL y construir <b>Dashboards</b> interactivos para monitorear KPIs, explorar tendencias y compartir hallazgos con otros usuarios.</p>
+                        <img src="images/DB_dashboards.png" alt="Interfaz de Dashboards en Databricks" class="rounded-lg shadow-md my-6 mx-auto border" onerror="this.onerror=null;this.src='https://placehold.co/800x500/FFFFFF/000000?text=Interfaz+de+Dashboards';">
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+            mermaid.initialize({ startOnLoad: true, theme: 'base', fontFamily: "'Montserrat', sans-serif" });
+
+            const sections = document.querySelectorAll('main section[id]');
+            const navLinks = document.querySelectorAll('#sidebar-nav a');
+            
+            const onScroll = () => {
+                let current = 'modulo0';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (window.pageYOffset >= sectionTop - 70) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            };
+
+            window.addEventListener('scroll', onScroll);
+            onScroll();
+        });
+    </script>
+</body>
+</html>
