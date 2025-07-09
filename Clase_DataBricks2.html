@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Databricks Avanzado: Transformación y Poder de Delta Lake</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --usta-blue: #003366;
+            --usta-red: #DA291C;
+            --usta-yellow: #FFCC00;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+        pre code.hljs {
+            font-family: 'Source Code Pro', monospace;
+            border-radius: 0.5rem;
+            padding: 1em;
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+            border-left: 4px solid transparent;
+        }
+        .sidebar-link.active, .sidebar-link:hover {
+            background-color: var(--usta-red);
+            color: white;
+            border-left-color: var(--usta-yellow);
+            transform: translateX(5px);
+        }
+        details > summary {
+            cursor: pointer;
+            font-weight: 600;
+        }
+        details div {
+            border-left: 2px solid var(--usta-yellow);
+            padding-left: 1rem;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="flex">
+        <!-- Sidebar de Navegación -->
+        <aside id="sidebar" class="sidebar text-white w-72 min-h-screen p-4 fixed top-0 left-0 flex-shrink-0 z-20 flex flex-col" style="background-color: #003366;">
+            <div class="mb-8">
+                 <a href="index.html">
+                    <img src="https://usantotomas.edu.co/hs-fs/hubfs/social-suggested-images/usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png?width=282&height=65&name=usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png" alt="Logo USTA" class="h-12 mx-auto" onerror="this.onerror=null;this.src='https://placehold.co/200x50/003366/FFFFFF?text=Universidad';">
+                </a>
+                <h2 class="text-xl font-bold text-center mt-4">Databricks: Parte 2</h2>
+            </div>
+            <nav id="sidebar-nav" class="flex-grow">
+                <a href="#modulo6" class="sidebar-link active block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 6: Transformación de Datos</a>
+                <a href="#modulo7" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 7: Consultando con SQL</a>
+                <a href="#modulo8" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 8: El Poder de MERGE</a>
+                <a href="#modulo9" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 9: Fiabilidad con Time Travel</a>
+                <a href="#modulo10" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 10: Pipelines con DLT</a>
+                <a href="#modulo11" class="sidebar-link block py-2.5 px-4 rounded-md mb-2 text-sm">Módulo 11: Conclusión</a>
+            </nav>
+            <div class="mt-auto text-center pt-8">
+                <a href="index.html" class="text-sm text-gray-300 hover:text-white underline"> &larr; Volver al Diplomado</a>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="ml-0 md:ml-72 flex-1 p-6 md:p-10">
+            
+            <!-- Módulo 6 -->
+            <section id="modulo6" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 6: Transformación de Datos con Spark</h1>
+                    <p class="text-lg text-gray-700">En la primera parte, ingerimos los datos y los guardamos en tablas Delta (nuestra capa <b>"Bronce"</b> o de datos crudos). Ahora, vamos a limpiarlos, enriquecerlos y prepararlos para el análisis, creando una capa <b>"Plata"</b> de datos validados y estructurados.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">6.1. Limpieza y Tipado de Datos</h3>
+                        <p class="text-gray-700 text-lg mb-4">Al ingerir datos, Spark a menudo infiere los tipos de datos (inferSchema), pero no siempre acierta, especialmente con fechas o números en formato de texto. Nuestro primer paso es asegurar que cada columna tenga el tipo de dato correcto. Usaremos Spark SQL en un notebook para crear una nueva tabla `secop_silver`.</p>
+                        <pre><code class="sql rounded-lg text-left">
+-- Crear una tabla PLATA a partir de la BRONCE
+-- Aquí corregimos tipos de datos y renombramos columnas para mayor claridad.
+CREATE OR REPLACE TABLE main.diplomado_datos.secop_silver AS
+SELECT
+  uid,
+  CAST(id_contrato AS LONG) AS id_contrato,
+  nombre_entidad,
+  departamento_entidad,
+  ciudad_entidad,
+  descripcion_del_proceso,
+  CAST(valor_del_contrato AS DOUBLE) AS valor_contrato,
+  -- Convertimos la fecha a un formato estándar
+  TO_DATE(fecha_de_firma, 'dd/MM/yyyy') AS fecha_firma,
+  tipodoc_proveedor AS tipo_doc_proveedor,
+  documento_proveedor,
+  proveedor_adjudicado,
+  origen
+FROM
+  main.diplomado_datos.secop;
+
+-- Verificamos el resultado
+SELECT * FROM main.diplomado_datos.secop_silver LIMIT 10;
+                        </code></pre>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">6.2. Enriquecimiento de Datos (JOIN)</h3>
+                        <p class="text-gray-700 text-lg mb-4">Una vez que nuestras tablas base están limpias, podemos cruzarlas para generar insights más profundos. Vamos a crear una tabla <b>"Oro"</b>, que son datos ya agregados y listos para el consumo por parte de analistas o para alimentar dashboards.</p>
+                        <p class="text-gray-700 text-lg mb-4">En este ejemplo, crearemos una tabla que resuma el total de contratos por departamento y lo cruzaremos con la cantidad de instituciones educativas en ese mismo departamento.</p>
+                         <pre><code class="sql rounded-lg text-left">
+-- Paso 1: Crear una vista temporal con los contratos agregados
+CREATE OR REPLACE TEMP VIEW contratos_por_departamento AS
+SELECT
+  departamento_entidad,
+  COUNT(*) AS numero_contratos,
+  SUM(valor_contrato) AS valor_total_contratos
+FROM
+  main.diplomado_datos.secop_silver
+GROUP BY
+  departamento_entidad;
+
+-- Paso 2: Crear una vista temporal con las instituciones agregadas
+CREATE OR REPLACE TEMP VIEW instituciones_por_departamento AS
+SELECT
+  departamento,
+  COUNT(DISTINCT codigo_establecimiento) AS numero_instituciones
+FROM
+  main.diplomado_datos.men_estadisticas
+GROUP BY
+  departamento;
+
+-- Paso 3: Unir (JOIN) las dos vistas para crear nuestra tabla ORO final
+CREATE OR REPLACE TABLE main.diplomado_datos.analisis_departamental_oro AS
+SELECT
+  c.departamento_entidad AS departamento,
+  c.numero_contratos,
+  c.valor_total_contratos,
+  i.numero_instituciones,
+  -- Calculamos una nueva métrica: inversión por institución
+  (c.valor_total_contratos / i.numero_instituciones) AS inversion_por_institucion
+FROM
+  contratos_por_departamento c
+JOIN
+  instituciones_por_departamento i ON c.departamento_entidad = i.departamento;
+
+-- ¡Nuestra tabla de análisis está lista para ser consultada!
+SELECT * FROM main.diplomado_datos.analisis_departamental_oro ORDER BY valor_total_contratos DESC;
+                        </code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Módulo 7 -->
+            <section id="modulo7" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 7: Consultando con el SQL Editor</h1>
+                    <p class="text-lg text-gray-700">Ahora que nuestros datos están limpios y enriquecidos en el Lakehouse, podemos usar el <b>SQL Editor</b> para explorarlos de forma interactiva, aprovechando la velocidad del SQL Warehouse.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">7.1. Navegando con el Catalog Explorer</h3>
+                        <p class="text-gray-700 text-lg mb-4">Antes de consultar, ve al <b>Catalog</b> en el menú izquierdo. Aquí verás la jerarquía de 3 niveles de <b>Unity Catalog</b> que gobierna todos nuestros datos.</p>
+                        <div class="mt-8 bg-green-50 border-l-8 border-green-400 p-6 rounded-r-lg shadow-inner">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-4 flex-grow">
+                                    <h4 class="font-bold text-lg text-green-800 mb-4">Recordatorio: La Jerarquía de Unity Catalog</h4>
+                                    <p class="text-gray-700 mb-6">Para referirnos a una tabla de forma inequívoca y evitar ambigüedades, siempre usamos la notación completa de 3 niveles: <code>catalogo.esquema.tabla</code>. En nuestro caso, consultaremos las tablas `secop_silver` y `analisis_departamental_oro` que creamos en el módulo anterior.</p>
+                                    <div class="mermaid bg-white p-4 rounded border">
+                                        graph TD
+                                            A["<b>Catálogo</b><br>(main)"] --> B["<b>Esquema</b><br>(diplomado_datos)"]
+                                            B --> C["<b>Tabla Plata</b><br>(secop_silver)"]
+                                            B --> D["<b>Tabla Oro</b><br>(analisis_departamental_oro)"]
+                                            style A fill:#e0f2fe,stroke:#3b82f6
+                                            style B fill:#dcfce7,stroke:#16a34a
+                                            style C fill:#fef9c3,stroke:#eab308
+                                            style D fill:#fef9c3,stroke:#eab308
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                         <img src="images/DB_catalog.png" alt="Vista del Catalog Explorer en Databricks" class="rounded-lg shadow-md my-6 mx-auto border" onerror="this.onerror=null;this.src='https://placehold.co/800x450/FFFFFF/000000?text=Catalog+Explorer';">
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">7.2. ¡A Consultar la Tabla de Oro!</h3>
+                        <p class="text-gray-700 text-lg mb-4">Ve al <b>SQL Editor</b> en el menú, asegúrate de que esté seleccionado tu SQL Warehouse y ejecuta tus consultas sobre la tabla agregada que preparamos.</p>
+                        <pre><code class="sql rounded-lg text-left">
+-- ¿Qué departamentos tienen la mayor inversión por institución educativa?
+-- Esta consulta es ahora muy simple porque todo el trabajo duro
+-- de limpieza y unión ya se hizo y se materializó en la tabla ORO.
+SELECT
+  departamento,
+  numero_contratos,
+  FORMAT_NUMBER(valor_total_contratos, 2, 'es_CO') AS valor_total_contratos,
+  numero_instituciones,
+  FORMAT_NUMBER(inversion_por_institucion, 2, 'es_CO') AS inversion_por_institucion
+FROM
+  main.diplomado_datos.analisis_departamental_oro
+ORDER BY
+  inversion_por_institucion DESC
+LIMIT 15;
+                        </code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Módulo 8 -->
+            <section id="modulo8" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 8: El Poder de MERGE para Sincronizar Datos</h1>
+                    <p class="text-lg text-gray-700">En el mundo real, los datos cambian constantemente. Necesitamos una forma eficiente de actualizar nuestras tablas con los últimos cambios. La operación `MERGE` (también conocida como "upsert") es la herramienta perfecta para esto, ya que puede insertar, actualizar o eliminar registros en una sola transacción.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">8.1. Escenario de Actualización</h3>
+                        <p class="text-gray-700 text-lg mb-4">Imaginemos que tenemos una tabla de empleados y recibimos un archivo diario con cambios: algunos empleados son nuevos, otros tienen actualizaciones de salario y otros quizás ya no están.</p>
+                        <div class="mt-8 bg-blue-50 border-l-8 border-blue-400 p-6 rounded-r-lg shadow-inner">
+                             <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.092 1.21-.138 2.43-.138 3.662v.512A4.006 4.006 0 004.5 16.5v2.25a2.25 2.25 0 002.25 2.25h10.5a2.25 2.25 0 002.25-2.25v-2.25a4.006 4.006 0 00-1.5-3.162v-.512zM9 12a3 3 0 106 0 3 3 0 00-6 0z" /></svg>
+                                </div>
+                                <div class="ml-4 flex-grow">
+                                    <h4 class="font-bold text-lg text-blue-800 mb-3">Lógica del Comando MERGE</h4>
+                                    <p class="text-gray-700">El comando `MERGE` compara una tabla <b>fuente</b> (los cambios) con una tabla <b>destino</b> (nuestros datos actuales) basándose en una clave de unión (como el `id` del empleado).</p>
+                                    <div class="mermaid bg-white p-4 rounded border mt-4">
+                                        graph TD
+                                            A[Fuente: Cambios Diarios] --> C{MERGE};
+                                            B[Destino: Tabla de Empleados] --> C;
+                                            C -- "Coincide (MATCHED)?" --> D{Sí};
+                                            C -- "No Coincide (NOT MATCHED)?" --> E{No};
+                                            D --> F["<b>Acción 1:</b><br>UPDATE SET salario = nuevo_salario"];
+                                            E --> G["<b>Acción 2:</b><br>INSERT (nuevo_empleado)"];
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">8.2. Ejemplo Práctico de MERGE</h3>
+                        <pre><code class="sql rounded-lg text-left">
+-- Paso 1: Crear nuestra tabla de empleados (destino)
+CREATE OR REPLACE TABLE main.diplomado_datos.empleados (
+  id INT,
+  nombre STRING,
+  salario INT,
+  estado STRING
+);
+INSERT INTO main.diplomado_datos.empleados VALUES
+  (1, 'Ana', 60000, 'Activo'),
+  (2, 'Juan', 70000, 'Activo'),
+  (3, 'Pedro', 65000, 'Activo');
+
+-- Paso 2: Crear una vista con los cambios de hoy (fuente)
+CREATE OR REPLACE TEMP VIEW cambios_empleados AS
+SELECT * FROM VALUES
+  (2, 'Juan', 75000, 'Activo'),    -- A Juan le subieron el sueldo
+  (4, 'Maria', 80000, 'Activo')   -- Maria es una nueva contratación
+AS (id, nombre, salario, estado);
+
+-- Paso 3: Ejecutar el MERGE
+MERGE INTO main.diplomado_datos.empleados AS destino
+USING cambios_empleados AS fuente
+ON destino.id = fuente.id
+WHEN MATCHED THEN
+  -- Si el empleado ya existe, actualiza su salario
+  UPDATE SET
+    destino.salario = fuente.salario,
+    destino.estado = fuente.estado
+WHEN NOT MATCHED THEN
+  -- Si el empleado es nuevo, lo inserta
+  INSERT (id, nombre, salario, estado)
+  VALUES (fuente.id, fuente.nombre, fuente.salario, fuente.estado);
+  
+-- Resultado: Juan tiene su salario actualizado y Maria ha sido añadida.
+-- Todo en una sola operación atómica y segura.
+SELECT * FROM main.diplomado_datos.empleados ORDER BY id;
+                        </code></pre>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Módulo 9 -->
+            <section id="modulo9" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 9: Auditoría y Fiabilidad con Time Travel</h1>
+                    <p class="text-lg text-gray-700">Uno de los "superpoderes" de Delta Lake es su capacidad de mantener un historial de cada cambio. Esto no solo es útil para auditorías, sino que es una red de seguridad increíble para revertir errores.</p>
+                </div>
+                <div class="space-y-12">
+                     <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">9.1. Explorando el Historial</h3>
+                        <p class="text-gray-700 text-lg mb-4">Cada operación en nuestra tabla `empleados` (el `CREATE`, el `INSERT`, el `MERGE`) ha creado una nueva versión. Podemos ver este log de transacciones con un simple comando.</p>
+                        <pre><code class="sql rounded-lg text-left">
+-- Muestra el historial de la tabla, quién hizo qué y cuándo
+DESCRIBE HISTORY main.diplomado_datos.empleados;
+                        </code></pre>
+                        <img src="images/DB_history.png" alt="Salida del comando DESCRIBE HISTORY" class="rounded-lg shadow-md my-6 mx-auto border" onerror="this.onerror=null;this.src='https://placehold.co/800x250/FFFFFF/000000?text=Historial+de+Versiones';">
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">9.2. Revertir un Error (La Red de Seguridad)</h3>
+                        <p class="text-gray-700 text-lg mb-4">Imaginemos que alguien ejecuta un `DELETE` por error, borrando a todos los empleados.</p>
+                        <pre><code class="sql rounded-lg text-left">
+-- ¡Desastre! Alguien borró todos los datos.
+DELETE FROM main.diplomado_datos.empleados;
+
+-- La tabla está vacía ahora.
+SELECT * FROM main.diplomado_datos.empleados;
+                        </code></pre>
+                        <p class="text-gray-700 text-lg mt-8 mb-4">Con Time Travel, la solución es trivial. Simplemente identificamos la versión anterior al borrado (usando `DESCRIBE HISTORY`) y restauramos la tabla a ese estado.</p>
+                        <pre><code class="sql rounded-lg text-left bg-green-50 text-green-900 border-green-200">
+-- Consultamos el historial, vemos que la última versión buena es la 2.
+-- ¡Restauramos la tabla a la versión 2 en un instante!
+RESTORE TABLE main.diplomado_datos.empleados TO VERSION AS OF 2;
+
+-- ¡Magia! Todos nuestros datos están de vuelta, sanos y salvos.
+SELECT * FROM main.diplomado_datos.empleados ORDER BY id;
+                        </code></pre>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Módulo 10 -->
+            <section id="modulo10" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 10: Pipelines Declarativos con Delta Live Tables (DLT)</h1>
+                    <p class="text-lg text-gray-700">Hasta ahora hemos ejecutado nuestros scripts de forma imperativa (paso a paso). DLT es un framework que nos permite construir pipelines de datos de forma <b>declarativa</b>. En lugar de decir "primero haz esto, luego esto...", le decimos "quiero que esta tabla final exista, y depende de estas otras". DLT se encarga del resto.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                         <h3 class="text-2xl font-semibold text-gray-800 mb-4">10.1. ¿Por qué DLT?</h3>
+                        <p class="text-gray-700 text-lg mb-4">DLT automatiza tareas complejas de la ingeniería de datos:</p>
+                        <ul class="list-disc list-inside space-y-2 pl-4 text-gray-700 text-lg">
+                            <li><b>Gestión automática de la infraestructura</b> del clúster.</li>
+                            <li><b>Validación de datos y gestión de calidad</b> con "expectativas".</li>
+                            <li><b>Manejo de errores</b> y reintentos automáticos.</li>
+                            <li><b>Visualización del linaje de datos</b> de forma gráfica.</li>
+                        </ul>
+                         <img src="images/DB_dlt.png" alt="Grafo de un pipeline de Delta Live Tables" class="rounded-lg shadow-md my-6 mx-auto border" onerror="this.onerror=null;this.src='https://placehold.co/800x350/FFFFFF/000000?text=Grafo+de+Pipeline+DLT';">
+                    </div>
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">10.2. Ejemplo de un Pipeline DLT (SQL)</h3>
+                        <p class="text-gray-700 text-lg mb-4">Un pipeline DLT se define en un notebook, pero usando una sintaxis ligeramente diferente. Observa los decoradores `@dlt.table` y las restricciones de calidad `CONSTRAINT`.</p>
+                        <pre><code class="sql rounded-lg text-left">
+-- Define la tabla BRONCE leyendo de una fuente en la nube
+-- El decorador LIVE indica que es una tabla gestionada por DLT.
+CREATE OR REFRESH STREAMING LIVE TABLE secop_raw
+COMMENT "Datos crudos de contratos del SECOP"
+AS SELECT * FROM cloud_files("/databricks-datasets/secop/", "csv", map("header", "true"));
+
+-- Define la tabla PLATA a partir de la BRONCE, aplicando limpieza y expectativas
+CREATE OR REFRESH LIVE TABLE secop_cleaned (
+  -- Definimos expectativas de calidad. Si no se cumplen, los datos se pueden descartar o marcar.
+  CONSTRAINT valor_valido EXPECT (valor_contrato > 0) ON VIOLATION FAIL UPDATE,
+  CONSTRAINT fecha_valida EXPECT (fecha_firma IS NOT NULL) ON VIOLATION DROP ROW
+)
+COMMENT "Datos de contratos limpios y validados."
+AS SELECT
+  CAST(id_contrato AS LONG) AS id_contrato,
+  nombre_entidad,
+  CAST(valor_del_contrato AS DOUBLE) AS valor_contrato,
+  TO_DATE(fecha_de_firma, 'dd/MM/yyyy') AS fecha_firma
+FROM LIVE.secop_raw;
+
+-- Define la tabla ORO agregando los datos de PLATA
+CREATE OR REFRESH LIVE TABLE secop_resumen_oro
+COMMENT "Resumen agregado del valor de los contratos por entidad"
+AS SELECT
+  nombre_entidad,
+  SUM(valor_contrato) AS total_contratado
+FROM LIVE.secop_cleaned
+GROUP BY nombre_entidad;
+                        </code></pre>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Módulo 11 -->
+            <section id="modulo11" class="mb-16 scroll-mt-20">
+                <div class="bg-white p-8 rounded-lg shadow-xl mb-12">
+                    <h1 class="text-4xl font-bold text-usta-red mb-4">Módulo 11: Conclusión y Próximos Pasos Avanzados</h1>
+                    <p class="text-lg text-gray-700">En esta segunda parte, hemos profundizado en el corazón de la ingeniería de datos en Databricks. Aprendimos a transformar datos crudos en activos de alto valor (Oro) y a usar las funciones avanzadas de Delta Lake (`MERGE`, `Time Travel`) para construir pipelines fiables y auditables.</p>
+                </div>
+                <div class="space-y-12">
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">¿Qué sigue en tu viaje con Databricks?</h3>
+                        <p class="text-gray-700 text-lg mb-4">Has sentado las bases de la ingeniería de datos. El ecosistema de Databricks es vasto y ahora estás listo para explorar áreas más especializadas:</p>
+                        <ul class="list-disc list-inside space-y-4 pl-4 text-gray-700 text-lg">
+                            <li><b>Machine Learning</b>: Utiliza las tablas que has creado para entrenar modelos con <b>MLflow</b>, la herramienta de Databricks para gestionar todo el ciclo de vida del aprendizaje automático.</li>
+                            <li><b>Streaming de Datos</b>: Pasa de procesar datos en lotes (batch) a procesarlos en tiempo real a medida que llegan, usando <b>Structured Streaming</b> con Delta Lake.</li>
+                            <li><b>Optimización de Rendimiento</b>: Aprende técnicas avanzadas como el particionamiento, Z-Ordering y la optimización de Photon para hacer que tus consultas sobre tablas de Terabytes se ejecuten en segundos.</li>
+                            <li><b>Gobernanza Avanzada</b>: Profundiza en Unity Catalog para gestionar el linaje de datos, el control de acceso a nivel de columna y fila, y compartir datos de forma segura con otras organizaciones usando <b>Delta Sharing</b>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // This event fires after the HTML document has been completely loaded and parsed.
+            // It's the right place to initialize libraries that depend on the DOM.
+            
+            // Initialize Mermaid.js for diagrams
+            mermaid.initialize({ startOnLoad: true, theme: 'base', fontFamily: "'Montserrat', sans-serif" });
+            
+            // Initialize Highlight.js for code blocks
+            hljs.highlightAll();
+
+            // Logic for the sidebar navigation scrollspy
+            const sections = document.querySelectorAll('main section[id]');
+            const navLinks = document.querySelectorAll('#sidebar-nav a');
+            
+            const onScroll = () => {
+                let current = 'modulo6'; // Default active link
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (window.pageYOffset >= sectionTop - 70) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            };
+
+            window.addEventListener('scroll', onScroll);
+            onScroll(); // Set the correct link on initial load
+        });
+    </script>
+</body>
+</html>
