@@ -9,12 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Code+Pro&display=swap" rel="stylesheet">
     
-    <!-- React y Babel -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- D3.js y Mermaid.js -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 
@@ -59,7 +57,6 @@
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen">
 
-    <!-- Header -->
     <header class="bg-usta-blue shadow-md sticky top-0 z-10">
         <div class="container mx-auto px-6 py-3 flex justify-between items-center">
             <img src="https://usantotomas.edu.co/hs-fs/hubfs/social-suggested-images/usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png?width=282&height=65&name=usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png" 
@@ -70,22 +67,23 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="flex-grow">
-        <!-- Hero Section -->
         <section class="bg-white">
             <div class="container mx-auto px-6 py-16 text-center">
                 <div class="max-w-4xl mx-auto">
                     <div id="carousel-root" class="mb-8"></div>
+                    
                     <h2 class="text-3xl md:text-5xl font-bold text-black mb-4">Domina el Universo de los Datos</h2>
-                    <p class="text-gray-600 text-lg md:text-xl mb-8">
+                    <p class="text-gray-600 text-lg md:text-xl mb-6">
                         Transforma tu carrera profesional y conviértete en un experto en la gestión y análisis de datos. Aprende las tecnologías que lideran la industria con un enfoque 100% práctico.
                     </p>
+                    <div class="bg-usta-red text-white py-3 px-6 rounded-lg font-bold shadow-lg">
+                        96 Horas Totales de Estudio. 16 Capítulos Fundamentales para un Perfil Experto.
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Target Audience Section -->
         <section class="py-16 bg-gray-50">
             <div class="container mx-auto px-6">
                  <div class="max-w-4xl mx-auto text-center">
@@ -96,61 +94,6 @@
                  </div>
             </div>
         </section>
-        
-        <!-- Classes Section -->
-        <section class="py-16">
-            <div class="container mx-auto px-6">
-                 <div class="max-w-4xl mx-auto text-center">
-                    <h3 class="text-3xl font-bold text-black mb-8">Clases del Diplomado</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <!-- Card para la Clase de Instalación -->
-                        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
-                           <div class="p-6">
-                               <h4 class="text-xl font-bold text-usta-blue mb-2">Instalación</h4>
-                               <p class="text-gray-600 mb-4">Prepara tu entorno de desarrollo con todas las herramientas necesarias para el diplomado.</p>
-                               <a href="Clase_0.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full">
-                                   Ver Contenido
-                               </a>
-                           </div>
-                        </div>
-
-                        <!-- Card para la Clase de SQL -->
-                        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
-                            <div class="p-6">
-                                <h4 class="text-xl font-bold text-usta-blue mb-2">Clase 1 de SQL</h4>
-                                <p class="text-gray-600 mb-4">Fundamentos de manipulación y consulta de datos con SQL y Python.</p>
-                                <a href="Clase_SQL.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full">
-                                    Ver Contenido
-                                </a>
-                            </div>
-                        </div>
-                         <!-- Card para la Clase de Databricks -->
-                        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
-                           <div class="p-6">
-                               <h4 class="text-xl font-bold text-usta-blue mb-2">Clase de Databricks I</h4>
-                               <p class="text-gray-600 mb-4">Introducción práctica a Databricks, ingesta de datos y consultas en el Lakehouse.</p>
-                               <a href="Clase_DataBricks.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full">
-                                   Ver Contenido
-                               </a>
-                           </div>
-                        </div>
-                        <!-- Card para la Clase de Databricks 2 -->
-                        <div class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300">
-                           <div class="p-6">
-                               <h4 class="text-xl font-bold text-usta-blue mb-2">Clase de Databricks II</h4>
-                               <p class="text-gray-600 mb-4">ETL, Auditoria y enriquecimiento de datos con DataBricks.</p>
-                               <a href="Clase_DataBricks2.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full">
-                                   Ver Contenido
-                               </a>
-                           </div>
-                        </div>
-                    </div>
-                 </div>
-            </div>
-        </section>
-
-
-        <!-- Objectives Section -->
         <section class="py-16 bg-gray-50">
             <div class="container mx-auto px-6">
                 <div class="max-w-4xl mx-auto">
@@ -158,28 +101,26 @@
                     <div class="bg-white p-8 rounded-lg shadow-lg">
                         <h4 class="text-2xl font-bold text-usta-red mb-4">Objetivo General</h4>
                         <p class="text-gray-700 mb-6">
-                            Proporcionar a los participantes las competencias que les permitan el manejo de datos con Python, así como la administración, gestión y consulta de bases de datos relacionales y no relacionales, utilizando los lenguajes y plataformas más demandados en el mercado como Microsoft SQL Server y Databricks, para potenciar sus perfiles profesionales.
+                            Proporcionar a los participantes las competencias que les permitan el manejo de datos con Python, así como la administración, gestión y consulta de bases de datos relacionales y ecosistemas Big Data, utilizando plataformas líderes como Microsoft SQL Server y Databricks para potenciar sus perfiles en Ingeniería de Datos y Machine Learning a escala.
                         </p>
                         <h4 class="text-2xl font-bold text-usta-red mb-4">Objetivos Específicos</h4>
                         <ul class="list-disc list-inside text-gray-700 space-y-2">
-                            <li>Manejar el lenguaje de programación Python y sus librerías para el análisis de datos.</li>
-                            <li>Identificar los diferentes tipos de bases de datos y sus ventajas.</li>
-                            <li>Administrar y gestionar bases de datos relacionales con Microsoft SQL Server.</li>
-                            <li>Administrar y gestionar ecosistemas de Big Data con Databricks y Apache Spark.</li>
-                            <li>Crear modelos de minería de datos y redes neuronales.</li>
+                            <li>Manejar el lenguaje de programación Python y sus librerías esenciales (Pandas) para la limpieza y preparación de datos.</li>
+                            <li>Diseñar, administrar y gestionar bases de datos relacionales con comandos SQL avanzados (DCL, DDL, DML, Funciones de Ventana).</li>
+                            <li>Administrar y gestionar ecosistemas de Big Data en la nube con Databricks, Apache Spark y Unity Catalog (Lakehouse).</li>
+                            <li>Construir pipelines de datos (ETL) fiables usando el formato Delta Lake y automatización con DLT.</li>
+                            <li>Aplicar algoritmos de Machine Learning (regresión, clasificación) a volúmenes masivos de datos utilizando el framework Spark MLlib.</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </section>
         
-        <!-- Interactive Modules Section -->
         <section class="py-16">
             <div class="container mx-auto px-6">
                 <div class="max-w-4xl mx-auto">
                     <h3 class="text-3xl font-bold text-black mb-8 text-center">Explora Nuestro Plan de Estudios</h3>
                     <div id="accordion-container" class="space-y-4">
-                        <!-- Módulo 1 -->
                         <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
                             <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
                                 <span>Módulo 1: Introducción a bases de datos con Python</span>
@@ -191,7 +132,6 @@
                                 <p><strong>Temas:</strong> Tipos y estructuras de datos, Programación Orientada a Objetos, librerías Numpy y Pandas, conexión a bases de datos y visualización con Matplotlib y Seaborn.</p>
                             </div>
                         </div>
-                        <!-- Módulo 2 -->
                         <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
                             <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
                                 <span>Módulo 2: Bases de Datos MICROSOFT SQL SERVER</span>
@@ -203,7 +143,6 @@
                                <p><strong>Temas:</strong> Introducción a bases de datos relacionales, comandos DDL, DML y DCL. Creación y uso de Vistas, Funciones, Procedimientos Almacenados y Triggers.</p>
                             </div>
                         </div>
-                        <!-- Módulo 3 -->
                         <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
                             <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
                                 <span>Módulo 3: Databricks y Apache Spark para Big Data</span>
@@ -215,16 +154,15 @@
                                 <p><strong>Temas:</strong> Introducción a Big Data y el ecosistema Hadoop. Manejo de la plataforma Databricks, RDDs, Dataframes, Spark SQL y Machine Learning con Spark.</p>
                             </div>
                         </div>
-                        <!-- Módulo 4 -->
                         <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
                             <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
-                                <span>Módulo 4: Introducción a Minería de Datos y Redes Neuronales</span>
+                                <span>Módulo 4: Machine Learning Escalable con Spark ML</span>
                                 <span class="icon text-usta-yellow">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </span>
                             </button>
                             <div class="accordion-content bg-gray-100 text-gray-700">
-                               <p><strong>Temas:</strong> Introducción a la minería de datos, tipos de modelos de Machine Learning (Clasificación y Regresión), y fundamentos de Redes Neuronales.</p>
+                               <p><strong>Temas:</strong> Fundamentos de ML Distribuido, Ingeniería de Características a Escala, Pipelines MLlib, Modelos de Regresión y Clasificación, Optimización (Tuning) y Gestión del Ciclo de Vida con MLflow.</p>
                             </div>
                         </div>
                     </div>
@@ -232,50 +170,201 @@
             </div>
         </section>
 
-        <!-- Schedule Section -->
         <section class="py-16 bg-gray-50">
-            <div class="container mx-auto px-6">
-                <div class="max-w-4xl mx-auto">
-                    <h3 class="text-3xl font-bold text-black mb-8 text-center">Cronograma</h3>
-                    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-lg">
-                        <table class="min-w-full divide-y-2 divide-gray-200 text-sm">
-                             <thead class="bg-usta-blue text-white">
-                                <tr>
-                                    <th class="whitespace-nowrap px-4 py-3 font-semibold text-left">Módulo</th>
-                                    <th class="whitespace-nowrap px-4 py-3 font-semibold text-left">Fechas</th>
-                                    <th class="whitespace-nowrap px-4 py-3 font-semibold text-left">Horario</th>
-                                </tr>
-                            </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">Módulo 1: Python</td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">15/12/2025 - 19/12/2025</td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">Lun, Mié, Vie (6:30pm - 9:30pm)</td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">Módulo 2: SQL Server</td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">22/12/2025 - 01/01/2026</td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">Híbrido (Ver detalle por festivos)</td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">Módulo 3: Databricks</td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">02/01/2026 - 13/01/2026</td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">Lun, Mié, Vie (6:30pm - 9:30pm)</td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">Módulo 4: Spark ML</td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">14/01/2026 - 30/01/2026</td>
-                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">Lun, Mié, Vie (6:30pm - 9:30pm)</td>
-                                    </tr>
-                                </tbody>
-                        </table>
+    <div class="container mx-auto px-6">
+        <div class="max-w-6xl mx-auto">
+            <h3 class="text-3xl font-bold text-black mb-8 text-center">Plan de Estudios Completo (17 Capítulos)</h3>
+
+            <div class="mb-8 p-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 rounded-lg shadow-md max-w-xl mx-auto">
+                <p class="font-bold text-lg">Capítulo 0: Instalación y Entorno (Asincrónico)</p>
+                <p class="text-sm">Antes de iniciar, debes completar la configuración de Python, Conda y Git. Este trabajo es completamente autónomo.</p>
+                <a href="seccion_0.html" class="inline-block mt-2 text-blue-800 font-semibold hover:underline">
+                    → Ir a la Guía de Instalación (seccion_0.html)
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 1: Python Core e I/O</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 1: Introducción a Python</div>
+                        <p class="text-gray-700 mb-4 text-sm">Sintaxis, Flujo de Control, Proyectos y Lectura/Escritura de Archivos.</p>
+                        <a href="seccion_1.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_1.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 2: DataFrames con Pandas</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 1: Introducción a Python</div>
+                        <p class="text-gray-700 mb-4 text-sm">Carga, Limpieza, Pivotaje y Transformación Avanzada de Datos.</p>
+                        <a href="seccion_2.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_2.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 3: Visualización y SQL</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 1: Introducción a Python</div>
+                        <p class="text-gray-700 mb-4 text-sm">Matplotlib, Seaborn y Conexión a Bases de Datos.</p>
+                        <a href="seccion_3.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_3.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 4: Taller de Proyectos ETL</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 1: Introducción a Python</div>
+                        <p class="text-gray-700 mb-4 text-sm">Asesoría de proyectos y Taller de ETL de Python a SQL.</p>
+                        <a href="seccion_4.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_4.html)
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 5: Diseño y Normalización SQL</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 2: SQL Server</div>
+                        <p class="text-gray-700 mb-4 text-sm">Modelo Relacional, ACID y Formas Normales.</p>
+                        <a href="seccion_5.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_5.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 6: Comandos DDL, DML y JOINs</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 2: SQL Server</div>
+                        <p class="text-gray-700 mb-4 text-sm">Taller de creación de objetos y dominando los tipos de JOINs.</p>
+                        <a href="seccion_6.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_6.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 7: Funciones de Ventana y OLAP</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 2: SQL Server</div>
+                        <p class="text-gray-700 mb-4 text-sm">Taller de Funciones de Ventana, CTEs y Modelado Dimensional.</p>
+                        <a href="seccion_7.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_7.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 8: Optimización y Control</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 2: SQL Server</div>
+                        <p class="text-gray-700 mb-4 text-sm">Índices, Planes de Ejecución y TCL (Control de Transacciones).</p>
+                        <a href="seccion_8.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_8.html)
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 9: Lakehouse y Spark Core</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 3: Databricks y Apache Spark</div>
+                        <p class="text-gray-700 mb-4 text-sm">Arquitectura Lakehouse, Spark RDDs y DataFrames (El motor de Big Data).</p>
+                        <a href="seccion_9.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_9.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 10: Ingesta y Unity Catalog</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 3: Databricks y Apache Spark</div>
+                        <p class="text-gray-700 mb-4 text-sm">Configuración de Compute, Unity Catalog e Ingesta inicial a Delta Lake.</p>
+                        <a href="seccion_10.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_10.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 11: ETL: Bronce, Plata y Oro</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 3: Databricks y Apache Spark</div>
+                        <p class="text-gray-700 mb-4 text-sm">Taller de Transformación, Limpieza y Enriquecimiento de Datos.</p>
+                        <a href="seccion_11.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_11.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 12: Fiabilidad, MERGE y DLT</h4>
+                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 3: Databricks y Apache Spark</div>
+                        <p class="text-gray-700 mb-4 text-sm">Operaciones atómicas (`MERGE`), Time Travel y Automatización con DLT.</p>
+                        <a href="seccion_12.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_12.html)
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 13: Spark MLlib e Ingeniería de Features</h4>
+                        <div class="text-sm font-semibold text-usta-red mb-2">Módulo 4: Machine Learning Escalable</div>
+                        <p class="text-gray-700 mb-4 text-sm">Fundamentos de ML distribuido y `Pipelines` de transformación (VectorAssembler).</p>
+                        <a href="seccion_13.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_13.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 14: Modelos de Regresión a Escala</h4>
+                        <div class="text-sm font-semibold text-usta-red mb-2">Módulo 4: Machine Learning Escalable</div>
+                        <p class="text-gray-700 mb-4 text-sm">Taller de Regresión Lineal distribuida y Métricas de Evaluación.</p>
+                        <a href="seccion_14.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_14.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 15: Clasificación y Tuning</h4>
+                        <div class="text-sm font-semibold text-usta-red mb-2">Módulo 4: Machine Learning Escalable</div>
+                        <p class="text-gray-700 mb-4 text-sm">Random Forests, Evaluación de Clasificación y Ajuste de Hiperparámetros.</p>
+                        <a href="seccion_15.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_15.html)
+                        </a>
+                    </div>
+                </div>
+                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 16: MLflow y Modelos Avanzados</h4>
+                        <div class="text-sm font-semibold text-usta-red mb-2">Módulo 4: Machine Learning Escalable</div>
+                        <p class="text-gray-700 mb-4 text-sm">Gestión de experimentos con MLflow y Algoritmos de Clustering.</p>
+                        <a href="seccion_16.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_16.html)
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-200 rounded-lg shadow-lg overflow-hidden border-2 border-gray-400 transform hover:scale-[1.02] transition-transform duration-300">
+                    <div class="p-6">
+                        <h4 class="text-xl font-bold text-black mb-2">Capítulo 17: Clausura y Proyecto Final</h4>
+                        <div class="text-sm font-semibold text-gray-700 mb-2">Clausura</div>
+                        <p class="text-gray-700 mb-4 text-sm">Presentación y Evaluación de Proyectos (Capítulo Sincrónico Final).</p>
+                        <a href="seccion_17.html" class="inline-block bg-usta-blue text-white font-bold py-2 px-4 rounded-full text-xs">
+                            Ver Contenido (seccion_17.html)
+                        </a>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
+</section>
     </main>
 
-    <!-- Footer -->
     <footer class="bg-usta-blue text-white py-6">
         <div class="container mx-auto px-6 text-center">
             <p>&copy; 2024. Universidad Santo Tomás.</p>
@@ -299,6 +388,7 @@
                     }
                 });
             }
+            // Mermaid initialization needs to be configured for a later run, as React might inject elements after DCL
             mermaid.initialize({ startOnLoad: false, theme: 'base', themeVariables: {
                 primaryColor: '#f3f4f6', primaryTextColor: '#1f2937',
                 lineColor: '#003366', textColor: '#1f2937'
@@ -307,6 +397,7 @@
     </script>
     
     <script type="text/babel">
+        // --- React and D3/Mermaid Carousel Code (Unchanged) ---
         const { useState, useEffect, useRef } = React;
 
         const carouselItems = [
@@ -520,4 +611,3 @@
     </script>
 </body>
 </html>
-

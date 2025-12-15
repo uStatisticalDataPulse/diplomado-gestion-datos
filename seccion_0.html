@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instalación y Configuración Docker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Source+Code+Pro&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+        pre code {
+            font-family: 'Source Code Pro', monospace;
+            text-align: left;
+        }
+        /* Colores Institucionales USTA */
+        .bg-usta-blue { background-color: #003366; }
+        .text-usta-blue { color: #003366; }
+        
+        .bg-usta-yellow { background-color: #FFCC00; }
+        .text-usta-yellow { color: #FFCC00; }
+        
+        .bg-usta-red { background-color: #DA291C; }
+        .text-usta-red { color: #DA291C; }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+
+    <header class="bg-usta-blue shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="index.html">
+                <img src="https://usantotomas.edu.co/hs-fs/hubfs/social-suggested-images/usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png?width=282&height=65&name=usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png" 
+                     alt="Logo Universidad Santo Tomás" 
+                     class="h-12"
+                     onerror="this.onerror=null;this.src='https://placehold.co/282x65/003366/FFFFFF?text=Universidad+Santo+Tomás';">
+            </a>
+            <h1 class="hidden md:block text-xl lg:text-2xl font-bold text-white text-right">Diplomado en Estrategias de Datos</h1>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 sm:px-6 py-12">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white p-8 rounded-lg shadow-xl mb-8">
+                <h2 class="text-3xl font-bold text-usta-red mb-4 text-center">Instalación de Entorno (Dockerizado)</h2>
+                <p class="text-lg text-gray-700 text-center">Guía paso a paso para preparar su entorno de desarrollo profesional usando contenedores. Esto garantiza que todos trabajemos con el mismo servidor de base de datos.</p>
+            </div>
+            
+            <div class="text-center mb-10">
+                <a href="index.html" class="text-usta-blue hover:text-usta-red font-semibold underline transition-colors duration-300">
+                    &larr; Volver al Plan de Estudios
+                </a>
+            </div>
+
+            <div class="space-y-12">
+                
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">1. El Poder de los Contenedores</h3>
+                    <p class="text-gray-700 text-lg mb-4">Utilizaremos **Docker** para virtualizar nuestro servidor de bases de datos. Esto elimina los problemas de instalación y configuración de SQL Server en diferentes sistemas operativos (Windows, Mac, Linux). Un contenedor asegura que la base de datos funcione exactamente igual para todos los participantes.</p>
+                    <img src="images/1-github.png" alt="Diagrama de problemas y soluciones en la gestión de proyectos" class="rounded-lg shadow-md mx-auto mt-6" onerror="this.onerror=null;this.src='https://placehold.co/800x400/FFFFFF/000000?text=Diagrama+Problemas+vs+Soluciones';">
+                </div>
+                
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">2. Herramientas de Software Esenciales</h3>
+                    <p class="text-gray-700 text-lg mb-6">Instale y configure las siguientes herramientas. Nota: Ya no necesita instalar SQL Server directamente, ¡Docker lo hará por usted!</p>
+                    
+                    <div class="mb-8">
+                        <h4 class="text-xl font-semibold text-gray-800 mb-2">Docker Desktop</h4>
+                        <img src="https://www.docker.com/app/uploads/2025/05/DD-hiroko-2048x1285.png" alt="Página de descarga de Docker Desktop" class="rounded-lg shadow-md mx-auto my-4 w-full max-w-lg" onerror="this.onerror=null;this.src='https://placehold.co/600x400/FFFFFF/000000?text=Docker+Desktop';">
+                        <p class="text-gray-700 text-lg">Es la aplicación esencial para gestionar contenedores. Asegúrese de que esté instalada y ejecutándose en su sistema. Visite la <a href="https://www.docker.com/products/docker-desktop" class="text-usta-red underline" target="_blank">página oficial de Docker Desktop</a> para instalarlo.</p>
+                        <div class="mt-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4" role="alert">
+                            <p class="font-bold">Verificación:</p>
+                            <p>Abra su terminal y ejecute <code>docker --version</code>. Debe mostrar la versión instalada.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h4 class="text-xl font-semibold text-gray-800 mb-2">Visual Studio Code (y Python)</h4>
+                        <img src="images/vscode.png" alt="Página de descarga de Visual Studio Code" class="rounded-lg shadow-md mx-auto my-4 w-full max-w-lg" onerror="this.onerror=null;this.src='https://placehold.co/600x400/FFFFFF/000000?text=Visual+Studio+Code';">
+                        <p class="text-gray-700 text-lg">Nuestro editor de código principal. Instálelo desde la <a href="https://code.visualstudio.com/Download" class="text-usta-red underline" target="_blank">página oficial</a>. Además, **instale Python 3.10** para el entorno local (Conda o instalador directo). Necesitará estas extensiones:</p>
+                        <ul class="list-disc list-inside text-gray-700 text-lg space-y-2 mt-2">
+                            <li><b>Python:</b> Soporte esencial para el desarrollo en Python.</li>
+                            <li><b>Docker:</b> Para interactuar fácilmente con contenedores desde VS Code.</li>
+                            <li><b>GitLens:</b> Para control de versiones avanzado.</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-8">
+                        <h4 class="text-xl font-semibold text-gray-800 mb-2">Git</h4>
+                        <img src="images/git.png" alt="Página principal de Git" class="rounded-lg shadow-md mx-auto my-4 w-full max-w-lg" onerror="this.onerror=null;this.src='https://placehold.co/600x400/FFFFFF/000000?text=Git';">
+                        <p class="text-gray-700 text-lg">Para el control de versiones y clonar el repositorio del curso. Instálalo desde la <a href="https://git-scm.com/" class="text-usta-red underline" target="_blank">página oficial de Git</a>.</p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xl font-semibold text-gray-800 mb-2">Azure Data Studio o SSMS (Opcional)</h4>
+                        <p class="text-gray-700 text-lg">Para gestionar el servidor SQL dentro del contenedor con una interfaz gráfica. **Azure Data Studio** es la opción recomendada por ser ligera y multiplataforma. Instálelo desde la <a href="https://docs.microsoft.com/es-es/sql/azure-data-studio/download-azure-data-studio" class="text-usta-red underline" target="_blank">página de Microsoft</a>.</p>
+                    </div>
+
+                </div>
+
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">3. Ejecución del Entorno con Docker: Paso a Paso</h3>
+                    <p class="text-gray-700 text-lg mb-6">Estos pasos crean y ejecutan el servidor SQL y el entorno de Python de forma aislada y reproducible.</p>
+                    
+                    <h4 class="text-xl font-semibold text-gray-800 mt-6 mb-2">Paso 1: Clonar el Repositorio del Curso</h4>
+                    <p class="text-gray-700 text-lg mb-4">Abre una terminal (PowerShell, Bash, o Git Bash) y clona el material del curso.</p>
+                    <pre><code class="bash rounded-lg text-left">
+# Clona el repositorio
+git clone https://github.com/SPMINE-2425/primer_repo_izainea.git
+
+# Ingresa a la carpeta
+cd primer_repo_izainea</code></pre>
+
+                    <h4 class="text-xl font-semibold text-gray-800 mt-6 mb-2">Paso 2: Levantar el Contenedor de SQL Server</h4>
+                    <p class="text-gray-700 text-lg mb-4">Ejecutamos el contenedor oficial de Microsoft SQL Server 2019/2022. Esto creará el servidor en el puerto 1433 de su máquina, listo para usar.</p>
+                    <pre><code class="bash rounded-lg text-left">
+docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=MiPasswordFuerte123" \
+    -p 1433:1433 --name sqlserver_diplomado -d mcr.microsoft.com/mssql/server:2019-latest</code></pre>
+                    <p class="text-sm text-gray-600 mt-2">**Nota Importante:** La contraseña (`MiPasswordFuerte123`) es temporal y se usará en el Módulo 2. ¡Guárdela!</p>
+
+                    <h4 class="text-xl font-semibold text-gray-800 mt-6 mb-2">Paso 3: Crear el Entorno de Python con Poetry</h4>
+                    <p class="text-gray-700 text-lg mb-4">Instalaremos las dependencias en su entorno Python local. Asegúrese de que su versión de Python sea 3.10.</p>
+                    <pre><code class="bash rounded-lg text-left">
+# Si usa Conda/Miniconda:
+# conda create -n diplomado_env python=3.10
+# conda activate diplomado_env
+
+# Instalar Poetry y dependencias
+pip install poetry
+poetry install
+                    </code></pre>
+                </div>
+
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-bold text-usta-blue mb-4">4. ¡Entorno Profesional Listo!</h3>
+                    <p class="text-gray-700 text-lg mb-4">Con Docker y Python listos, su entorno profesional está preparado para el Big Data y el análisis de bases de datos. Los módulos 1 y 2 utilizarán estos componentes, siguiendo el siguiente flujo de trabajo.</p>
+                    <img src="images/2-datos.png" alt="Flujo de trabajo con fuentes de datos" class="rounded-lg shadow-md mx-auto mt-6" onerror="this.onerror=null;this.src='https://placehold.co/800x600/FFFFFF/000000?text=Flujo+de+Datos';">
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-usta-blue text-white py-6 mt-12">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2024. Universidad Santo Tomás.</p>
+        </div>
+    </footer>
+    
+    <a href="#" id="to-top-btn" class="fixed bottom-8 right-8 bg-usta-red text-white p-3 rounded-full shadow-lg hover:bg-red-700 transition-all duration-300 opacity-0 z-20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+        </svg>
+    </a>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+            
+            const toTopBtn = document.getElementById('to-top-btn');
+
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) { // Muestra el botón después de 300px de scroll
+                    toTopBtn.classList.remove('opacity-0');
+                } else {
+                    toTopBtn.classList.add('opacity-0');
+                }
+            });
+
+            toTopBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
