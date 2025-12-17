@@ -175,187 +175,235 @@
         <div class="max-w-6xl mx-auto">
             <h3 class="text-3xl font-bold text-black mb-8 text-center">Plan de Estudios Completo (17 Capítulos)</h3>
 
-            <div class="mb-8 p-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 rounded-lg shadow-md max-w-xl mx-auto">
-                <p class="font-bold text-lg">Capítulo 0: Instalación y Entorno (Asincrónico)</p>
-                <p class="text-sm">Antes de iniciar, debes completar la configuración de Python, Conda y Git. Este trabajo es completamente autónomo.</p>
-                <a href="seccion_0.html" class="inline-block mt-2 text-blue-800 font-semibold hover:underline">
-                    → Ir a la Guía de Instalación (seccion_0.html)
-                </a>
+            <!-- Capítulo 0: Destacado -->
+            <div class="mb-8 p-6 bg-blue-100 border-l-8 border-usta-blue text-blue-900 rounded-lg shadow-md max-w-2xl mx-auto">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                    <div>
+                        <p class="font-bold text-xl text-usta-blue">Sección 0: Instalación y Entorno</p>
+                        <p class="text-sm font-semibold uppercase text-usta-red">Actividad Sincrónica - 15 Dic</p>
+                    </div>
+                    <a href="seccion_0.html" class="mt-2 md:mt-0 bg-usta-blue text-white px-4 py-2 rounded font-bold text-sm hover:bg-opacity-90">
+                        → Ver Guía
+                    </a>
+                </div>
+                <p class="text-sm mb-4">Orquestación con Docker Compose y despliegue del stack profesional.</p>
+                
+                <div class="bg-white p-4 rounded border border-blue-200">
+                    <p class="text-xs font-bold text-usta-red uppercase mb-1">RETO DE INGENIERÍA (ASINCRÓNICO):</p>
+                    <p class="text-sm italic text-gray-800">
+                        "Dominar Poetry: Investigar por qué pip falla en entornos grandes y resolver el reto de sincronizar el poetry.lock tras agregar librerías de conexión SQL."
+                    </p>
+                    <a href="https://notebooklm.google.com/notebook/8f1537bb-7649-4adf-a981-03b47a884d9b?artifactId=3a85d9b7-93c5-46ba-bade-1cdeda85d1b6" target="_blank" class="text-xs text-blue-600 hover:underline mt-2 block font-semibold">
+                        → Ver Material de Apoyo en NotebookLM
+                    </a>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
+                <!-- MÓDULO 1 -->
+                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
                         <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 1: Python Core e I/O</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 1: Introducción a Python</div>
-                        <p class="text-gray-700 mb-4 text-sm">Sintaxis, Flujo de Control, Proyectos y Lectura/Escritura de Archivos.</p>
-                        <a href="seccion_1.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_1.html)
-                        </a>
-                    </div>
-                </div>
-                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 2: DataFrames con Pandas</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 1: Introducción a Python</div>
-                        <p class="text-gray-700 mb-4 text-sm">Carga, Limpieza, Pivotaje y Transformación Avanzada de Datos.</p>
-                        <a href="seccion_2.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_2.html)
-                        </a>
-                    </div>
-                </div>
-                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 3: Visualización y SQL</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 1: Introducción a Python</div>
-                        <p class="text-gray-700 mb-4 text-sm">Matplotlib, Seaborn y Conexión a Bases de Datos.</p>
-                        <a href="seccion_3.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_3.html)
-                        </a>
-                    </div>
-                </div>
-                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 4: Taller de Proyectos ETL</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 1: Introducción a Python</div>
-                        <p class="text-gray-700 mb-4 text-sm">Asesoría de proyectos y Taller de ETL de Python a SQL.</p>
-                        <a href="seccion_4.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_4.html)
-                        </a>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 1: Python</div>
+                        <p class="text-gray-700 mb-4 text-sm">Lógica funcional, manejo de excepciones y I/O de archivos.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-yellow-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Crear un script que monitoree una carpeta, detecte archivos corruptos y mueva los válidos a "Bronze".
+                        </div>
+                        <a href="seccion_1.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
                     </div>
                 </div>
 
-                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 5: Diseño y Normalización SQL</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 2: SQL Server</div>
-                        <p class="text-gray-700 mb-4 text-sm">Modelo Relacional, ACID y Formas Normales.</p>
-                        <a href="seccion_5.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_5.html)
-                        </a>
-                    </div>
-                </div>
-                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 6: Comandos DDL, DML y JOINs</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 2: SQL Server</div>
-                        <p class="text-gray-700 mb-4 text-sm">Taller de creación de objetos y dominando los tipos de JOINs.</p>
-                        <a href="seccion_6.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_6.html)
-                        </a>
-                    </div>
-                </div>
-                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 7: Funciones de Ventana y OLAP</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 2: SQL Server</div>
-                        <p class="text-gray-700 mb-4 text-sm">Taller de Funciones de Ventana, CTEs y Modelado Dimensional.</p>
-                        <a href="seccion_7.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_7.html)
-                        </a>
-                    </div>
-                </div>
-                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 8: Optimización y Control</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 2: SQL Server</div>
-                        <p class="text-gray-700 mb-4 text-sm">Índices, Planes de Ejecución y TCL (Control de Transacciones).</p>
-                        <a href="seccion_8.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_8.html)
-                        </a>
+                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 2: Pandas Pro</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 1: Python</div>
+                        <p class="text-gray-700 mb-4 text-sm">Vectorización, transformaciones complejas y `apply` vs `map`.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-yellow-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Recibir un dataset de +1M filas y reducir memoria en 50% con downcasting.
+                        </div>
+                        <a href="seccion_2.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
                     </div>
                 </div>
 
-                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 9: Lakehouse y Spark Core</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 3: Databricks y Apache Spark</div>
-                        <p class="text-gray-700 mb-4 text-sm">Arquitectura Lakehouse, Spark RDDs y DataFrames (El motor de Big Data).</p>
-                        <a href="seccion_9.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_9.html)
-                        </a>
-                    </div>
-                </div>
-                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 10: Ingesta y Unity Catalog</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 3: Databricks y Apache Spark</div>
-                        <p class="text-gray-700 mb-4 text-sm">Configuración de Compute, Unity Catalog e Ingesta inicial a Delta Lake.</p>
-                        <a href="seccion_10.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_10.html)
-                        </a>
-                    </div>
-                </div>
-                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 11: ETL: Bronce, Plata y Oro</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 3: Databricks y Apache Spark</div>
-                        <p class="text-gray-700 mb-4 text-sm">Taller de Transformación, Limpieza y Enriquecimiento de Datos.</p>
-                        <a href="seccion_11.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_11.html)
-                        </a>
-                    </div>
-                </div>
-                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 12: Fiabilidad, MERGE y DLT</h4>
-                        <div class="text-sm font-semibold text-usta-blue mb-2">Módulo 3: Databricks y Apache Spark</div>
-                        <p class="text-gray-700 mb-4 text-sm">Operaciones atómicas (`MERGE`), Time Travel y Automatización con DLT.</p>
-                        <a href="seccion_12.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_12.html)
-                        </a>
+                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 3: Visualización</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 1: Python</div>
+                        <p class="text-gray-700 mb-4 text-sm">Storytelling con datos y conexión a motores relacionales.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-yellow-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Función que genere automáticamente reporte PDF de calidad de datos (nulos/outliers).
+                        </div>
+                        <a href="seccion_3.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
                     </div>
                 </div>
 
-                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 13: Spark MLlib e Ingeniería de Features</h4>
-                        <div class="text-sm font-semibold text-usta-red mb-2">Módulo 4: Machine Learning Escalable</div>
-                        <p class="text-gray-700 mb-4 text-sm">Fundamentos de ML distribuido y `Pipelines` de transformación (VectorAssembler).</p>
-                        <a href="seccion_13.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_13.html)
-                        </a>
+                <div class="bg-yellow-100 rounded-lg shadow-lg overflow-hidden border-2 border-yellow-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 4: Taller ETL</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 1: Python</div>
+                        <p class="text-gray-700 mb-4 text-sm">Construcción de tuberías Python -> SQL Server.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-yellow-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Pipeline con transacciones y Checkpoints (Rollback total si falla).
+                        </div>
+                        <a href="seccion_4.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
                     </div>
                 </div>
-                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 14: Modelos de Regresión a Escala</h4>
-                        <div class="text-sm font-semibold text-usta-red mb-2">Módulo 4: Machine Learning Escalable</div>
-                        <p class="text-gray-700 mb-4 text-sm">Taller de Regresión Lineal distribuida y Métricas de Evaluación.</p>
-                        <a href="seccion_14.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_14.html)
-                        </a>
+
+                <!-- MÓDULO 2 -->
+                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 5: Diseño SQL</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 2: SQL Server</div>
+                        <p class="text-gray-700 mb-4 text-sm">Normalización, Modelado Relacional y restricciones.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-green-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Ingeniería Inversa: CSV denormalizado a esquema 3NF documentado.
+                        </div>
+                        <a href="seccion_5.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
                     </div>
                 </div>
-                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 15: Clasificación y Tuning</h4>
-                        <div class="text-sm font-semibold text-usta-red mb-2">Módulo 4: Machine Learning Escalable</div>
-                        <p class="text-gray-700 mb-4 text-sm">Random Forests, Evaluación de Clasificación y Ajuste de Hiperparámetros.</p>
-                        <a href="seccion_15.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_15.html)
-                        </a>
+
+                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 6: DDL y JOINs</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 2: SQL Server</div>
+                        <p class="text-gray-700 mb-4 text-sm">CRUD avanzado y teoría de conjuntos aplicada a SQL.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-green-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Performance: CROSS JOIN vs INNER JOIN optimizado. Medir latencia.
+                        </div>
+                        <a href="seccion_6.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
                     </div>
                 </div>
-                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 16: MLflow y Modelos Avanzados</h4>
-                        <div class="text-sm font-semibold text-usta-red mb-2">Módulo 4: Machine Learning Escalable</div>
-                        <p class="text-gray-700 mb-4 text-sm">Gestión de experimentos con MLflow y Algoritmos de Clustering.</p>
-                        <a href="seccion_16.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_16.html)
-                        </a>
+
+                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 7: OLAP/Ventana</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 2: SQL Server</div>
+                        <p class="text-gray-700 mb-4 text-sm">Analítica avanzada con RANK, LEAD, LAG y CTEs.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-green-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Consulta única para Crecimiento MoM y Acumulado YTD.
+                        </div>
+                        <a href="seccion_7.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
+                    </div>
+                </div>
+
+                <div class="bg-green-100 rounded-lg shadow-lg overflow-hidden border-2 border-green-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 8: Optimización</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 2: SQL Server</div>
+                        <p class="text-gray-700 mb-4 text-sm">Tuning, Índices Clustered vs Non-Clustered.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-green-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Forzar Index Scan vs Index Seek y documentar costo computacional.
+                        </div>
+                        <a href="seccion_8.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 3 -->
+                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 9: Spark Core</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 3: Spark</div>
+                        <p class="text-gray-700 mb-4 text-sm">Arquitectura distribuida, particionamiento y Shuffling.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-indigo-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Shuffle Challenge: Explicar Wide vs Narrow transformations y particionamiento.
+                        </div>
+                        <a href="seccion_9.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 10: Ingesta</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 3: Spark</div>
+                        <p class="text-gray-700 mb-4 text-sm">Unity Catalog y carga de datos a Delta Lake.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-indigo-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Esquema Evolutivo: Resolver fallos por cambio de estructura con mergeSchema.
+                        </div>
+                        <a href="seccion_10.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 11: Medallion</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 3: Spark</div>
+                        <p class="text-gray-700 mb-4 text-sm">Arquitectura de capas: Bronce, Plata y Oro.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-indigo-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Data Quality Gate: Reglas de validación para desviar filas corruptas a "Cuarentena".
+                        </div>
+                        <a href="seccion_11.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-100 rounded-lg shadow-lg overflow-hidden border-2 border-indigo-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 12: DLT</h4>
+                        <div class="text-xs font-bold uppercase text-usta-blue mb-2">Módulo 3: Spark</div>
+                        <p class="text-gray-700 mb-4 text-sm">Pipelines declarativos y fiabilidad del dato.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-indigo-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> CDC (Change Data Capture): Simular carga incremental de registros modificados.
+                        </div>
+                        <a href="seccion_12.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 4 -->
+                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 13: Spark ML</h4>
+                        <div class="text-xs font-bold uppercase text-usta-red mb-2">Módulo 4: ML Escalable</div>
+                        <p class="text-gray-700 mb-4 text-sm">ML distribuido y creación de Pipelines con VectorAssembler.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-red-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> One-Hot Encoding Manual: Entender matriz de dispersión sin librerías automáticas.
+                        </div>
+                        <a href="seccion_13.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
+                    </div>
+                </div>
+
+                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 14: Regresión</h4>
+                        <div class="text-xs font-bold uppercase text-usta-red mb-2">Módulo 4: ML Escalable</div>
+                        <p class="text-gray-700 mb-4 text-sm">Modelos predictivos y regularización de pérdida.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-red-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Bias-Variance: Entrenar modelo overfitted y aplicar Regularización L1/L2.
+                        </div>
+                        <a href="seccion_14.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
+                    </div>
+                </div>
+
+                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 15: Tuning</h4>
+                        <div class="text-xs font-bold uppercase text-usta-red mb-2">Módulo 4: ML Escalable</div>
+                        <p class="text-gray-700 mb-4 text-sm">Optimización de modelos y validación cruzada.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-red-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Hyperparameter Tuning: Grid Search paralelo en Spark para Random Forest.
+                        </div>
+                        <a href="seccion_15.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
+                    </div>
+                </div>
+
+                <div class="bg-red-100 rounded-lg shadow-lg overflow-hidden border-2 border-red-300 transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow">
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">Capítulo 16: MLOps</h4>
+                        <div class="text-xs font-bold uppercase text-usta-red mb-2">Módulo 4: ML Escalable</div>
+                        <p class="text-gray-700 mb-4 text-sm">Registro de modelos y experimentos con MLflow.</p>
+                        <div class="bg-white bg-opacity-60 p-3 rounded text-xs italic text-gray-800 border border-red-200 mb-4">
+                            <strong class="text-usta-red not-italic">Reto:</strong> Model Versioning: Consumir vía script la versión "Production" del modelo.
+                        </div>
+                        <a href="seccion_16.html" class="inline-block bg-usta-red text-white font-bold py-2 px-4 rounded-full text-xs">Ver Contenido</a>
                     </div>
                 </div>
                 
-                <div class="bg-gray-200 rounded-lg shadow-lg overflow-hidden border-2 border-gray-400 transform hover:scale-[1.02] transition-transform duration-300">
-                    <div class="p-6">
-                        <h4 class="text-xl font-bold text-black mb-2">Capítulo 17: Clausura y Proyecto Final</h4>
-                        <div class="text-sm font-semibold text-gray-700 mb-2">Clausura</div>
-                        <p class="text-gray-700 mb-4 text-sm">Presentación y Evaluación de Proyectos (Capítulo Sincrónico Final).</p>
-                        <a href="seccion_17.html" class="inline-block bg-usta-blue text-white font-bold py-2 px-4 rounded-full text-xs">
-                            Ver Contenido (seccion_17.html)
+                <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden border-2 border-usta-blue transform hover:scale-[1.02] transition-transform duration-300 flex flex-col">
+                    <div class="p-6 flex-grow flex flex-col justify-center text-center">
+                        <h4 class="text-xl font-bold text-white mb-2 uppercase tracking-wider">Capítulo 17: Clausura</h4>
+                        <div class="text-sm font-semibold text-usta-yellow mb-4 uppercase">Sustentación de Proyectos</div>
+                        <p class="text-gray-400 mb-4 text-sm italic">Presentación final de la arquitectura de datos.</p>
+                        <a href="seccion_17.html" class="inline-block bg-usta-yellow text-black font-bold py-2 px-4 rounded-full text-xs hover:bg-white transition-colors">
+                            Ver Detalles Finales
                         </a>
                     </div>
                 </div>
