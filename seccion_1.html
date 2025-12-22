@@ -364,40 +364,47 @@ except Exception as e:
                             <h2 class="text-3xl font-bold">Reto de Ingeniería: The Bronze Ingestor</h2>
                         </div>
                         
-                        <p class="text-blue-100 text-lg mb-8 max-w-3xl">
+                        <p class="text-blue-100 text-lg mb-6 max-w-3xl">
                             Vas a construir tu primer <strong>Pipeline de Ingesta</strong>. Tu misión es crear un script de Python robusto que simule un proceso de recepción de datos empresariales.
                         </p>
 
+                        <div class="mb-8">
+                            <a href="https://github.com/Izainea/reto_1_dgd_2026" target="_blank" class="inline-flex items-center bg-white text-[#003366] font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-100 transition-transform hover:scale-105 duration-200">
+                                <i data-lucide="github" class="w-5 h-5 mr-2"></i>
+                                Clonar Repositorio del Reto
+                            </a>
+                            <p class="mt-2 text-xs text-blue-200 opacity-80">* Incluye dataset de prueba y scripts de validación.</p>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-blue-50">
-                            <div class="bg-white/10 p-6 rounded-xl backdrop-blur-sm">
+                            <div class="bg-white/10 p-6 rounded-xl backdrop-blur-sm border border-white/10">
                                 <h3 class="text-[#FFCC00] font-bold text-lg mb-4">Escenario</h3>
                                 <p class="text-sm mb-4">
                                     Tienes una carpeta <code>/landing</code> donde llegan archivos diarios. Algunos vienen corruptos (vacíos o formato incorrecto). Necesitas automatizar su clasificación.
                                 </p>
                                 <ul class="space-y-2 text-sm">
-                                    <li class="flex items-center"><i data-lucide="folder" class="w-4 h-4 mr-2"></i> Carpeta Origen: <code>landing/</code></li>
-                                    <li class="flex items-center"><i data-lucide="check-circle" class="w-4 h-4 mr-2 text-green-400"></i> Carpeta Éxito: <code>bronze/</code></li>
-                                    <li class="flex items-center"><i data-lucide="x-circle" class="w-4 h-4 mr-2 text-red-400"></i> Carpeta Fallo: <code>bad_data/</code></li>
+                                    <li class="flex items-center"><i data-lucide="folder" class="w-4 h-4 mr-2 opacity-75"></i> Carpeta Origen: <code class="bg-black/20 px-1 rounded ml-1">landing/</code></li>
+                                    <li class="flex items-center"><i data-lucide="check-circle" class="w-4 h-4 mr-2 text-green-400"></i> Carpeta Éxito: <code class="bg-black/20 px-1 rounded ml-1">bronze/</code></li>
+                                    <li class="flex items-center"><i data-lucide="x-circle" class="w-4 h-4 mr-2 text-red-400"></i> Carpeta Fallo: <code class="bg-black/20 px-1 rounded ml-1">bad_data/</code></li>
                                 </ul>
                             </div>
 
-                            <div class="bg-white/10 p-6 rounded-xl backdrop-blur-sm">
+                            <div class="bg-white/10 p-6 rounded-xl backdrop-blur-sm border border-white/10">
                                 <h3 class="text-[#FFCC00] font-bold text-lg mb-4">Requerimientos Técnicos</h3>
                                 <ul class="space-y-3 text-sm">
                                     <li class="flex items-start">
-                                        <i data-lucide="code-2" class="w-5 h-5 mr-2 mt-0.5"></i>
+                                        <i data-lucide="code-2" class="w-5 h-5 mr-2 mt-0.5 opacity-75"></i>
                                         <span>Usar <code>pathlib</code> para escanear archivos.</span>
                                     </li>
                                     <li class="flex items-start">
-                                        <i data-lucide="shield" class="w-5 h-5 mr-2 mt-0.5"></i>
+                                        <i data-lucide="shield" class="w-5 h-5 mr-2 mt-0.5 opacity-75"></i>
                                         <span>Implementar <code>try/except</code>. Si un archivo no se puede leer, el script <strong>no debe detenerse</strong>.</span>
                                     </li>
                                     <li class="flex items-start">
-                                        <i data-lucide="file-text" class="w-5 h-5 mr-2 mt-0.5"></i>
+                                        <i data-lucide="file-text" class="w-5 h-5 mr-2 mt-0.5 opacity-75"></i>
                                         <span>Validación: Un archivo es válido solo si tiene más de 0 bytes.</span>
                                     </li>
                                     <li class="flex items-start">
-                                        <i data-lucide="move" class="w-5 h-5 mr-2 mt-0.5"></i>
+                                        <i data-lucide="move" class="w-5 h-5 mr-2 mt-0.5 opacity-75"></i>
                                         <span>Mover los archivos a su destino correspondiente usando <code>shutil</code>.</span>
                                     </li>
                                 </ul>
@@ -424,15 +431,15 @@ except Exception as e:
                     <div class="bg-blue-50 rounded-lg p-6 mb-6">
                         <h4 class="font-bold text-[#003366] mb-3">Cómo usar la IA para resolver el reto:</h4>
                         <ol class="list-decimal list-inside space-y-3 text-gray-700 text-sm">
-                            <li>Ingresa al NotebookLM del curso (Link en Plataforma).</li>
+                            <li>Ingresa al cuaderno oficial del curso usando el botón de abajo.</li>
                             <li><strong>Prompt Sugerido 1:</strong> "Explícame cómo usar pathlib para iterar sobre todos los archivos .txt de una carpeta y cómo verificar su tamaño en bytes".</li>
                             <li><strong>Prompt Sugerido 2:</strong> "¿Cuál es la diferencia entre usar os.rename y shutil.move para mover archivos entre carpetas en Python? Dame un ejemplo con try-except".</li>
                             <li><strong>Análisis de Código:</strong> Si tu script falla, pega el error en NotebookLM y pregunta: "¿Por qué este bloque try-except no está capturando el error de permiso denegado?".</li>
                         </ol>
                     </div>
 
-                    <a href="https://notebooklm.google.com/" target="_blank" class="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
-                        Acceder a NotebookLM
+                    <a href="https://notebooklm.google.com/notebook/106d2175-c319-4cc2-8ef0-54a85ebf5fc8" target="_blank" class="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
+                        Acceder al Cuaderno de Soporte
                         <i data-lucide="external-link" class="ml-2 w-4 h-4"></i>
                     </a>
                 </div>
