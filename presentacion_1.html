@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Ingeniería de Datos Robusta: The Bronze Ingestor</title>
+
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/theme/night.min.css">
+
+    <!-- Highlight.js para código -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/monokai.min.css">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        /* Estilos personalizados */
+        .reveal h1, .reveal h2, .reveal h3 { text-transform: none; }
+        .text-accent { color: #e7ad52 !important; }
+        .text-danger { color: #ff5f5f !important; }
+        .text-success { color: #42b983 !important; }
+        .text-info { color: #61dafb !important; }
+        
+        .code-wrapper { font-size: 0.6em; line-height: 1.2; }
+        
+        /* Contenedor para D3 */
+        #d3-container {
+            width: 100%;
+            height: 500px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            border: 1px solid #444;
+            position: relative;
+        }
+        
+        /* Mermaid adjustments */
+        .mermaid { background: white; padding: 20px; border-radius: 10px; }
+        
+        /* Layout helpers */
+        .cols { display: flex; gap: 20px; align-items: center; justify-content: center;}
+        .col { flex: 1; }
+        .small-text { font-size: 0.6em; }
+    </style>
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+
+        <!-- SECCIÓN 1: INTRODUCCIÓN -->
+        <section>
+            <section>
+                <div style="font-size: 3em;"><i class="fa-solid fa-network-wired text-accent"></i></div>
+                <h1>Ingeniería de Datos Robusta</h1>
+                <h3>Construyendo "The Bronze Ingestor"</h3>
+                <p>Diplomado en Estrategias de Datos</p>
+                <p><small>Universidad Santo Tomás</small></p>
+            </section>
+
+            <section>
+                <h2>Agenda del Día</h2>
+                <ol>
+                    <li>El problema de los datos reales</li>
+                    <li>Herramientas Modernas (Pathlib, Shutil)</li>
+                    <li>Manejo de Errores (Robustez)</li>
+                    <li>Arquitectura del Pipeline</li>
+                    <li>Estrategia con IA (NotebookLM)</li>
+                    <li><strong>El Reto Práctico</strong></li>
+                </ol>
+            </section>
+
+            <section>
+                <h2>¿Qué es un Ingeniero de Datos?</h2>
+                <div class="cols">
+                    <div class="col fragment">
+                        <i class="fa-solid fa-person-digging fa-3x text-info"></i>
+                        <p>No solo mueve datos.</p>
+                    </div>
+                    <div class="col fragment">
+                        <i class="fa-solid fa-shield-halved fa-3x text-success"></i>
+                        <p>Construye sistemas que <strong>sobreviven</strong> a los errores.</p>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <!-- SECCIÓN 2: EL PROBLEMA -->
+        <section>
+            <section>
+                <h2 class="text-danger">El Caos del Mundo Real</h2>
+                <p>En los tutoriales, los CSV son perfectos.</p>
+                <p class="fragment">En la vida real...</p>
+            </section>
+
+            <section>
+                <h3>La "Landing Zone" es hostil</h3>
+                <ul>
+                    <li class="fragment error">Archivos vacíos (0 bytes)</li>
+                    <li class="fragment error">Formatos corruptos</li>
+                    <li class="fragment error">Nombres inconsistentes</li>
+                    <li class="fragment error">Permisos denegados</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>El Costo de la Fragilidad</h3>
+                <p>Si tu script se detiene a las 3:00 AM por un solo archivo corrupto:</p>
+                <h1 class="text-danger fragment">FALLA TODO EL PROCESO</h1>
+            </section>
+
+            <section>
+                <h3>Nuestro Objetivo Hoy</h3>
+                <p>Crear un <strong>Gatekeeper</strong> (Portero).</p>
+                <p>Un script que filtre la basura y deje pasar el oro.</p>
+            </section>
+        </section>
+
+        <!-- SECCIÓN 3: TOOLKIT MODERNO (Pathlib) -->
+        <section>
+            <section>
+                <h2>Herramientas Modernas</h2>
+                <p>Dejando atrás el Python de 2010.</p>
+            </section>
+
+            <section>
+                <h3>El viejo modo: <code>os.path</code></h3>
+                <pre><code class="python" data-trim>
+import os
+
+ruta = os.path.join(os.getcwd(), "landing", "archivo.csv")
+# 'C:\\Users\\Usuario\\landing\\archivo.csv'
+                </code></pre>
+                <p class="text-danger fragment">Maneja rutas como simples Strings. Propenso a errores en Windows/Linux.</p>
+            </section>
+
+            <section>
+                <h3>El nuevo estándar: <code>pathlib</code></h3>
+                <pre><code class="python" data-trim>
+from pathlib import Path
+
+ruta = Path.cwd() / "landing" / "archivo.csv"
+                </code></pre>
+                <p class="text-success fragment">Orientado a Objetos. Elegante. Agnóstico del Sistema Operativo.</p>
+            </section>
+
+            <section>
+                <h3>Operaciones con Pathlib</h3>
+                <pre><code class="python" data-trim data-line-numbers="3-4|6-7|9-10">
+archivo = Path("datos.csv")
+
+# Verificar existencia
+if archivo.exists(): ...
+
+# Obtener nombre y extensión
+print(archivo.stem, archivo.suffix)
+
+# Leer metadatos (tamaño)
+peso = archivo.stat().st_size
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>Globbing (Escanear carpetas)</h3>
+                <p>Cómo encontrar todos los CSVs en una carpeta:</p>
+                <pre><code class="python" data-trim>
+carpeta = Path("./landing")
+
+for archivo in carpeta.glob("*.csv"):
+    print(f"Procesando {archivo.name}")
+                </code></pre>
+            </section>
+        </section>
+
+        <!-- SECCIÓN 4: TOOLKIT (Shutil & Logging) -->
+        <section>
+            <section>
+                <h2>Moviendo Archivos</h2>
+                <p>La librería <code>shutil</code> (Shell Utilities).</p>
+            </section>
+
+            <section>
+                <h3>Mover es atómico</h3>
+                <pre><code class="python" data-trim>
+import shutil
+
+origen = Path("landing/venta.csv")
+destino = Path("bronze/venta.csv")
+
+shutil.move(str(origen), str(destino))
+                </code></pre>
+                <p class="fragment small-text text-accent">Nota: Pathlib es genial, pero a veces shutil prefiere recibir strings, por eso usamos str().</p>
+            </section>
+
+            <section>
+                <h2>Logging vs Print</h2>
+                <div class="cols">
+                    <div class="col">
+                        <h4 class="text-danger">print()</h4>
+                        <ul>
+                            <li>Solo consola</li>
+                            <li>Efímero</li>
+                            <li>Sin hora/fecha</li>
+                        </ul>
+                    </div>
+                    <div class="col">
+                        <h4 class="text-success">logging</h4>
+                        <ul>
+                            <li>Consola + Archivo</li>
+                            <li>Persistente</li>
+                            <li>Niveles (INFO, ERROR)</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h3>Configuración de Logging</h3>
+                <pre><code class="python" data-trim>
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+logging.info("Proceso iniciado")
+logging.error("Archivo corrupto detectado")
+                </code></pre>
+            </section>
+        </section>
+
+        <!-- SECCIÓN 5: ROBUSTEZ Y TRY/EXCEPT -->
+        <section>
+            <section>
+                <h2>El Arte de no Estrellarse</h2>
+                <h3>Manejo de Excepciones</h3>
+            </section>
+
+            <section>
+                <h3>Filosofía "Graceful Failure"</h3>
+                <div class="mermaid">
+                flowchart LR
+                    A[Inicio] --> B{¿Error?}
+                    B -- No --> C[Procesar]
+                    B -- Sí --> D[Capturar]
+                    D --> E[Loguear]
+                    E --> F[Mover a Bad Data]
+                    F --> G[Siguiente Archivo]
+                    C --> G
+                </div>
+            </section>
+
+            <section>
+                <h3>Anatomía del Try/Except</h3>
+                <pre><code class="python" data-trim data-line-numbers="1|2|3-5|6-8">
+try:
+    # Código peligroso (lectura, movimiento)
+    validar(archivo)
+except ValueError as e:
+    # Error de lógica de negocio
+    logging.warning(f"Datos inválidos: {e}")
+except Exception as e:
+    # Red de seguridad para todo lo demás
+    logging.critical(f"Error inesperado: {e}")
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>La cláusula <code>finally</code></h3>
+                <p>Se ejecuta SIEMPRE, haya error o no.</p>
+                <pre><code class="python" data-trim>
+try:
+    db.conectar()
+    db.escribir()
+except:
+    log.error("Fallo DB")
+finally:
+    db.cerrar() # ¡Crucial!
+                </code></pre>
+            </section>
+        </section>
+
+        <!-- SECCIÓN 6: SIMULACIÓN VISUAL (D3.js) -->
+        <section data-state="start-d3">
+            <h3>Visualización del Pipeline</h3>
+            <p>Simulación: Clasificación en tiempo real</p>
+            <div id="d3-container"></div>
+            <div class="cols small-text">
+                <div class="col"><span style="color:#61dafb">●</span> Landing</div>
+                <div class="col"><span style="color:#42b983">●</span> Bronze (>0B)</div>
+                <div class="col"><span style="color:#ff5f5f">●</span> Bad Data (0B)</div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 7: ARQUITECTURA DEL RETO -->
+        <section>
+            <section>
+                <h2>Arquitectura del Reto</h2>
+                <p>The Bronze Ingestor</p>
+            </section>
+
+            <section>
+                <h3>Estructura de Directorios</h3>
+                <pre><code class="bash" data-trim>
+proyecto/
+├── landing/        # Entrada (Caos)
+│   ├── ventas.csv
+│   ├── error.log
+│   └── vacio.tmp   # 0 bytes
+├── bronze/         # Salida Éxito
+├── bad_data/       # Salida Error
+└── ingestor.py     # Tu Script
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>Reglas de Negocio -Lógica</h3>
+                <div class="mermaid">
+                graph TD
+                    A[Archivo en Landing] --> B{¿Peso > 0 bytes?}
+                    B -- Sí --> C[Es válido]
+                    B -- No --> D[Es corrupto]
+                    C --> E[Mover a /bronze]
+                    D --> F[Mover a /bad_data]
+                    E --> G[Log: INFO]
+                    F --> H[Log: WARNING]
+                </div>
+            </section>
+
+            <section>
+                <h3>Requerimientos Técnicos</h3>
+                <ul>
+                    <li>Librería <code>pathlib</code> obligatoria.</li>
+                    <li>Librería <code>shutil</code> obligatoria.</li>
+                    <li>Bloques <code>try/except</code> dentro del bucle.</li>
+                    <li>La carpeta <code>landing</code> debe quedar vacía al final.</li>
+                </ul>
+            </section>
+        </section>
+
+        <!-- SECCIÓN 8: PROGRAMACIÓN FUNCIONAL -->
+        <section>
+            <section>
+                <h2>Conceptos Avanzados</h2>
+                <p>Pythonic & Functional</p>
+            </section>
+
+            <section>
+                <h3>List Comprehensions</h3>
+                <p>Más rápido y limpio que un bucle for tradicional para crear listas.</p>
+                <pre><code class="python" data-trim>
+# Tradicional
+cuadrados = []
+for x in range(10):
+    cuadrados.append(x**2)
+
+# Pythonic
+cuadrados = [x**2 for x in range(10)]
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>Generadores (Lazy Evaluation)</h3>
+                <p>Para Big Data. No carga todo en memoria.</p>
+                <pre><code class="python" data-trim>
+# Usa paréntesis en lugar de corchetes
+grandes_datos = (procesar(x) for x in archivo_gigante)
+
+# Se procesa uno a uno al iterar
+for dato in grandes_datos:
+    guardar(dato)
+                </code></pre>
+            </section>
+        </section>
+
+        <!-- SECCIÓN 9: ESTRATEGIA CON IA (NotebookLM) -->
+        <section>
+            <section>
+                <h2>Estrategia con IA</h2>
+                <i class="fa-solid fa-robot fa-3x text-info"></i>
+                <p>Tu copiloto: Google NotebookLM</p>
+            </section>
+
+            <section>
+                <h3>¿Qué hemos preparado?</h3>
+                <p>Hemos cargado un entorno de IA con:</p>
+                <ul>
+                    <li>Guía Conceptual de Python</li>
+                    <li>CheatSheet de Pathlib/Shutil</li>
+                    <li>Reglas específicas del Reto</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>¿Cómo usarlo?</h3>
+                <p class="text-danger">NO: "Escríbeme el código"</p>
+                <p class="text-success">SÍ: "¿Cómo verifico el peso de un archivo con pathlib?"</p>
+            </section>
+
+            <section>
+                <h3>Prompt Engineering para el Reto</h3>
+                <div class="fragment fade-in-then-semi-out">
+                    <p>"Explícame la diferencia entre usar <code>os.rename</code> y <code>shutil.move</code> para este reto."</p>
+                </div>
+                <div class="fragment fade-in-then-semi-out">
+                    <p>"Mi script falla con PermissionError. ¿Qué sugiere la documentación sobre archivos abiertos?"</p>
+                </div>
+                <div class="fragment fade-in">
+                    <p>"Genera un ejemplo de estructura Try/Except para capturar FileNotFoundError."</p>
+                </div>
+            </section>
+
+            <section>
+                <a href="https://notebooklm.google.com/notebook/106d2175-c319-4cc2-8ef0-54a85ebf5fc8" target="_blank">
+                    <button style="padding: 20px; font-size: 1.2em; background: #4285f4; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        <i class="fa-solid fa-external-link"></i> Abrir Cuaderno del Curso
+                    </button>
+                </a>
+            </section>
+        </section>
+
+        <!-- SECCIÓN 10: MANOS A LA OBRA -->
+        <section>
+            <section>
+                <h1>¡Manos a la Obra!</h1>
+                <p>Tu misión comienza ahora.</p>
+            </section>
+
+            <section>
+                <h3>Paso 1: Clonar el Repositorio</h3>
+                <pre><code class="bash" data-trim>
+git clone https://github.com/Izainea/reto_1_dgd_2026
+cd reto_1_dgd_2026
+                </code></pre>
+            </section>
+
+            <section>
+                <h3>Paso 2: Inspeccionar el Caos</h3>
+                <p>Mira dentro de la carpeta <code>/landing</code>.</p>
+                <p>Verás 100 archivos generados aleatoriamente.</p>
+            </section>
+
+            <section>
+                <h3>Paso 3: Crear el Script</h3>
+                <p>Crea un archivo <code>ingestor.py</code>.</p>
+                <p>Importa <code>pathlib</code>, <code>shutil</code> y <code>logging</code>.</p>
+            </section>
+
+            <section>
+                <h3>Criterios de Aceptación</h3>
+                <ul>
+                    <li><i class="fa-regular fa-square"></i> Carpeta <code>landing</code> vacía.</li>
+                    <li><i class="fa-regular fa-square"></i> Archivos > 0B en <code>bronze</code>.</li>
+                    <li><i class="fa-regular fa-square"></i> Archivos = 0B en <code>bad_data</code>.</li>
+                    <li><i class="fa-regular fa-square"></i> Log en consola mostrando acciones.</li>
+                    <li><i class="fa-regular fa-square"></i> El script no se detuvo por errores.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>¿Preguntas?</h2>
+                <p class="text-accent">Ingeniería de Datos Robusta</p>
+                <p><small>Sergio Márquez - One d AI ly</small></p>
+            </section>
+        </section>
+
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/plugin/highlight/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/plugin/notes/notes.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script>
+    // Inicializar Mermaid
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+    // Inicializar Reveal.js
+    Reveal.initialize({
+        hash: true,
+        plugins: [ RevealHighlight, RevealNotes ]
+    });
+
+    // --- SIMULACIÓN D3.JS ---
+    // Esta función se ejecutará cuando se cargue la diapositiva específica
+    
+    let simulationRunning = false;
+
+    Reveal.on('start-d3', () => {
+        if (simulationRunning) return;
+        simulationRunning = true;
+        startSimulation();
+    });
+
+    function startSimulation() {
+        const container = document.getElementById("d3-container");
+        container.innerHTML = ''; // Limpiar
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        const svg = d3.select("#d3-container").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        // Zonas
+        const zones = [
+            {id: "landing", x: 100, y: height/2, color: "#61dafb", r: 60, label: "Landing"},
+            {id: "process", x: width/2, y: height/2, color: "#ffffff", r: 40, label: "Procesando"},
+            {id: "bronze", x: width - 100, y: 100, color: "#42b983", r: 50, label: "Bronze"},
+            {id: "bad", x: width - 100, y: height - 100, color: "#ff5f5f", r: 50, label: "Bad Data"}
+        ];
+
+        // Dibujar zonas
+        svg.selectAll(".zone-circle")
+            .data(zones)
+            .enter().append("circle")
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y)
+            .attr("r", d => d.r)
+            .attr("fill", "none")
+            .attr("stroke", d => d.color)
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", "5,5");
+
+        svg.selectAll(".zone-label")
+            .data(zones)
+            .enter().append("text")
+            .attr("x", d => d.x)
+            .attr("y", d => d.y + 5)
+            .attr("text-anchor", "middle")
+            .attr("fill", d => d.color)
+            .style("font-size", "14px")
+            .text(d => d.label);
+
+        // Generador de archivos
+        function spawnFile() {
+            if (!document.getElementById("d3-container").offsetParent) return; // Detener si no es visible
+
+            const isCorrupt = Math.random() < 0.3; // 30% corruptos
+            const fileData = {
+                id: Math.random(),
+                corrupt: isCorrupt,
+                x: zones[0].x,
+                y: zones[0].y
+            };
+
+            const circle = svg.append("circle")
+                .attr("cx", fileData.x)
+                .attr("cy", fileData.y)
+                .attr("r", 8)
+                .attr("fill", "#61dafb")
+                .attr("opacity", 0.8);
+
+            // Animación: Landing -> Process
+            circle.transition()
+                .duration(1000)
+                .attr("cx", zones[1].x)
+                .attr("cy", zones[1].y)
+                .on("end", function() {
+                    // Simular chequeo (cambio de tamaño/color)
+                    d3.select(this)
+                        .attr("fill", isCorrupt ? "#ff5f5f" : "#42b983")
+                        .attr("r", 12)
+                        .transition().duration(500).attr("r", 8)
+                        .on("end", function() {
+                            // Animación: Process -> Destino
+                            const target = isCorrupt ? zones[3] : zones[2];
+                            d3.select(this).transition()
+                                .duration(1000)
+                                .attr("cx", target.x)
+                                .attr("cy", target.y)
+                                .style("opacity", 0)
+                                .remove();
+                        });
+                });
+        }
+
+        // Lanzar archivos cada cierto tiempo
+        const interval = setInterval(() => {
+            if (!document.getElementById("d3-container").offsetParent) {
+                // Detener si cambiamos de diapositiva
+                clearInterval(interval);
+                simulationRunning = false;
+            } else {
+                spawnFile();
+            }
+        }, 800);
+    }
+
+</script>
+</body>
+</html>

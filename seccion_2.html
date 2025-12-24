@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 2: Pandas Pro - Diplomado Estrategias de Datos</title>
+    
+    <!-- Librerías Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Source+Code+Pro:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilos Base y Tipografía */
+        body { font-family: 'Montserrat', sans-serif; overflow: hidden; background-color: #f3f4f6; }
+        code { font-family: 'Source Code Pro', monospace; }
+
+        /* Paleta Institucional USTA */
+        .bg-usta-blue { background-color: #003366; }
+        .text-usta-blue { color: #003366; }
+        .border-usta-blue { border-color: #003366; }
+        
+        .bg-usta-yellow { background-color: #FFCC00; }
+        .text-usta-yellow { color: #FFCC00; }
+        
+        .bg-usta-red { background-color: #DA291C; }
+        .text-usta-red { color: #DA291C; }
+
+        /* Estructura de Diapositivas */
+        .slide {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease;
+            transform: translateX(50px);
+            display: flex;
+            flex-direction: column;
+            background: white;
+            padding: 0;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+            z-index: 10;
+        }
+
+        /* Bloques de Código */
+        .code-block {
+            background-color: #1e293b;
+            color: #a5b4fc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 5px solid #FFCC00;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Contenedores de Gráficos */
+        .chart-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Mermaid centrado */
+        .mermaid { display: flex; justify-content: center; width: 100%; }
+        
+        /* Navegación */
+        .nav-btn {
+            background-color: rgba(0, 51, 102, 0.1);
+            color: #003366;
+            transition: all 0.3s;
+        }
+        .nav-btn:hover { background-color: #003366; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Fijo Institucional -->
+    <header class="fixed top-0 w-full bg-usta-blue h-16 shadow-lg z-50 flex justify-between items-center px-6 border-b-4 border-usta-yellow">
+        <div class="text-white font-bold text-lg tracking-wider">DIPLOMADO EN ESTRATEGIAS DE DATOS</div>
+        <div class="text-usta-yellow font-bold font-mono">CAPÍTULO 2: PANDAS PRO</div>
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main id="presentation-container" class="relative w-full h-screen pt-16 pb-12">
+
+        <!-- DIAPOSITIVA 1: PORTADA -->
+        <div class="slide active flex flex-col justify-center items-center text-center bg-gray-50 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+            <div class="max-w-4xl p-10">
+                <div class="mb-6 inline-block bg-usta-red text-white px-4 py-1 rounded-full font-bold text-sm tracking-widest">MÓDULO 1: PYTHON CORE</div>
+                <h1 class="text-6xl font-black text-usta-blue mb-6 leading-tight">
+                    Optimización del Dataset <span class="text-usta-red">NYC-Train-Trip</span>
+                </h1>
+                <p class="text-2xl text-gray-600 mb-10 font-light">
+                    20 Retos para dominar la memoria, vectorización y agregaciones avanzadas.
+                </p>
+                <div class="flex justify-center gap-4">
+                    <button onclick="nextSlide()" class="bg-usta-blue text-white px-8 py-4 rounded-lg font-bold shadow-lg hover:bg-opacity-90 transition transform hover:scale-105 flex items-center gap-2">
+                        INICIAR RETOS 
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <!-- D3 Animation Background Element -->
+            <div id="intro-viz" class="absolute bottom-0 w-full h-32 opacity-20"></div>
+        </div>
+
+        <!-- ================= FASE 1: DIAGNÓSTICO ================= -->
+
+        <!-- SLIDE 2: memory_usage -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 1: Diagnóstico</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">1. Inspección Profunda</h2>
+                    <p class="text-gray-700 text-lg mb-4"><code>df.info()</code> miente. Pandas subestima el peso de los objetos. El reto es descubrir la verdad.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Carga <code>train.csv</code>. Compara el uso de RAM reportado por defecto vs <code>memory_usage='deep'</code>.
+                    </div>
+                    <pre class="code-block">df.info(memory_usage='deep')</pre>
+                </div>
+                <div class="chart-container relative" id="chart-slide-2"></div> <!-- D3 Target -->
+            </div>
+        </div>
+
+        <!-- SLIDE 3: Downcasting -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 1: Diagnóstico</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">2. Downcasting Numérico</h2>
+                    <p class="text-gray-700 text-lg mb-4">¿Por qué usar 64 bits para contar hasta 6 pasajeros? <code>int8</code> es suficiente.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Convierte <code>passenger_count</code> a <code>int8</code> usando <code>pd.to_numeric</code>.
+                    </div>
+                    <pre class="code-block">pd.to_numeric(df['col'], downcast='integer')</pre>
+                </div>
+                <div class="chart-container bg-white">
+                    <div class="mermaid">
+                        graph TD
+                        A[Int64: 8 Bytes por fila] -->|Downcast| B(Análisis de Rango);
+                        B --> C{¿Cabe en 8 bits?};
+                        C -->|Sí| D[Int8: 1 Byte por fila];
+                        C -->|No| E[Int16/32];
+                        D --> F[Ahorro: 87.5% RAM];
+                        style D fill:#DA291C,color:white
+                        style F fill:#FFCC00,color:black
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Categoricals -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 1: Diagnóstico</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">3. Categoricals</h2>
+                    <p class="text-gray-700 text-lg mb-4">Los strings repetitivos consumen gigabytes. Las categorías guardan índices.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Optimiza <code>store_and_fwd_flag</code> ('Y'/'N') convirtiéndola a tipo categoría.
+                    </div>
+                    <pre class="code-block">df['flag'] = df['flag'].astype('category')</pre>
+                </div>
+                <div class="chart-container" id="chart-slide-4"></div> <!-- D3 Target -->
+            </div>
+        </div>
+
+        <!-- ================= FASE 2: VECTORIZACIÓN ================= -->
+
+        <!-- SLIDE 5: Datetime Format -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 2: Vectorización</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">4. Parsing Explícito</h2>
+                    <p class="text-gray-700 text-lg mb-4">Dejar que Pandas "adivine" el formato fecha por fecha es lento. Sé explícito.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Mide la velocidad de <code>to_datetime</code> con y sin <code>format='%Y-%m-%d...'</code>.
+                    </div>
+                    <pre class="code-block">pd.to_datetime(col, format='%Y-...')</pre>
+                </div>
+                <div class="chart-container" id="chart-slide-5"></div> <!-- D3 Target -->
+            </div>
+        </div>
+
+        <!-- SLIDE 6: .dt Accessor -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 2: Vectorización</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">5. Accessors (.dt)</h2>
+                    <p class="text-gray-700 text-lg mb-4">Extrae componentes de fecha en C, sin loops de Python.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Crea <code>hour</code> y <code>day_name</code>. Encuentra la hora pico de NYC.
+                    </div>
+                    <pre class="code-block">df['hour'] = df['datetime'].dt.hour</pre>
+                </div>
+                <div class="chart-container bg-white flex flex-col justify-center p-8">
+                    <div class="mermaid">
+                        graph LR
+                        A[Columna Datetime] --> B((.dt Accessor));
+                        B --> C[Array de Horas];
+                        B --> D[Array de Meses];
+                        B --> E[Días de Semana];
+                        style B fill:#003366,color:white,stroke-width:4px,stroke:#FFCC00
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: NumPy Where -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 2: Vectorización</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">6. Lógica Vectorizada</h2>
+                    <p class="text-gray-700 text-lg mb-4"><code>apply</code> con <code>if/else</code> es un crimen en Big Data. Usa NumPy.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Etiqueta "Largo" (>3600s) o "Corto" usando <code>np.where</code>.
+                    </div>
+                    <pre class="code-block">np.where(condicion, 'Valor Si', 'Valor No')</pre>
+                </div>
+                 <div class="chart-container bg-white">
+                    <div class="mermaid">
+                        flowchart TB
+                        subgraph Lento
+                        A[Fila 1] --> B{If > 3600};
+                        C[Fila 2] --> B;
+                        D[Fila N] --> B;
+                        end
+                        subgraph Vectorizado
+                        E[Array Completo Duración] --> F{{np.where}};
+                        F --> G[Array Completo Resultado];
+                        end
+                        style F fill:#DA291C,color:white
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Haversine -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 2: Vectorización</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">7. Matemáticas Geoespaciales</h2>
+                    <p class="text-gray-700 text-lg mb-4">Trigonometría sobre arrays enteros para calcular distancias reales.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Implementa la fórmula Haversine con <code>np.sin</code> y <code>np.cos</code> para obtener Km.
+                    </div>
+                </div>
+                <div class="bg-usta-blue text-white p-8 rounded-xl shadow-2xl flex items-center justify-center">
+                    <div class="text-xl font-mono">
+                        a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)<br><br>
+                        c = 2 ⋅ atan2( √a, √(1−a) )<br><br>
+                        d = R ⋅ c
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= FASE 3: METHOD CHAINING ================= -->
+
+        <!-- SLIDE 9: .query -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 3: Código Elegante</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">8. Filtrado con .query()</h2>
+                    <p class="text-gray-700 text-lg mb-4">Sintaxis tipo SQL, más limpia que los corchetes anidados.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Filtra: Pasajeros > 1 Y Distancia entre 0 y 100km en una línea.
+                    </div>
+                    <pre class="code-block">df.query('passenger > 1 and 0 < dist < 100')</pre>
+                </div>
+                <div class="chart-container bg-white">
+                    <div class="mermaid">
+                        graph TD
+                        A[DataFrame Bruto] --> B(Query Parser);
+                        B --> C{Evalua String};
+                        C --> D[DataFrame Filtrado];
+                        style B fill:#FFCC00,stroke:#333
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: .assign -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 3: Código Elegante</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">9. Creación (.assign)</h2>
+                    <p class="text-gray-700 text-lg mb-4">Crea columnas al vuelo sin romper la cadena de métodos.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Crea <code>velocidad_kph</code> y ordena descendentemente en un solo bloque.
+                    </div>
+                    <pre class="code-block">.assign(vel = lambda x: x.dist / x.time)
+.sort_values('vel')</pre>
+                </div>
+                <div class="chart-container relative" id="chart-slide-10"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: .clip -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 3: Código Elegante</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">10. Outliers (.clip)</h2>
+                    <p class="text-gray-700 text-lg mb-4">No borres datos, "tópalos" a límites lógicos.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Limita la duración entre 60s y 7200s usando clip.
+                    </div>
+                    <pre class="code-block">.clip(lower=60, upper=7200)</pre>
+                </div>
+                <div class="chart-container" id="chart-slide-11"></div> <!-- D3 Visualization -->
+            </div>
+        </div>
+
+         <!-- SLIDE 12: .pipe -->
+         <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 3: Código Elegante</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">11. Funciones Propias (.pipe)</h2>
+                    <p class="text-gray-700 text-lg mb-4">Inyecta tus propias funciones dentro de una cadena de Pandas.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Crea <code>def etiqueta_trafico(df)</code> y úsala al final de tu cadena.
+                    </div>
+                    <pre class="code-block">df.query(...).assign(...).pipe(mi_funcion)</pre>
+                </div>
+                <div class="chart-container bg-white">
+                    <div class="mermaid">
+                        graph LR
+                        A[Inicio Cadena] --> B(.query);
+                        B --> C(.assign);
+                        C --> D((.pipe));
+                        D -- Pasa DF --> E[Función Custom];
+                        E -- Retorna DF --> F[Fin Cadena];
+                        style D fill:#DA291C,color:white
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= FASE 4: AGREGACIONES ================= -->
+
+        <!-- SLIDE 13: Groupby Named Agg -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 4: Agregaciones</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">12. Named Aggregation</h2>
+                    <p class="text-gray-700 text-lg mb-4">Control total sobre los nombres de columnas resultantes.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Agrupa por vendor y calcula <code>mean_duration</code> y <code>total_km</code>.
+                    </div>
+                    <pre class="code-block">agg(nueva_col=('col_orig', 'func'))</pre>
+                </div>
+                <div class="chart-container bg-gray-100 flex items-center justify-center text-6xl text-usta-blue">
+                    <i class="fas fa-layer-group"></i> <!-- Placeholder visual -->
+                    <div class="grid grid-cols-2 gap-2 text-sm text-center">
+                        <div class="bg-usta-blue text-white p-2">Vendor 1</div>
+                        <div class="bg-usta-yellow p-2">Stats</div>
+                        <div class="bg-usta-blue text-white p-2">Vendor 2</div>
+                        <div class="bg-usta-yellow p-2">Stats</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: Transform -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 4: Agregaciones</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">13. La Magia de .transform</h2>
+                    <p class="text-gray-700 text-lg mb-4">Agrega estadísticas del grupo a cada fila original (Window Function).</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Columna <code>avg_duration_by_hour</code>. Cada fila sabe el promedio de su hora.
+                    </div>
+                </div>
+                <div class="chart-container bg-white">
+                    <div class="mermaid">
+                        graph TD
+                        A[100 Filas Originales] --> B{Groupby};
+                        B --> C[Calcula Media - Reduce a 24 filas];
+                        C --> D[Transform Broadcast];
+                        D --> E[100 Filas con valor promedio pegado];
+                        style D fill:#003366,color:white
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: Filter Groups -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 4: Agregaciones</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">14. Filtrado de Grupos</h2>
+                    <p class="text-gray-700 text-lg mb-4">Elimina grupos enteros que no cumplan una condición estadística.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Mantén solo las horas del día que tengan > 10,000 viajes totales.
+                    </div>
+                    <pre class="code-block">groupby('hour').filter(lambda x: len(x) > 10k)</pre>
+                </div>
+                <div class="chart-container" id="chart-slide-15"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: QCUT -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 4: Agregaciones</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">15. Binning (qcut)</h2>
+                    <p class="text-gray-700 text-lg mb-4">Convierte variable continua en discreta por cuantiles.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Divide distancia en 4 cuartiles: "Muy Corto" a "Muy Largo".
+                    </div>
+                    <pre class="code-block">pd.qcut(df['dist'], 4, labels=[...])</pre>
+                </div>
+                <div class="chart-container bg-white">
+                     <div class="mermaid">
+                        graph LR
+                        A[Datos Continuos] --> B{Qcut=4};
+                        B --> C[0-25%<br>Muy Corto];
+                        B --> D[25-50%<br>Corto];
+                        B --> E[50-75%<br>Largo];
+                        B --> F[75-100%<br>Muy Largo];
+                        style B fill:#DA291C,color:white
+                    </div>
+                </div>
+            </div>
+        </div>
+
+         <!-- ================= FASE 5: VISUALIZACIÓN ================= -->
+
+        <!-- SLIDE 17: Resample -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 5: Series Temporales</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">16. Resample()</h2>
+                    <p class="text-gray-700 text-lg mb-4">El groupby superpoderoso para índices de tiempo.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Conteo total de viajes por día ('D'). ¿Qué día es el más bajo?
+                    </div>
+                    <pre class="code-block">df.set_index('ts').resample('D').size()</pre>
+                </div>
+                 <div class="chart-container" id="chart-slide-17"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 18: Rolling -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 5: Series Temporales</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">17. Rolling Windows</h2>
+                    <p class="text-gray-700 text-lg mb-4">Suaviza el ruido diario para ver la tendencia real.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Calcula media móvil de 7 días. Grafica Original vs Suavizada.
+                    </div>
+                    <pre class="code-block">.rolling(7).mean()</pre>
+                </div>
+                 <div class="chart-container" id="chart-slide-18"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 19: Scatter Alpha -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 5: Visualización</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">18. Scatter con Alpha</h2>
+                    <p class="text-gray-700 text-lg mb-4">Millones de puntos sólidos no dicen nada. La transparencia revela densidad.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Plot Distancia vs Duración con <code>alpha=0.1</code>. Busca líneas raras.
+                    </div>
+                </div>
+                <div class="chart-container bg-black rounded-xl overflow-hidden relative">
+                    <!-- Simulación CSS de Scatter Plot denso -->
+                    <div class="absolute inset-0 opacity-50" style="background-image: radial-gradient(#FFCC00 1px, transparent 1px); background-size: 4px 4px;"></div>
+                    <div class="absolute bottom-10 left-10 w-full h-1 bg-usta-red opacity-80" style="transform: rotate(-15deg); width: 60%"></div>
+                    <div class="absolute text-white bottom-5 right-5 text-xs">Simulación: Líneas horizontales visibles</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 20: Heatmap -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 5: Visualización</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">19. Correlaciones</h2>
+                    <p class="text-gray-700 text-lg mb-4">Entiende qué variables se mueven juntas.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Matriz de correlación (`df.corr()`) visualizada con Heatmap.
+                    </div>
+                </div>
+                <div class="chart-container" id="chart-slide-20"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 21: Parquet -->
+        <div class="slide p-12">
+            <div class="grid grid-cols-2 gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2">Fase 5: Exportación</h3>
+                    <h2 class="text-4xl font-bold text-usta-blue mb-6">20. Formato Parquet</h2>
+                    <p class="text-gray-700 text-lg mb-4">CSV es lento y pierde tipos de datos. Parquet comprime y preserva esquema.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Guarda como <code>clean.parquet</code> y compara tamaño vs CSV.
+                    </div>
+                    <pre class="code-block">df.to_parquet('archivo.parquet')</pre>
+                </div>
+                 <div class="chart-container" id="chart-slide-21"></div>
+            </div>
+        </div>
+
+        <!-- CIERRE -->
+        <div class="slide flex flex-col justify-center items-center text-center bg-usta-blue text-white">
+            <h1 class="text-6xl font-bold mb-8">¡Reto Completado!</h1>
+            <p class="text-2xl mb-12 max-w-2xl">Has pasado de Pandas Básico a Ingeniería de Datos Eficiente.</p>
+            <div class="text-usta-yellow text-xl font-mono">Próximo Módulo: SQL Server & Bases Relacionales</div>
+        </div>
+
+        <!-- Footer Navegación -->
+        <footer class="fixed bottom-0 w-full bg-white h-16 border-t border-gray-200 flex justify-between items-center px-6 z-50">
+            <div class="flex items-center gap-4">
+                <img src="https://usantotomas.edu.co/hs-fs/hubfs/social-suggested-images/usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png?width=282&height=65&name=usantotomas.edu.cohs-fshubfsLogo%20Santoto%20-%20SP%20Bogota%20Horizontal%20blanco-2.png" alt="Logo USTA" class="h-8 filter invert grayscale brightness-0">
+                <span class="text-gray-400 text-sm">Diplomado Data Strategy</span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="prevSlide()" class="nav-btn p-2 rounded-full hover:bg-usta-blue hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <span id="slide-indicator" class="font-mono font-bold text-usta-blue">1 / 22</span>
+                <button onclick="nextSlide()" class="nav-btn p-2 rounded-full hover:bg-usta-blue hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const indicator = document.getElementById('slide-indicator');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                    // Trigger D3 animations or Mermaid render if needed
+                    initCharts(index);
+                }
+            });
+            indicator.innerText = `${currentSlide + 1} / ${totalSlides}`;
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSlide();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateSlide();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: true });
+
+        // --- D3 VISUALIZATIONS GENERATOR ---
+        function initCharts(slideIndex) {
+            // Memory Chart (Slide 2 & 4)
+            if (slideIndex === 1) { 
+                drawComparisonChart("#chart-slide-2", [
+                    {label: "df.info()", value: 100, color: "#ccc"},
+                    {label: "usage='deep'", value: 450, color: "#DA291C"}
+                ], "Uso de Memoria (MB)");
+            }
+            if (slideIndex === 3) { 
+                 drawComparisonChart("#chart-slide-4", [
+                    {label: "Object (String)", value: 400, color: "#ccc"},
+                    {label: "Category", value: 20, color: "#009B77"}
+                ], "Uso de Memoria (MB)");
+            }
+            // Time Chart (Slide 5)
+            if (slideIndex === 4) {
+                drawComparisonChart("#chart-slide-5", [
+                    {label: "Sin Formato", value: 100, color: "#DA291C"},
+                    {label: "Con Formato", value: 5, color: "#003366"}
+                ], "Tiempo de Ejecución (s)");
+            }
+             // Clip Chart (Slide 11)
+             if (slideIndex === 10) {
+                drawScatterSim("#chart-slide-11");
+            }
+             // Filter Groups Chart (Slide 15)
+             if (slideIndex === 14) {
+                 drawBarFilter("#chart-slide-15");
+             }
+             // Resample Chart (Slide 17)
+             if (slideIndex === 16) {
+                 drawLineChart("#chart-slide-17", false);
+             }
+             // Rolling Chart (Slide 18)
+             if (slideIndex === 17) {
+                 drawLineChart("#chart-slide-18", true);
+             }
+             // Heatmap (Slide 20)
+             if (slideIndex === 19) {
+                 drawHeatmap("#chart-slide-20");
+             }
+             // Parquet (Slide 21)
+             if (slideIndex === 20) {
+                 drawComparisonChart("#chart-slide-21", [
+                    {label: "CSV", value: 500, color: "#ccc"},
+                    {label: "Parquet", value: 120, color: "#003366"}
+                ], "Tamaño en Disco (MB)");
+             }
+        }
+
+        // --- D3 HELPER FUNCTIONS ---
+
+        function drawComparisonChart(selector, data, yLabel) {
+            d3.select(selector).selectAll("*").remove();
+            const width = 400, height = 300;
+            const svg = d3.select(selector).append("svg")
+                .attr("viewBox", `0 0 ${width} ${height}`)
+                .attr("width", "80%")
+                .attr("height", "80%");
+
+            const x = d3.scaleBand().range([0, width]).padding(0.4).domain(data.map(d => d.label));
+            const y = d3.scaleLinear().range([height, 0]).domain([0, d3.max(data, d => d.value) * 1.2]);
+
+            svg.selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("x", d => x(d.label))
+                .attr("width", x.bandwidth())
+                .attr("y", height) // Start at bottom
+                .attr("height", 0)
+                .attr("fill", d => d.color)
+                .transition().duration(800)
+                .attr("y", d => y(d.value))
+                .attr("height", d => height - y(d.value));
+
+            svg.selectAll(".text")
+                .data(data)
+                .enter().append("text")
+                .text(d => d.value)
+                .attr("x", d => x(d.label) + x.bandwidth()/2)
+                .attr("y", d => y(d.value) - 5)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#333")
+                .attr("font-weight", "bold");
+
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .style("font-size", "14px");
+            
+            svg.append("text")
+                .attr("x", width/2)
+                .attr("y", -10)
+                .text(yLabel);
+        }
+
+        function drawLineChart(selector, showRolling) {
+            d3.select(selector).selectAll("*").remove();
+            const width = 500, height = 300;
+            const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${width} ${height}`);
+            
+            // Fake Data
+            const data = d3.range(50).map(i => ({x: i, y: Math.sin(i/5) * 20 + 50 + Math.random()*30}));
+            
+            const x = d3.scaleLinear().domain([0, 50]).range([0, width]);
+            const y = d3.scaleLinear().domain([0, 100]).range([height, 0]);
+
+            // Raw Line
+            svg.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "#ccc")
+                .attr("stroke-width", showRolling ? 1 : 2)
+                .attr("d", d3.line().x(d => x(d.x)).y(d => y(d.y)));
+
+            if(showRolling) {
+                 // Calculate simple rolling avg
+                 const rollingData = data.map((d, i, arr) => {
+                     if(i < 3) return d;
+                     const slice = arr.slice(i-3, i+1);
+                     const avg = slice.reduce((a,b)=>a+b.y, 0) / slice.length;
+                     return {x: d.x, y: avg};
+                 });
+
+                 const path = svg.append("path")
+                    .datum(rollingData)
+                    .attr("fill", "none")
+                    .attr("stroke", "#DA291C")
+                    .attr("stroke-width", 3)
+                    .attr("d", d3.line().x(d => x(d.x)).y(d => y(d.y)));
+                 
+                 const totalLength = path.node().getTotalLength();
+                 path.attr("stroke-dasharray", totalLength + " " + totalLength)
+                    .attr("stroke-dashoffset", totalLength)
+                    .transition()
+                    .duration(2000)
+                    .attr("stroke-dashoffset", 0);
+            }
+        }
+
+        function drawHeatmap(selector) {
+            d3.select(selector).selectAll("*").remove();
+            const width = 300, height = 300;
+            const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${width} ${height}`);
+            const vars = ["A", "B", "C", "D"];
+            const gridSize = width / vars.length;
+            
+            // Dummy correlation matrix
+            const data = [];
+            for(let i=0; i<4; i++){
+                for(let j=0; j<4; j++){
+                    data.push({x: vars[i], y: vars[j], val: i===j ? 1 : Math.random()});
+                }
+            }
+
+            const color = d3.scaleLinear().domain([0, 1]).range(["#fff", "#003366"]);
+
+            svg.selectAll()
+                .data(data)
+                .enter()
+                .append("rect")
+                .attr("x", d => vars.indexOf(d.x) * gridSize)
+                .attr("y", d => vars.indexOf(d.y) * gridSize)
+                .attr("width", gridSize - 2)
+                .attr("height", gridSize - 2)
+                .style("fill", d => color(d.val))
+                .style("opacity", 0)
+                .transition().duration(1000)
+                .style("opacity", 1);
+        }
+        
+        function drawScatterSim(selector) {
+             d3.select(selector).selectAll("*").remove();
+             // Simple outliers viz
+             const width = 400, height = 200;
+             const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${width} ${height}`);
+             
+             const data = d3.range(50).map(i => ({x: i * 8, y: 100}));
+             data.push({x: 200, y: 10}); // outlier
+             data.push({x: 220, y: 190}); // outlier
+
+             svg.selectAll("circle")
+                .data(data)
+                .enter().append("circle")
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("r", 5)
+                .attr("fill", "#003366");
+            
+            // Clip lines
+            svg.append("line").attr("x1",0).attr("y1", 30).attr("x2", 400).attr("y2", 30).attr("stroke", "#DA291C").attr("stroke-dasharray", "4");
+            svg.append("line").attr("x1",0).attr("y1", 170).attr("x2", 400).attr("y2", 170).attr("stroke", "#DA291C").attr("stroke-dasharray", "4");
+            
+            svg.append("text").text("Upper Limit").attr("x", 10).attr("y", 25).attr("fill", "#DA291C").attr("font-size", "10px");
+        }
+        
+        function drawBarFilter(selector) {
+             // Visualizing filtering out small bars
+             drawComparisonChart(selector, [
+                {label: "Hora 8am", value: 15000, color: "#003366"},
+                {label: "Hora 3am", value: 2000, color: "#ccc"},
+                {label: "Hora 6pm", value: 18000, color: "#003366"}
+             ], "Viajes Totales");
+             
+             // Add an X over the small bar
+             const svg = d3.select(selector).select("svg");
+             setTimeout(() => {
+                 svg.append("line").attr("x1", 140).attr("y1", 200).attr("x2", 200).attr("y2", 300).attr("stroke", "red").attr("stroke-width", 3);
+                 svg.append("line").attr("x1", 200).attr("y1", 200).attr("x2", 140).attr("y2", 300).attr("stroke", "red").attr("stroke-width", 3);
+             }, 1000);
+        }
+
+        // Init intro visual
+        function initIntro() {
+            const svg = d3.select("#intro-viz").append("svg").attr("width", "100%").attr("height", "100%");
+            // Simple animated wave
+        }
+        initIntro();
+
+    </script>
+</body>
+</html>

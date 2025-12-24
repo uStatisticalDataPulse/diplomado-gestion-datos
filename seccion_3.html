@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 3: Visualización Pro - Diplomado Estrategias de Datos</title>
+    
+    <!-- Librerías Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Source+Code+Pro:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilos Base y Tipografía */
+        body { font-family: 'Montserrat', sans-serif; overflow: hidden; background-color: #f3f4f6; }
+        code { font-family: 'Source Code Pro', monospace; }
+
+        /* Paleta Institucional USTA */
+        .bg-usta-blue { background-color: #003366; }
+        .text-usta-blue { color: #003366; }
+        .border-usta-blue { border-color: #003366; }
+        
+        .bg-usta-yellow { background-color: #FFCC00; }
+        .text-usta-yellow { color: #FFCC00; }
+        
+        .bg-usta-red { background-color: #DA291C; }
+        .text-usta-red { color: #DA291C; }
+
+        /* Estructura de Diapositivas */
+        .slide {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease;
+            transform: translateX(20px);
+            display: flex;
+            flex-direction: column;
+            background: white;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+            z-index: 10;
+        }
+
+        /* Bloques de Código */
+        .code-block {
+            background-color: #1e293b;
+            color: #a5b4fc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 5px solid #FFCC00;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            font-family: 'Source Code Pro', monospace;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        /* Contenedores de Gráficos */
+        .chart-container {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            position: relative;
+            padding: 1rem;
+        }
+        
+        .mermaid { display: flex; justify-content: center; width: 100%; }
+        
+        .nav-btn {
+            background-color: rgba(0, 51, 102, 0.1);
+            color: #003366;
+            transition: all 0.3s;
+        }
+        .nav-btn:hover { background-color: #003366; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Fijo Institucional -->
+    <header class="fixed top-0 w-full bg-usta-blue h-16 shadow-lg z-50 flex justify-between items-center px-6 border-b-4 border-usta-yellow">
+        <div class="text-white font-bold text-lg tracking-wider truncate">DIPLOMADO EN ESTRATEGIAS DE DATOS</div>
+        <div class="text-usta-yellow font-bold font-mono text-sm md:text-base">CAPÍTULO 3: VISUALIZACIÓN PRO</div>
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main id="presentation-container" class="relative w-full h-screen pt-16 pb-16 bg-gray-100">
+
+        <!-- DIAPOSITIVA 1: PORTADA -->
+        <div class="slide active flex flex-col justify-center items-center text-center bg-gray-50">
+            <div class="max-w-4xl p-10 z-10">
+                <div class="mb-6 inline-block bg-usta-red text-white px-4 py-1 rounded-full font-bold text-sm tracking-widest">MÓDULO 1: PYTHON CORE</div>
+                <h1 class="text-5xl md:text-6xl font-black text-usta-blue mb-6 leading-tight">
+                    Visualización Pro: <span class="text-usta-red">Del EDA al Storytelling</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-600 mb-10 font-light">
+                    19 Conceptos para dejar de hacer gráficos y empezar a comunicar datos.
+                </p>
+                <button onclick="nextSlide()" class="bg-usta-blue text-white px-8 py-4 rounded-lg font-bold shadow-lg hover:bg-opacity-90 transition transform hover:scale-105 flex items-center gap-2 mx-auto">
+                    INICIAR CLASE 
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+            <div class="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-gray-200 to-transparent pointer-events-none"></div>
+        </div>
+
+        <!-- ================= FASE 1: FUNDAMENTOS PRO ================= -->
+
+        <!-- SLIDE 2: Escala Logarítmica -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 1: Fundamentos</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">1. La Mentira de la Escala</h2>
+                    <p class="text-gray-700 text-lg mb-4">En datos reales (salarios, tiempos), la mayoría se agrupa abajo y los extremos rompen la escala visual. Un histograma normal no sirve.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Grafica <code>trip_duration</code>. Se verá horrible. Aplica <code>plt.xscale('log')</code> para ver la verdad oculta.
+                    </div>
+                    <pre class="code-block">sns.histplot(data=df, x='duration')
+plt.xscale('log') # La clave mágica</pre>
+                </div>
+                <div class="chart-container" id="chart-log-scale"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: Categorización Visual -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 1: Fundamentos</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">2. Orden Significativo</h2>
+                    <p class="text-gray-700 text-lg mb-4">El orden alfabético no aporta valor. El orden debe contar una historia (de mayor a menor impacto).</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Ordena los días de la semana por cantidad de viajes (el más ocupado primero), no por Lunes-Domingo.
+                    </div>
+                    <pre class="code-block">order = df['day'].value_counts().index
+sns.countplot(..., order=order)</pre>
+                </div>
+                <div class="chart-container" id="chart-sorting"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Matplotlib OO API -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 1: Fundamentos</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">3. Anatomía de una Figura</h2>
+                    <p class="text-gray-700 text-lg mb-4">Deja de usar <code>plt.plot()</code>. Usa la interfaz orientada a objetos para control total.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Crea una figura explícita (12x6) y define ejes, títulos y etiquetas manualmente usando <code>ax</code>.
+                    </div>
+                    <pre class="code-block">fig, ax = plt.subplots(figsize=(12, 6))
+ax.plot(x, y)
+ax.set_title("Título Controlado")</pre>
+                </div>
+                <div class="chart-container bg-white">
+                    <div class="mermaid">
+                        graph TD
+                        Figure[Objeto FIGURE<br>El Lienzo Completo] --> Axes[Objeto AXES<br>El Gráfico en sí]
+                        Axes --> XAxis[Eje X]
+                        Axes --> YAxis[Eje Y]
+                        Axes --> Title[Título]
+                        Axes --> Legend[Leyenda]
+                        style Figure fill:#003366,color:white
+                        style Axes fill:#FFCC00,color:black
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Títulos Activos -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 1: Fundamentos</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">4. Títulos Activos</h2>
+                    <p class="text-gray-700 text-lg mb-4">Un título no debe describir los ejes ("Ventas por Año"). Debe dar la conclusión ("Las Ventas Cayeron").</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Cambia el título aburrido por uno que narre el hallazgo principal del gráfico.
+                    </div>
+                </div>
+                <div class="chart-container flex flex-col justify-center gap-6 bg-gray-50">
+                    <div class="border border-gray-300 p-4 bg-white opacity-50">
+                        <h4 class="text-center font-bold text-gray-500">❌ Ventas por Trimestre</h4>
+                        <div class="h-20 bg-gray-200 mt-2"></div>
+                    </div>
+                    <div class="border-2 border-usta-blue p-4 bg-white shadow-lg transform scale-105">
+                        <h4 class="text-center font-bold text-usta-blue">✅ El tráfico decae un 40% los Domingos</h4>
+                        <div class="h-20 bg-blue-100 mt-2 flex items-end px-4 gap-2">
+                             <!-- Barritas simuladas -->
+                             <div class="w-1/5 h-full bg-usta-blue"></div>
+                             <div class="w-1/5 h-3/4 bg-usta-blue"></div>
+                             <div class="w-1/5 h-1/2 bg-usta-blue"></div>
+                             <div class="w-1/5 h-1/4 bg-usta-red"></div> <!-- Domingo -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= FASE 2: BIG DATA VISUALIZATION ================= -->
+
+        <!-- SLIDE 6: Scatter Overplotting -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 2: Big Data</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">5. El Desastre del Sólido</h2>
+                    <p class="text-gray-700 text-lg mb-4">Con 1.4M de puntos, un scatter plot normal es una mancha de tinta inútil.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Grafica Distancia vs Duración. Usa <code>alpha=0.05</code> y <code>s=1</code>. Verás patrones ocultos.
+                    </div>
+                    <pre class="code-block">plt.scatter(x, y, alpha=0.05, s=1)</pre>
+                </div>
+                <div class="chart-container" id="chart-scatter-alpha"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: Hexbins -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 2: Big Data</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">6. Hexbins (Densidad)</h2>
+                    <p class="text-gray-700 text-lg mb-4">Cuando hay demasiados puntos, visualiza la densidad, no los individuos.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Usa <code>sns.jointplot(kind="hex")</code>. Crea un mapa de calor hexagonal.
+                    </div>
+                </div>
+                <div class="chart-container" id="chart-hexbin"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Geoespacial Rápido -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 2: Big Data</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">7. Mapas sin Mapas</h2>
+                    <p class="text-gray-700 text-lg mb-4">Podemos usar latitud y longitud como ejes X/Y para recrear la ciudad sin librerías complejas.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Scatter de Longitud vs Latitud. Usa puntos diminutos. ¡Dibujarás Manhattan!
+                    </div>
+                </div>
+                <div class="chart-container bg-black rounded-lg" id="chart-geo"></div>
+            </div>
+        </div>
+
+        <!-- ================= FASE 3: RELACIONES COMPLEJAS ================= -->
+
+        <!-- SLIDE 9: Heatmaps -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 3: Relaciones</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">8. Heatmaps Temporales</h2>
+                    <p class="text-gray-700 text-lg mb-4">La mejor forma de ver patrones cíclicos (Hora vs Día de Semana).</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Pivota la tabla (Index=Día, Col=Hora). Visualiza con <code>sns.heatmap</code>. ¿Cuál es la peor hora del Viernes?
+                    </div>
+                </div>
+                <div class="chart-container" id="chart-heatmap"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: Small Multiples -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 3: Relaciones</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">9. Small Multiples</h2>
+                    <p class="text-gray-700 text-lg mb-4">No metas 5 líneas en un gráfico. Haz 5 gráficos pequeños comparables (FacetGrid).</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Usa <code>col='vendor_id'</code> en Seaborn para separar histogramas y comparar proveedores.
+                    </div>
+                </div>
+                <div class="chart-container bg-white flex items-center justify-center gap-4">
+                    <div class="w-1/3 h-1/2 border border-gray-300 p-2 relative">
+                        <div class="absolute top-0 left-0 bg-usta-blue text-white text-xs px-2">Vendor 1</div>
+                        <!-- Mock histogram -->
+                        <div class="flex items-end h-full gap-1">
+                            <div class="w-2 h-10 bg-usta-blue"></div><div class="w-2 h-20 bg-usta-blue"></div><div class="w-2 h-5 bg-usta-blue"></div>
+                        </div>
+                    </div>
+                    <div class="w-1/3 h-1/2 border border-gray-300 p-2 relative">
+                        <div class="absolute top-0 left-0 bg-usta-blue text-white text-xs px-2">Vendor 2</div>
+                         <!-- Mock histogram different -->
+                         <div class="flex items-end h-full gap-1">
+                            <div class="w-2 h-5 bg-usta-blue"></div><div class="w-2 h-10 bg-usta-blue"></div><div class="w-2 h-24 bg-usta-blue"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: Boxplots -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 3: Relaciones</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">10. Boxplots y Violines</h2>
+                    <p class="text-gray-700 text-lg mb-4">Comparar medias es peligroso. Hay que ver la dispersión y los outliers.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Boxplot de <code>distance_km</code> por <code>passenger_count</code>. ¿Grupos grandes viajan más lejos?
+                    </div>
+                    <pre class="code-block">sns.boxplot(x='passengers', y='dist')</pre>
+                </div>
+                <div class="chart-container" id="chart-boxplot"></div>
+            </div>
+        </div>
+
+        <!-- ================= FASE 4: ESTÉTICA Y REPORTE ================= -->
+
+        <!-- SLIDE 12: Chartjunk -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 4: Estética</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">11. Menos es Más</h2>
+                    <p class="text-gray-700 text-lg mb-4">Elimina bordes, fondos grises y líneas innecesarias. El dato es el rey.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Usa <code>sns.despine()</code> para quitar bordes superiores y derechos. Limpia tu gráfico.
+                    </div>
+                </div>
+                <div class="chart-container flex flex-col justify-center items-center gap-4 bg-white">
+                    <div class="opacity-50 text-sm">Antes (Ruidoso)</div>
+                    <div class="w-3/4 h-24 border-2 border-black bg-gray-200 grid grid-cols-4 gap-1 p-1">
+                        <div class="bg-blue-500 h-full"></div><div class="bg-blue-500 h-1/2 mt-auto"></div>
+                    </div>
+                    <div class="text-2xl text-usta-red font-bold">⬇️ sns.despine() ⬇️</div>
+                    <div class="w-3/4 h-24 border-b-2 border-l-2 border-black p-1 flex items-end gap-4">
+                         <div class="w-1/4 h-full bg-usta-blue"></div><div class="w-1/4 h-1/2 bg-usta-blue"></div>
+                    </div>
+                     <div class="text-sm font-bold text-usta-blue">Después (Limpio)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: Paletas Semánticas -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 4: Estética</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">12. Color con Significado</h2>
+                    <p class="text-gray-700 text-lg mb-4">No uses arcoíris aleatorios. Usa colores para indicar intensidad o categorías semánticas.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Colorea barras: Rojo (Lento), Amarillo (Normal), Verde (Rápido).
+                    </div>
+                </div>
+                <div class="chart-container" id="chart-semantic-colors"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: Anotaciones -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 4: Estética</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">13. Anotaciones Directas</h2>
+                    <p class="text-gray-700 text-lg mb-4">Las leyendas externas distraen. Señala lo importante directamente en el gráfico.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Usa <code>ax.annotate()</code> para señalar el mínimo del Domingo con una flecha.
+                    </div>
+                    <pre class="code-block">ax.annotate("Mínimo", xy=(x, y), xytext=(...))</pre>
+                </div>
+                <div class="chart-container" id="chart-annotation"></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: Alta Resolución -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 4: Estética</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">14. Exportación HQ</h2>
+                    <p class="text-gray-700 text-lg mb-4">Las capturas de pantalla son para amateurs. Guarda con DPI alto para reportes impresos.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> <code>plt.savefig('plot.png', dpi=300, bbox_inches='tight')</code>.
+                    </div>
+                </div>
+                <div class="chart-container bg-white flex flex-col items-center justify-center gap-8">
+                     <div class="text-center opacity-50 filter blur-[2px]">
+                         <div class="text-4xl">📉</div>
+                         <p>Default (72 DPI)</p>
+                     </div>
+                     <div class="text-center transform scale-125">
+                         <div class="text-4xl">📈</div>
+                         <p class="font-bold text-usta-blue">300 DPI (Nítido)</p>
+                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= FASE 5: CAPSTONE PDF ================= -->
+
+        <!-- SLIDE 16: Setup FPDF -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 5: Capstone</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">15. Setup del Reporte PDF</h2>
+                    <p class="text-gray-700 text-lg mb-4">Automatización total: Python generando PDFs sin intervención humana.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Inicializa <code>FPDF</code>, agrega página y título centrado "Reporte de Movilidad".
+                    </div>
+                    <pre class="code-block">from fpdf import FPDF
+pdf = FPDF()
+pdf.add_page()
+pdf.set_font("Arial", "B", 16)</pre>
+                </div>
+                <div class="chart-container bg-gray-100 flex justify-center items-center">
+                    <div class="w-48 h-64 bg-white shadow-xl border border-gray-200 flex flex-col p-4 items-center">
+                        <div class="w-full h-4 bg-gray-300 mb-2"></div> <!-- Title placeholder -->
+                        <div class="text-xs text-gray-400">PDF Generado</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 17: Generador de Gráficos -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 5: Capstone</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">16. Generador de Assets</h2>
+                    <p class="text-gray-700 text-lg mb-4">Crea funciones que generen y guarden imágenes temporales, no que las muestren en pantalla.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> <code>def generar_grafico(df): ... plt.savefig('temp.png') plt.close()</code>
+                    </div>
+                </div>
+                <div class="chart-container bg-white">
+                    <div class="mermaid">
+                        graph LR
+                        DF[DataFrame] --> Func[Función Python]
+                        Func --> Plot[Matplotlib Plot]
+                        Plot --> Save[Guardar PNG]
+                        Save --> Disk[Disco Duro]
+                        Save --> Close[Liberar Memoria]
+                        style Disk fill:#DA291C,color:white
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 18: Generador de Tablas -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 5: Capstone</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">17. Datos Tabulares</h2>
+                    <p class="text-gray-700 text-lg mb-4">Los DataFrames no se pegan solos. Conviértelos a strings o listas formateadas.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Crea una función que resuma el Top 5 de horas y devuelva texto listo para imprimir.
+                    </div>
+                </div>
+                <div class="chart-container bg-white">
+                    <div class="mermaid">
+                        graph TD
+                        DF[DataFrame Gigante] --> Agg[Groupby & Sort]
+                        Agg --> Top5[Top 5 Rows]
+                        Top5 --> Loop[Iterar Filas]
+                        Loop --> String[String Formateado]
+                        String --> PDF[Método pdf.cell]
+                        style PDF fill:#003366,color:white
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 19: Integración Imagen -->
+        <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 5: Capstone</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">18. Integración Final</h2>
+                    <p class="text-gray-700 text-lg mb-4">Ensambla el rompecabezas. Inserta la imagen generada en el PDF.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Usa <code>pdf.image('temp.png', w=190)</code> para colocar el gráfico bajo el título.
+                    </div>
+                </div>
+                <div class="chart-container bg-white flex justify-center items-center">
+                    <div class="relative w-48 h-64 border-2 border-dashed border-gray-400 bg-gray-50 flex flex-col items-center pt-4">
+                        <div class="text-xs font-bold mb-2">TÍTULO PDF</div>
+                        <div class="w-32 h-24 bg-blue-100 border border-blue-300 flex items-center justify-center text-blue-500 text-xs">
+                            Gráfico Insertado
+                        </div>
+                        <div class="text-[8px] text-gray-400 mt-2 px-2">Texto explicativo...</div>
+                        
+                        <!-- Flecha indicando inserción -->
+                        <div class="absolute -right-16 top-12 text-2xl animate-bounce">⬅️</div>
+                        <div class="absolute -right-24 top-14 text-xs font-bold bg-usta-yellow p-1">asset.png</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+         <!-- SLIDE 20: Texto Dinámico -->
+         <div class="slide p-8 md:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 h-full items-center">
+                <div>
+                    <h3 class="text-usta-red font-bold uppercase tracking-widest mb-2 text-sm">Fase 5: Capstone</h3>
+                    <h2 class="text-3xl md:text-4xl font-bold text-usta-blue mb-6">19. Narrativa Dinámica</h2>
+                    <p class="text-gray-700 text-lg mb-4">El reporte debe "leer" los datos. Usa f-strings para insertar métricas calculadas en el texto.</p>
+                    <div class="bg-white p-4 border-l-4 border-usta-yellow shadow-md mb-6">
+                        <strong>Reto:</strong> Escribe un párrafo introductorio automático: <code>f"Analizamos {total} viajes..."</code>.
+                    </div>
+                    <pre class="code-block">total = df.shape[0]
+pdf.multi_cell(0, 10, f"Total: {total}")</pre>
+                </div>
+                <div class="chart-container bg-white flex justify-center items-center text-center p-8">
+                     <div class="text-2xl font-mono text-gray-700">
+                         "Hoy procesamos <span class="bg-usta-yellow px-2 font-bold animate-pulse">1,450,200</span> datos."
+                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CIERRE -->
+        <div class="slide flex flex-col justify-center items-center text-center bg-usta-blue text-white">
+            <h1 class="text-5xl md:text-6xl font-bold mb-8">¡Módulo 1 Completado!</h1>
+            <p class="text-xl md:text-2xl mb-12 max-w-2xl">Has dominado Python, Pandas y Visualización Pro.</p>
+            <div class="text-usta-yellow text-xl font-mono mb-8">Próximo: Bases de Datos y SQL</div>
+            <button onclick="currentSlide=0; updateSlide();" class="bg-usta-red px-6 py-3 rounded text-white font-bold hover:bg-red-700 shadow-lg transition transform hover:scale-105">Volver al Inicio</button>
+        </div>
+
+        <!-- Footer Navegación -->
+        <footer class="fixed bottom-0 w-full bg-white h-16 border-t border-gray-200 flex justify-between items-center px-4 md:px-6 z-50">
+            <div class="flex items-center gap-4">
+                <div class="text-usta-blue font-bold text-xl tracking-tight hidden md:block">USTA</div>
+                <span class="text-gray-400 text-sm">| Diplomado Data Strategy</span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="prevSlide()" class="nav-btn p-2 rounded-full hover:bg-usta-blue hover:text-white transition shadow">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <span id="slide-indicator" class="font-mono font-bold text-usta-blue text-sm md:text-base">1 / 21</span>
+                <button onclick="nextSlide()" class="nav-btn p-2 rounded-full hover:bg-usta-blue hover:text-white transition shadow">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const indicator = document.getElementById('slide-indicator');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                    setTimeout(() => {
+                        initCharts(index);
+                        if (slide.querySelector('.mermaid')) {
+                            mermaid.init(undefined, slide.querySelectorAll('.mermaid'));
+                        }
+                    }, 100);
+                }
+            });
+            indicator.innerText = `${currentSlide + 1} / ${totalSlides}`;
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSlide();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateSlide();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+
+        // --- D3 VISUALIZATIONS ---
+        function initCharts(slideIndex) {
+            
+            // Slide 2: Log Scale
+            if (slideIndex === 1) {
+                drawLogScaleDemo("#chart-log-scale");
+            }
+            // Slide 3: Sorting
+            if (slideIndex === 2) {
+                drawSortingDemo("#chart-sorting");
+            }
+            // Slide 6: Scatter Alpha
+            if (slideIndex === 5) {
+                drawScatterAlpha("#chart-scatter-alpha");
+            }
+            // Slide 7: Hexbin
+            if (slideIndex === 6) {
+                drawHexbinSim("#chart-hexbin");
+            }
+            // Slide 8: Geo
+            if (slideIndex === 7) {
+                drawGeoSim("#chart-geo");
+            }
+            // Slide 9: Heatmap
+            if (slideIndex === 8) {
+                drawHeatmap("#chart-heatmap");
+            }
+            // Slide 11: Boxplot
+            if (slideIndex === 10) {
+                drawBoxplotSim("#chart-boxplot");
+            }
+            // Slide 13: Semantic Colors
+            if (slideIndex === 12) {
+                drawSemanticColors("#chart-semantic-colors");
+            }
+            // Slide 14: Annotation
+            if (slideIndex === 13) {
+                drawAnnotationSim("#chart-annotation");
+            }
+        }
+
+        // --- D3 FUNCTIONS ---
+
+        function drawLogScaleDemo(selector) {
+            const container = document.querySelector(selector);
+            if (!container) return;
+            d3.select(selector).selectAll("*").remove();
+            
+            const w = container.clientWidth, h = container.clientHeight;
+            const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${w} ${h}`);
+
+            // Data: One huge outlier, many small
+            const data = [10, 15, 8, 12, 5000]; 
+            
+            const g = svg.append("g").attr("transform", `translate(50, 20)`);
+            
+            // Label
+            svg.append("text").attr("x", w/2).attr("y", h-10).text("Escala Lineal vs Logarítmica").attr("text-anchor", "middle");
+
+            // Linear Bars (Left side of plot logic)
+            // Just drawing visually representative rectangles
+            g.append("text").attr("x", 0).attr("y", -5).text("Lineal (Normal)").attr("font-size", "12px");
+            g.append("rect").attr("x", 0).attr("y", h-50).attr("width", 20).attr("height", 10).attr("fill", "#003366");
+            g.append("rect").attr("x", 25).attr("y", h-55).attr("width", 20).attr("height", 15).attr("fill", "#003366");
+            g.append("rect").attr("x", 50).attr("y", h-48).attr("width", 20).attr("height", 8).attr("fill", "#003366");
+            // The giant bar clipped
+            g.append("rect").attr("x", 75).attr("y", 0).attr("width", 20).attr("height", h-40).attr("fill", "#DA291C");
+            
+            // Log Bars (Right side)
+            const g2 = svg.append("g").attr("transform", `translate(${w/2 + 20}, 20)`);
+            g2.append("text").attr("x", 0).attr("y", -5).text("Logarítmica (Reveladora)").attr("font-size", "12px");
+            // In log scale, 5000 isn't that much taller than 10
+            g2.append("rect").attr("x", 0).attr("y", h-100).attr("width", 20).attr("height", 60).attr("fill", "#003366");
+            g2.append("rect").attr("x", 25).attr("y", h-110).attr("width", 20).attr("height", 70).attr("fill", "#003366");
+            g2.append("rect").attr("x", 75).attr("y", h-180).attr("width", 20).attr("height", 140).attr("fill", "#DA291C"); // Visible but fits
+        }
+
+        function drawSortingDemo(selector) {
+            const container = document.querySelector(selector);
+            if (!container) return;
+            d3.select(selector).selectAll("*").remove();
+            
+            const w = container.clientWidth, h = container.clientHeight;
+            const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${w} ${h}`);
+            
+            const data = [
+                {day: "Lun", val: 50}, {day: "Mar", val: 60}, {day: "Mie", val: 55}, 
+                {day: "Jue", val: 80}, {day: "Vie", val: 100}, {day: "Sab", val: 90}, {day: "Dom", val: 40}
+            ];
+            // Sorted Data
+            const sortedData = [...data].sort((a,b) => b.val - a.val);
+
+            const x = d3.scaleBand().range([0, w]).padding(0.2).domain(sortedData.map(d=>d.day));
+            const y = d3.scaleLinear().range([h, 20]).domain([0, 100]);
+
+            svg.selectAll("rect")
+                .data(sortedData)
+                .enter().append("rect")
+                .attr("x", d => x(d.day))
+                .attr("width", x.bandwidth())
+                .attr("y", h)
+                .attr("height", 0)
+                .attr("fill", (d, i) => i === 0 ? "#DA291C" : "#003366") // Highlight top
+                .transition().duration(1000)
+                .attr("y", d => y(d.val))
+                .attr("height", d => h - y(d.val));
+            
+            svg.selectAll("text")
+                .data(sortedData).enter().append("text")
+                .text(d => d.day).attr("x", d => x(d.day) + x.bandwidth()/2)
+                .attr("y", h - 5).attr("text-anchor", "middle").attr("fill", "white").attr("font-size", "10px");
+        }
+
+        function drawScatterAlpha(selector) {
+            const container = document.querySelector(selector);
+            if (!container) return;
+            d3.select(selector).selectAll("*").remove();
+            const w = container.clientWidth, h = container.clientHeight;
+            const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${w} ${h}`);
+
+            // Simulate massive points
+            const points = d3.range(1500).map(() => ({
+                x: Math.random() * w,
+                y: Math.random() > 0.9 ? h*0.5 : Math.random() * h // Horizontal line artifact
+            }));
+
+            svg.selectAll("circle")
+                .data(points)
+                .enter().append("circle")
+                .attr("cx", d => d.x).attr("cy", d => d.y)
+                .attr("r", 2)
+                .attr("fill", "#003366")
+                .attr("opacity", 0.1); // ALPHA IS KEY
+                
+            svg.append("text").attr("x", w/2).attr("y", h-10).text("La línea horizontal emerge gracias al Alpha").attr("text-anchor", "middle").attr("fill", "#DA291C");
+        }
+
+        function drawHexbinSim(selector) {
+            const container = document.querySelector(selector);
+            if (!container) return;
+            d3.select(selector).selectAll("*").remove();
+            const w = container.clientWidth, h = container.clientHeight;
+            const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${w} ${h}`);
+            
+            // Simple grid of circles/hexagons
+            const rows = 10, cols = 15;
+            const r = 15;
+            
+            for(let i=0; i<rows; i++) {
+                for(let j=0; j<cols; j++) {
+                    const cx = j * r * 2 + (i%2 ? r : 0) + 20;
+                    const cy = i * r * 1.7 + 20;
+                    // Center bias intensity
+                    const dist = Math.sqrt(Math.pow(cx - w/2, 2) + Math.pow(cy - h/2, 2));
+                    const intensity = Math.max(0, 1 - dist/(w/3));
+                    
+                    svg.append("circle")
+                        .attr("cx", cx).attr("cy", cy).attr("r", r)
+                        .attr("fill", d3.interpolateYlOrRd(intensity))
+                        .attr("stroke", "#eee");
+                }
+            }
+        }
+
+        function drawGeoSim(selector) {
+             const container = document.querySelector(selector);
+             if (!container) return;
+             d3.select(selector).selectAll("*").remove();
+             const w = container.clientWidth, h = container.clientHeight;
+             const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${w} ${h}`);
+             
+             // Simulate Manhattan shape roughly
+             const points = d3.range(2000).map(() => {
+                 let x = Math.random() * w * 0.4 + w * 0.3;
+                 let y = Math.random() * h * 0.8 + h * 0.1;
+                 // Cut corners to make it look like an island
+                 if (x + y < w * 0.5) return null;
+                 return {x, y};
+             }).filter(d => d);
+
+             svg.selectAll("circle")
+                .data(points)
+                .enter().append("circle")
+                .attr("cx", d => d.x).attr("cy", d => d.y)
+                .attr("r", 1).attr("fill", "#00ff00").attr("opacity", 0.5);
+             
+             svg.style("background", "black");
+        }
+
+        function drawHeatmap(selector) {
+            const container = document.querySelector(selector);
+            if (!container) return;
+            d3.select(selector).selectAll("*").remove();
+            const w = container.clientWidth, h = container.clientHeight;
+            const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${w} ${h}`);
+
+            const hours = 24;
+            const days = 7;
+            const cellW = (w - 40) / hours;
+            const cellH = (h - 40) / days;
+
+            for(let d=0; d<days; d++) {
+                for(let hr=0; hr<hours; hr++) {
+                    // Simulate Friday Night Traffic
+                    let val = Math.random();
+                    if (d === 4 && hr > 18) val = 1; // Friday Night
+                    
+                    svg.append("rect")
+                        .attr("x", 30 + hr * cellW)
+                        .attr("y", 10 + d * cellH)
+                        .attr("width", cellW-1).attr("height", cellH-1)
+                        .attr("fill", d3.interpolateInferno(val));
+                }
+            }
+            svg.append("text").attr("x", 10).attr("y", h/2).text("Días").attr("transform", `rotate(-90, 10, ${h/2})`);
+            svg.append("text").attr("x", w/2).attr("y", h-5).text("Horas (0-23)");
+        }
+        
+        function drawBoxplotSim(selector) {
+             const container = document.querySelector(selector);
+             if (!container) return;
+             d3.select(selector).selectAll("*").remove();
+             const w = container.clientWidth, h = container.clientHeight;
+             const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${w} ${h}`);
+             
+             // Draw 3 Boxplots
+             [1, 2, 3].forEach((pos, i) => {
+                 const x = pos * (w/4);
+                 const midY = h/2 + (i*10); // slight variation
+                 
+                 // Line
+                 svg.append("line").attr("x1", x).attr("x2", x).attr("y1", midY - 60).attr("y2", midY + 60).attr("stroke", "black");
+                 // Box
+                 svg.append("rect").attr("x", x - 20).attr("y", midY - 30).attr("width", 40).attr("height", 60).attr("fill", "#FFCC00").attr("stroke", "black");
+                 // Median
+                 svg.append("line").attr("x1", x-20).attr("x2", x+20).attr("y1", midY).attr("y2", midY).attr("stroke", "black").attr("stroke-width", 2);
+                 // Label
+                 svg.append("text").attr("x", x).attr("y", h-20).text(`${pos} Pas`).attr("text-anchor", "middle");
+             });
+        }
+
+        function drawSemanticColors(selector) {
+            const container = document.querySelector(selector);
+            if (!container) return;
+            d3.select(selector).selectAll("*").remove();
+            const w = container.clientWidth, h = container.clientHeight;
+            const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${w} ${h}`);
+            
+            const data = [
+                {label: "Lento", val: 30, color: "#DA291C"},
+                {label: "Normal", val: 60, color: "#FFCC00"},
+                {label: "Rápido", val: 90, color: "#22c55e"}
+            ];
+            
+            const x = d3.scaleBand().domain(data.map(d=>d.label)).range([0, w]).padding(0.3);
+            
+            svg.selectAll("rect")
+                .data(data).enter().append("rect")
+                .attr("x", d => x(d.label))
+                .attr("y", d => h - d.val * 3)
+                .attr("width", x.bandwidth())
+                .attr("height", d => d.val * 3)
+                .attr("fill", d => d.color);
+                
+            svg.selectAll("text")
+                .data(data).enter().append("text")
+                .attr("x", d => x(d.label) + x.bandwidth()/2)
+                .attr("y", h - 5)
+                .text(d => d.label)
+                .attr("text-anchor", "middle")
+                .attr("font-weight", "bold");
+        }
+
+        function drawAnnotationSim(selector) {
+             const container = document.querySelector(selector);
+             if (!container) return;
+             d3.select(selector).selectAll("*").remove();
+             const w = container.clientWidth, h = container.clientHeight;
+             const svg = d3.select(selector).append("svg").attr("viewBox", `0 0 ${w} ${h}`);
+             
+             // Simple line chart
+             const data = d3.range(20).map(i => ({x: i, y: Math.sin(i)*20 + 50}));
+             const x = d3.scaleLinear().domain([0,19]).range([20, w-20]);
+             const y = d3.scaleLinear().domain([0,100]).range([h-20, 20]);
+             
+             svg.append("path").datum(data).attr("d", d3.line().x(d=>x(d.x)).y(d=>y(d.y))).attr("fill", "none").attr("stroke", "#003366").attr("stroke-width", 2);
+             
+             // Annotation arrow
+             const target = data[15]; // arbitrary low point
+             svg.append("text").attr("x", x(target.x)).attr("y", y(target.y) - 40).text("Punto Clave").attr("text-anchor", "middle").attr("fill", "#DA291C").attr("font-weight", "bold");
+             svg.append("line")
+                .attr("x1", x(target.x)).attr("y1", y(target.y) - 35)
+                .attr("x2", x(target.x)).attr("y2", y(target.y) - 5)
+                .attr("stroke", "#DA291C").attr("stroke-width", 2).attr("marker-end", "url(#arrow)");
+                
+             // Define Arrow marker
+             svg.append("defs").append("marker")
+                .attr("id", "arrow")
+                .attr("viewBox", "0 0 10 10")
+                .attr("refX", 5).attr("refY", 5)
+                .attr("markerWidth", 6).attr("markerHeight", 6)
+                .attr("orient", "auto-start-reverse")
+                .append("path").attr("d", "M 0 0 L 10 5 L 0 10 z").attr("fill", "#DA291C");
+        }
+
+        updateSlide();
+    </script>
+</body>
+</html>
