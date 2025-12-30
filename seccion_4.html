@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 4: Taller ETL (Python a SQL) | Diplomado Data Strategy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        code { font-family: 'Source Code Pro', monospace; }
+        
+        /* USTA Colors */
+        .text-usta-blue { color: #003366; }
+        .bg-usta-blue { background-color: #003366; }
+        .text-usta-red { color: #DA291C; }
+        .bg-usta-red { background-color: #DA291C; }
+        .text-usta-yellow { color: #FFCC00; }
+        .border-usta-yellow { border-color: #FFCC00; }
+
+        .sidebar-link.active { 
+            background-color: #003366; 
+            color: white; 
+            border-left: 4px solid #FFCC00; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .code-window {
+            background: #1e293b;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #334155;
+        }
+        .code-header {
+            background: #0f172a;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+        .dot { width: 0.75rem; height: 0.75rem; border-radius: 50%; margin-right: 0.5rem; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header Institucional -->
+    <header class="bg-[#003366] text-white shadow-lg sticky top-0 z-50 border-b-4 border-[#FFCC00]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="flex items-center group transition-colors hover:text-[#FFCC00]">
+                        <i data-lucide="arrow-left-circle" class="w-6 h-6 mr-2"></i>
+                        <span class="font-bold tracking-wide">Plan de Estudios</span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-2 text-sm font-mono">
+                    <span class="opacity-75">MÓDULO 1</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-[#FFCC00]"></i>
+                    <span class="font-bold text-white">CAPÍTULO 4: ETL & SQL</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-grow max-w-8xl mx-auto w-full">
+        
+        <!-- Sidebar (Navegación) -->
+        <aside class="hidden lg:block w-72 bg-white border-r border-gray-200 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+            <div class="p-6">
+                <h3 class="text-[#003366] font-black uppercase text-xs tracking-widest mb-6 border-b border-gray-100 pb-2">Contenido del Taller</h3>
+                <nav class="space-y-2">
+                    <a href="#intro" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all group">
+                        <i data-lucide="database" class="w-4 h-4 mr-3 group-hover:text-[#003366]"></i>
+                        1. Arquitectura ETL
+                    </a>
+                    <a href="#connection" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all group">
+                        <i data-lucide="plug" class="w-4 h-4 mr-3 group-hover:text-[#003366]"></i>
+                        2. El Motor (SQLAlchemy)
+                    </a>
+                    <a href="#performance" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all group border-l-2 border-transparent ml-2">
+                        2.1. Fast Executemany
+                    </a>
+                    <a href="#acid" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all group">
+                        <i data-lucide="shield-check" class="w-4 h-4 mr-3 group-hover:text-[#003366]"></i>
+                        3. Transacciones ACID
+                    </a>
+                    <a href="#challenge" class="sidebar-link flex items-center px-4 py-3 text-sm font-bold text-[#DA291C] bg-red-50 rounded-lg border border-red-100 mt-4 transition-transform hover:scale-105">
+                        <i data-lucide="bomb" class="w-4 h-4 mr-3"></i>
+                        4. Reto: The Atomic Loader
+                    </a>
+                </nav>
+
+                <div class="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <p class="text-xs text-blue-800 font-semibold mb-2">Estado del Entorno:</p>
+                    <div class="flex items-center text-xs text-gray-600 mb-1">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div> Docker: SQL Server
+                    </div>
+                    <div class="flex items-center text-xs text-gray-600">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div> Lib: SQLAlchemy 2.0
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-12 overflow-y-auto scroll-smooth">
+            
+            <!-- Hero -->
+            <section id="intro" class="mb-16 animate-fade-in-up">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-[#003366] rounded-full text-xs font-bold uppercase tracking-wider mb-4 border border-blue-200">
+                    Ingeniería de Datos Aplicada
+                </span>
+                <h1 class="text-4xl md:text-5xl font-black text-[#003366] mb-6 leading-tight">
+                    Taller ETL: <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#DA291C] to-[#FFCC00]">Persistencia Robusta</span>
+                </h1>
+                <p class="text-xl text-gray-600 leading-relaxed max-w-4xl">
+                    Hasta ahora, tus datos vivían en la memoria RAM (Pandas), desapareciendo al apagar el equipo. Hoy construiremos el puente hacia la persistencia. Aprenderás a mover datos de Python a SQL Server de forma segura, rápida y transaccional.
+                </p>
+                
+                <div class="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-gray-800 mb-4">Arquitectura de Hoy</h3>
+                    <div class="mermaid flex justify-center">
+                        graph LR
+                            subgraph "Tu Máquina (Host)"
+                                Python[Python Script<br>Pandas + SQLAlchemy] 
+                                CSV[Archivos CSV]
+                            end
+                            
+                            subgraph "Docker Container"
+                                SQL[("SQL Server 2022<br>Port: 1433")]
+                            end
+                            
+                            CSV --> Python
+                            Python -- "ODBC Driver 17" --> SQL
+                            
+                            style SQL fill:#003366,color:white
+                            style Python fill:#FFCC00,color:black
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección 2: Conexión -->
+            <section id="connection" class="mb-20 scroll-mt-24">
+                <div class="flex items-center mb-6">
+                    <div class="bg-[#FFCC00] p-3 rounded-lg mr-4 shadow-md">
+                        <i data-lucide="plug" class="text-[#003366] w-6 h-6"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">2. El Motor de Conexión</h2>
+                </div>
+                
+                <p class="mb-6 text-gray-600">
+                    Usaremos <strong>SQLAlchemy</strong>, el estándar de la industria en Python. Actúa como un traductor (ORM) que permite escribir código Python y ejecutar SQL optimizado por debajo.
+                </p>
+
+                <div class="code-window mb-8">
+                    <div class="code-header">
+                        <div class="dot bg-red-500"></div><div class="dot bg-yellow-500"></div><div class="dot bg-green-500"></div>
+                        <span class="ml-4 text-xs text-gray-400 font-mono">db_connection.py</span>
+                    </div>
+                    <pre><code class="python">
+import sqlalchemy as sa
+from sqlalchemy import create_engine
+import urllib
+
+# 1. Definir parámetros (Docker Container)
+params = urllib.parse.quote_plus(
+    "DRIVER={ODBC Driver 17 for SQL Server};"
+    "SERVER=localhost,1433;"  # Coma, no dos puntos
+    "DATABASE=master;"        # DB inicial
+    "UID=sa;"                 # Usuario System Admin
+    "PWD=TuPasswordFuerte123;" # El que definiste en el docker run
+    "TrustServerCertificate=yes;"
+)
+
+# 2. Crear el "Engine" (El objeto que mantiene el pool de conexiones)
+# fast_executemany=True es VITAL para rendimiento en cargas masivas
+connection_string = f"mssql+pyodbc:///?odbc_connect={params}"
+engine = create_engine(connection_string, fast_executemany=True)
+
+# 3. Test de conexión
+with engine.connect() as connection:
+    result = connection.execute(sa.text("SELECT @@VERSION"))
+    print(f"Conectado a: {result.fetchone()[0]}")
+                    </code></pre>
+                </div>
+
+                <div id="performance" class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                    <h3 class="text-[#003366] font-bold text-lg mb-2 flex items-center">
+                        <i data-lucide="zap" class="w-5 h-5 mr-2"></i>
+                        Ingeniería de Performance: fast_executemany
+                    </h3>
+                    <p class="text-sm text-gray-700 mb-4">
+                        Por defecto, Python inserta fila por fila (<code>INSERT INTO...</code> repetido 1 millón de veces). Esto es lentísimo.
+                        Al activar <code>fast_executemany=True</code>, SQLAlchemy empaqueta los datos en binario y los envía en un solo paquete de red.
+                    </p>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <div class="text-red-500 font-bold text-xl">~10 min</div>
+                            <div class="text-xs text-gray-500">Sin optimización (100k filas)</div>
+                        </div>
+                        <div class="bg-white p-3 rounded shadow-sm border-2 border-green-400">
+                            <div class="text-green-600 font-bold text-xl">~15 seg</div>
+                            <div class="text-xs text-gray-500">Con fast_executemany</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección 3: Transacciones -->
+            <section id="acid" class="mb-20 scroll-mt-24">
+                <div class="flex items-center mb-6">
+                    <div class="bg-[#DA291C] p-3 rounded-lg mr-4 shadow-md">
+                        <i data-lucide="shield-check" class="text-white w-6 h-6"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">3. Transacciones y Atomicidad</h2>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="prose text-gray-600">
+                        <p>
+                            Imagina que cargas un archivo de 10,000 transacciones bancarias. El sistema falla en la fila 5,000. 
+                            <strong>¿Qué pasa con las primeras 4,999?</strong>
+                        </p>
+                        <ul class="space-y-2 mt-4">
+                            <li class="flex items-start">
+                                <i data-lucide="x-circle" class="w-5 h-5 text-red-500 mr-2 mt-1"></i>
+                                <span><strong>Sin Transacción:</strong> Quedan guardadas. Si corres el script de nuevo, se duplican. El dinero "se crea" de la nada. Caos total.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mr-2 mt-1"></i>
+                                <span><strong>Con Transacción (ACID):</strong> Si una falla, TODAS se reversan (Rollback). La base de datos queda limpia, como si nada hubiera pasado.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant Py as Python Script
+                                participant DB as SQL Server
+                                
+                                Py->>DB: BEGIN TRANSACTION
+                                Py->>DB: Insertar Fila 1... OK
+                                Py->>DB: Insertar Fila 2... OK
+                                Py->>DB: Insertar Fila 3... ERROR!
+                                Note over Py,DB: ¡Pánico! ¿Qué hacemos?
+                                Py->>DB: ROLLBACK (Deshacer todo)
+                                DB-->>Py: Estado restaurado al inicio
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-window">
+                    <div class="code-header">
+                        <div class="dot bg-red-500"></div><div class="dot bg-yellow-500"></div><div class="dot bg-green-500"></div>
+                        <span class="ml-4 text-xs text-gray-400 font-mono">atomic_load.py</span>
+                    </div>
+                    <pre><code class="python">
+import pandas as pd
+from sqlalchemy import text
+
+def cargar_datos_seguro(df, nombre_tabla, engine):
+    # Context Manager de SQLAlchemy maneja la transacción automáticamente
+    # Si el bloque termina bien -> COMMIT
+    # Si hay error -> ROLLBACK
+    try:
+        with engine.begin() as connection:
+            # 1. Limpiar tabla stage (Opcional)
+            connection.execute(text(f"TRUNCATE TABLE {nombre_tabla}"))
+            
+            # 2. Carga masiva
+            # chunksize es importante para no saturar la memoria
+            df.to_sql(
+                nombre_tabla, 
+                con=connection, 
+                if_exists='append', 
+                index=False,
+                chunksize=10000 
+            )
+        print("✅ Carga Exitosa (COMMIT realizado)")
+        
+    except Exception as e:
+        print("❌ Error detectado. Se ejecutó ROLLBACK automático.")
+        print(f"Detalle: {e}")
+                    </code></pre>
+                </div>
+            </section>
+
+            <!-- Sección 4: El Reto -->
+            <section id="challenge" class="mb-20 scroll-mt-24">
+                <div class="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl shadow-2xl overflow-hidden text-white relative">
+                    <!-- Background Pattern -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-[#DA291C] opacity-10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+                    
+                    <div class="p-8 md:p-12 relative z-10">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+                            <div>
+                                <div class="inline-block bg-[#FFCC00] text-[#003366] font-black px-3 py-1 rounded text-xs uppercase tracking-widest mb-2">
+                                    Reto de Ingeniería #2
+                                </div>
+                                <h2 class="text-3xl md:text-4xl font-bold">The Atomic Loader</h2>
+                            </div>
+                            <div class="mt-4 md:mt-0">
+                                <i data-lucide="layers" class="w-16 h-16 text-gray-600 opacity-50"></i>
+                            </div>
+                        </div>
+                        
+                        <p class="text-gray-300 text-lg mb-8 border-l-4 border-[#DA291C] pl-4">
+                            Hemos recibido un archivo crítico: <code>ventas_historicas.csv</code> (500,000 filas). 
+                            Sin embargo, <strong>hay una "bomba lógica"</strong>: la fila 250,000 tiene texto en una columna que debería ser numérica.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <div class="bg-white/5 p-6 rounded-lg backdrop-blur-sm border border-white/10">
+                                <h3 class="text-[#FFCC00] font-bold mb-4">Tu Misión</h3>
+                                <ul class="space-y-3 text-sm text-gray-300">
+                                    <li class="flex items-start">
+                                        <i data-lucide="check" class="w-4 h-4 mr-2 text-green-400 mt-0.5"></i>
+                                        Crear un script que intente cargar el archivo a SQL Server.
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i data-lucide="check" class="w-4 h-4 mr-2 text-green-400 mt-0.5"></i>
+                                        El script debe fallar al encontrar el error (Type Error).
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i data-lucide="check" class="w-4 h-4 mr-2 text-green-400 mt-0.5"></i>
+                                        <strong>CRÍTICO:</strong> Al verificar la base de datos después del fallo, debe haber 0 filas. Si encuentras 249,999 filas, <span class="text-red-400 font-bold">el reto está reprobado</span> (Integridad comprometida).
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="bg-white/5 p-6 rounded-lg backdrop-blur-sm border border-white/10 flex flex-col justify-center">
+                                <div class="text-center">
+                                    <p class="text-xs text-gray-400 uppercase tracking-widest mb-2">Recursos del Reto</p>
+                                    <a href="#" class="inline-flex items-center bg-[#DA291C] hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg hover:shadow-red-900/50">
+                                        <i data-lucide="download" class="w-5 h-5 mr-2"></i>
+                                        Descargar Dataset Corrupto
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-yellow-900/30 p-4 rounded border border-yellow-700/50 text-sm text-yellow-200">
+                            <strong>Pista:</strong> No uses <code>pandas.to_sql</code> por defecto sin una conexión transaccional manejada por SQLAlchemy. Pandas por defecto hace commit por lotes (chunks), lo que podría dejar datos sucios.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             <!-- Sección Estratégica: NotebookLM -->
+             <section id="notebooklm" class="mb-12 scroll-mt-24">
+                <div class="bg-white rounded-xl shadow-lg border border-blue-200 p-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500 rounded-full opacity-10"></div>
+                    
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i data-lucide="brain-circuit" class="w-8 h-8 text-blue-600 mr-3"></i>
+                        Estrategia de Apoyo con IA
+                    </h3>
+                    
+                    <p class="text-gray-600 mb-6">
+                        ¿Problemas con los drivers ODBC? ¿Error de conexión al Docker? Usa nuestro asistente entrenado.
+                    </p>
+
+                    <div class="bg-blue-50 rounded-lg p-6 mb-6">
+                        <h4 class="font-bold text-[#003366] mb-3">Prompts de Ingeniería para NotebookLM:</h4>
+                        <ul class="space-y-3 text-gray-700 text-sm">
+                            <li class="bg-white p-3 rounded border border-blue-100 shadow-sm">
+                                "Genera un diagrama Mermaid que explique la diferencia entre <code>engine.connect()</code> y <code>engine.begin()</code> en SQLAlchemy 2.0."
+                            </li>
+                            <li class="bg-white p-3 rounded border border-blue-100 shadow-sm">
+                                "Tengo un error 'Login failed for user sa'. Revisa mi connection string y compáralo con los logs comunes de Docker MSSQL."
+                            </li>
+                            <li class="bg-white p-3 rounded border border-blue-100 shadow-sm">
+                                "¿Cómo configuro <code>fast_executemany</code> en Windows vs Linux/Mac? ¿Necesito instalar drivers adicionales?"
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="https://notebooklm.google.com/" target="_blank" class="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
+                        Consultar al Asistente
+                        <i data-lucide="external-link" class="ml-2 w-4 h-4"></i>
+                    </a>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-[#003366] text-white py-8 border-t border-blue-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                <span class="font-bold text-xl tracking-tight">USTA</span>
+                <span class="text-sm opacity-75 ml-2">| Diplomado en Estrategias de Datos</span>
+            </div>
+            <div class="text-center md:text-right text-xs text-gray-300">
+                <p>&copy; 2025 Universidad Santo Tomás</p>
+                <p class="mt-1">Designed for Data Engineering Excellence</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Inicializar Iconos
+        lucide.createIcons();
+
+        // Inicializar Resaltado de Sintaxis
+        hljs.highlightAll();
+        
+        // Inicializar Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+
+        // Scroll Spy para Sidebar
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.sidebar-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
