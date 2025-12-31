@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conceptos: ¿Qué es SQL Server? | Diplomado Data Strategy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        code { font-family: 'Source Code Pro', monospace; }
+        
+        /* USTA Colors */
+        .text-usta-blue { color: #003366; }
+        .bg-usta-blue { background-color: #003366; }
+        .text-usta-red { color: #DA291C; }
+        .bg-usta-red { background-color: #DA291C; }
+        .text-usta-yellow { color: #FFCC00; }
+        .border-usta-yellow { border-color: #FFCC00; }
+
+        .sidebar-link.active { 
+            background-color: #003366; 
+            color: white; 
+            border-left: 4px solid #FFCC00; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header Institucional -->
+    <header class="bg-[#003366] text-white shadow-lg sticky top-0 z-50 border-b-4 border-[#FFCC00]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="flex items-center group transition-colors hover:text-[#FFCC00]">
+                        <i data-lucide="arrow-left-circle" class="w-6 h-6 mr-2"></i>
+                        <span class="font-bold tracking-wide">Volver al Plan</span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-2 text-sm font-mono">
+                    <span class="opacity-75">MÓDULO 2</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-[#FFCC00]"></i>
+                    <span class="font-bold text-white">INTRODUCCIÓN A SQL SERVER</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-grow max-w-8xl mx-auto w-full">
+        
+        <!-- Sidebar (Navegación) -->
+        <aside class="hidden lg:block w-72 bg-white border-r border-gray-200 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+            <div class="p-6">
+                <h3 class="text-[#003366] font-black uppercase text-xs tracking-widest mb-6 border-b border-gray-100 pb-2">Contenido</h3>
+                <nav class="space-y-2">
+                    <a href="#definition" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all active">
+                        <i data-lucide="server" class="w-4 h-4 mr-3"></i>
+                        1. Definición
+                    </a>
+                    <a href="#vs-excel" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-3"></i>
+                        2. SQL vs Excel
+                    </a>
+                    <a href="#architecture" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all">
+                        <i data-lucide="cpu" class="w-4 h-4 mr-3"></i>
+                        3. Arquitectura (Engine)
+                    </a>
+                    <a href="#tsql" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all">
+                        <i data-lucide="code" class="w-4 h-4 mr-3"></i>
+                        4. El Poder de T-SQL
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-12 overflow-y-auto scroll-smooth">
+            
+            <!-- Hero Definition -->
+            <section id="definition" class="mb-16">
+                <div class="bg-gradient-to-br from-[#003366] to-[#1e3a8a] text-white p-10 rounded-2xl shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-[#DA291C] opacity-10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
+                    
+                    <h1 class="text-4xl md:text-5xl font-black mb-6 relative z-10">
+                        ¿Qué es Microsoft SQL Server?
+                    </h1>
+                    <p class="text-xl text-blue-100 leading-relaxed max-w-3xl relative z-10">
+                        Es un <strong>RDBMS</strong> (Relational Database Management System) de nivel empresarial desarrollado por Microsoft. No es solo un lugar para guardar datos; es una plataforma robusta diseñada para garantizar la <strong>integridad</strong>, <strong>seguridad</strong> y <strong>disponibilidad</strong> de la información crítica de una organización.
+                    </p>
+                    <div class="mt-8 flex gap-4 relative z-10">
+                        <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20 flex items-center">
+                            <i data-lucide="shield-check" class="text-[#FFCC00] mr-2"></i> Seguro
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20 flex items-center">
+                            <i data-lucide="users" class="text-[#FFCC00] mr-2"></i> Multiusuario
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20 flex items-center">
+                            <i data-lucide="scale" class="text-[#FFCC00] mr-2"></i> Escalable
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SQL vs Excel -->
+            <section id="vs-excel" class="mb-20">
+                <div class="flex items-center mb-6">
+                    <div class="bg-[#DA291C] p-3 rounded-lg mr-4 text-white">
+                        <i data-lucide="arrow-left-right" class="w-6 h-6"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">2. ¿Por qué no usar Excel?</h2>
+                </div>
+                
+                <p class="mb-8 text-gray-600 max-w-4xl">
+                    Muchos estudiantes llegan pensando en tablas de datos. Pero SQL Server resuelve problemas que Excel ni siquiera sabe que tiene.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Excel Card -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+                        <div class="flex items-center mb-4">
+                            <i data-lucide="file-spreadsheet" class="text-green-600 w-8 h-8 mr-3"></i>
+                            <h3 class="text-xl font-bold text-gray-800">Hoja de Cálculo</h3>
+                        </div>
+                        <ul class="space-y-3 text-sm text-gray-600">
+                            <li class="flex items-start"><span class="text-red-500 mr-2">❌</span> <strong>Límite:</strong> ~1 millón de filas.</li>
+                            <li class="flex items-start"><span class="text-red-500 mr-2">❌</span> <strong>Concurrencia:</strong> Conflictos si dos personas editan.</li>
+                            <li class="flex items-start"><span class="text-red-500 mr-2">❌</span> <strong>Seguridad:</strong> Archivo fácil de copiar/robar.</li>
+                            <li class="flex items-start"><span class="text-red-500 mr-2">❌</span> <strong>Integridad:</strong> Puedes escribir "Hola" en una columna de fechas.</li>
+                        </ul>
+                    </div>
+
+                    <!-- SQL Server Card -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-blue-200 relative overflow-hidden group transform hover:-translate-y-1 transition-transform duration-300">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-[#003366]"></div>
+                        <div class="flex items-center mb-4">
+                            <i data-lucide="database" class="text-[#003366] w-8 h-8 mr-3"></i>
+                            <h3 class="text-xl font-bold text-[#003366]">SQL Server</h3>
+                        </div>
+                        <ul class="space-y-3 text-sm text-gray-700 font-medium">
+                            <li class="flex items-start"><span class="text-green-500 mr-2">✅</span> <strong>Límite:</strong> Petabytes (Billones de filas).</li>
+                            <li class="flex items-start"><span class="text-green-500 mr-2">✅</span> <strong>Concurrencia:</strong> Miles de usuarios simultáneos.</li>
+                            <li class="flex items-start"><span class="text-green-500 mr-2">✅</span> <strong>Seguridad:</strong> Roles, encriptación y auditoría.</li>
+                            <li class="flex items-start"><span class="text-green-500 mr-2">✅</span> <strong>Integridad:</strong> Tipos de datos estrictos (Strong Typing).</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Arquitectura -->
+            <section id="architecture" class="mb-20">
+                <div class="flex items-center mb-6">
+                    <div class="bg-[#FFCC00] p-3 rounded-lg mr-4">
+                        <i data-lucide="cpu" class="text-[#003366] w-6 h-6"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">3. Arquitectura Interna</h2>
+                </div>
+                
+                <p class="mb-6 text-gray-600">
+                    SQL Server no es un programa monolítico. Es un ecosistema de servicios. El componente principal es el <strong>Database Engine</strong>, encargado de almacenar, procesar y asegurar los datos.
+                </p>
+
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+                    <div class="mermaid flex justify-center">
+                        graph TD
+                            Client[Usuario / Python App] -->|T-SQL Query| Network[Protocolo de Red]
+                            
+                            subgraph "SQL Server Database Engine"
+                                Network --> Parser[Relational Engine]
+                                Parser -->|Plan de Ejecución| Optimizer{Optimizador}
+                                Optimizer --> Executor[Ejecutor]
+                                Executor <-->|Leer/Escribir Páginas| Storage[Storage Engine]
+                            end
+                            
+                            Storage <--> Disk[(Archivos .MDF / .LDF)]
+                            
+                            style Client fill:#DA291C,color:white
+                            style Optimizer fill:#FFCC00,color:black
+                            style Disk fill:#003366,color:white
+                    </div>
+                    <div class="mt-4 p-4 bg-gray-50 text-sm text-gray-600 rounded border border-gray-100">
+                        <p><strong>Nota de Ingeniería:</strong> Cuando lanzas una consulta, el <em>Optimizador</em> calcula matemáticamente la forma más eficiente de buscar los datos (usando índices) antes de siquiera tocar el disco duro. Esto es lo que lo hace rápido.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- T-SQL -->
+            <section id="tsql" class="mb-20">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-100 p-3 rounded-lg mr-4 text-[#003366]">
+                        <i data-lucide="code-2" class="w-6 h-6"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">4. El Lenguaje: T-SQL</h2>
+                </div>
+                
+                <p class="mb-6 text-gray-600 max-w-3xl">
+                    SQL (Structured Query Language) es el estándar ANSI. Pero Microsoft creó su propia extensión propietaria llamada <strong>Transact-SQL (T-SQL)</strong>.
+                    T-SQL añade capacidades de programación procedimental: variables, manejo de errores (TRY/CATCH), bucles y procedimientos almacenados.
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-2">SQL Estándar (ANSI)</h4>
+                        <div class="bg-gray-800 p-4 rounded-lg text-gray-300 text-sm font-mono mb-4">
+                            SELECT * FROM Clientes WHERE Pais = 'Colombia';
+                        </div>
+                        <p class="text-sm text-gray-500">Solo permite consultar o modificar datos. No tiene lógica de flujo.</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-[#003366] mb-2">T-SQL (Microsoft)</h4>
+                        <div class="bg-[#1e293b] p-4 rounded-lg shadow-lg border-l-4 border-[#FFCC00]">
+                            <pre><code class="sql">
+-- Declaración de variables
+DECLARE @Pais VARCHAR(50) = 'Colombia';
+DECLARE @Total INT;
+
+-- Lógica condicional
+IF @Pais = 'Colombia'
+BEGIN
+    SELECT @Total = COUNT(*) FROM Clientes 
+    WHERE Pais = @Pais;
+    
+    PRINT 'Clientes Colombianos: ' + CAST(@Total AS VARCHAR);
+END
+                            </code></pre>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Permite programar lógica de negocio compleja directamente en la base de datos.</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-[#003366] text-white py-8 border-t border-blue-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                <span class="font-bold text-xl tracking-tight">USTA</span>
+                <span class="text-sm opacity-75 ml-2">| Diplomado en Estrategias de Datos</span>
+            </div>
+            <div class="text-center md:text-right text-xs text-gray-300">
+                <p>&copy; 2025 Universidad Santo Tomás</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Inicializar Iconos
+        lucide.createIcons();
+        // Inicializar Highlight.js
+        hljs.highlightAll();
+        // Inicializar Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+
+        // Scroll Spy Simplificado
+        const navLinks = document.querySelectorAll('.sidebar-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
