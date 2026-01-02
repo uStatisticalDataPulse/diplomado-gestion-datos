@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 5: Diseño y Normalización | Diplomado Data Strategy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        code { font-family: 'Source Code Pro', monospace; }
+        
+        /* USTA Colors */
+        .text-usta-blue { color: #003366; }
+        .bg-usta-blue { background-color: #003366; }
+        .text-usta-red { color: #DA291C; }
+        .bg-usta-red { background-color: #DA291C; }
+        .text-usta-yellow { color: #FFCC00; }
+        .border-usta-yellow { border-color: #FFCC00; }
+
+        .sidebar-link.active { 
+            background-color: #003366; 
+            color: white; 
+            border-left: 4px solid #FFCC00; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="bg-[#003366] text-white shadow-lg sticky top-0 z-50 border-b-4 border-[#FFCC00]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="flex items-center group transition-colors hover:text-[#FFCC00]">
+                        <i data-lucide="arrow-left-circle" class="w-6 h-6 mr-2"></i>
+                        <span class="font-bold tracking-wide">Plan de Estudios</span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-2 text-sm font-mono">
+                    <span class="opacity-75">MÓDULO 2</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-[#FFCC00]"></i>
+                    <span class="font-bold text-white">CAPÍTULO 5: DISEÑO SQL</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-grow max-w-8xl mx-auto w-full">
+        
+        <aside class="hidden lg:block w-72 bg-white border-r border-gray-200 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
+            <div class="p-6">
+                <h3 class="text-[#003366] font-black uppercase text-xs tracking-widest mb-6 border-b border-gray-100 pb-2">Ruta de Aprendizaje</h3>
+                <nav class="space-y-2">
+                    <a href="#intro" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all group active">
+                        <i data-lucide="book-open" class="w-4 h-4 mr-3 group-hover:text-[#003366]"></i>
+                        1. Masterclass Teórica
+                    </a>
+                    <a href="#notebooklm" class="sidebar-link flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all group border-l-2 border-transparent">
+                        <i data-lucide="brain-circuit" class="w-4 h-4 mr-3 group-hover:text-[#003366]"></i>
+                        2. Estrategia con IA
+                    </a>
+                    <a href="#challenge" class="sidebar-link flex items-center px-4 py-3 text-sm font-bold text-[#DA291C] bg-red-50 rounded-lg border border-red-100 mt-4 transition-transform hover:scale-105">
+                        <i data-lucide="terminal" class="w-4 h-4 mr-3"></i>
+                        3. Reto: Ingeniería Inversa
+                    </a>
+                </nav>
+
+                <div class="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <p class="text-xs text-blue-800 font-semibold mb-2">Requisitos Previos:</p>
+                    <div class="flex items-center text-xs text-gray-600 mb-1">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div> Docker: SQL Server
+                    </div>
+                    <div class="flex items-center text-xs text-gray-600">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div> Cliente SQL (DBeaver)
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-6 lg:p-12 overflow-y-auto scroll-smooth">
+            
+            <section id="intro" class="mb-16 animate-fade-in-up">
+                <span class="inline-block px-3 py-1 bg-blue-100 text-[#003366] rounded-full text-xs font-bold uppercase tracking-wider mb-4 border border-blue-200">
+                    Arquitectura de Datos
+                </span>
+                <h1 class="text-4xl md:text-5xl font-black text-[#003366] mb-6 leading-tight">
+                    Diseño SQL: <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#DA291C] to-[#FFCC00]">Normalización y Estructura</span>
+                </h1>
+                
+                <div class="bg-gradient-to-r from-[#003366] to-[#1e40af] rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-[#FFCC00] opacity-10 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
+                    
+                    <h2 class="text-2xl font-bold mb-4 flex items-center">
+                        <i data-lucide="library" class="w-6 h-6 mr-3"></i>
+                        Acceso a la Masterclass
+                    </h2>
+                    <p class="text-blue-100 text-lg mb-8 max-w-2xl">
+                        El diseño de bases de datos no se improvisa. Antes de escribir código, debemos entender las reglas del juego. Accede al material completo sobre <strong>Normalización (1NF-3NF)</strong>, <strong>Modelado Dimensional</strong> y <strong>SQL Profundo</strong>.
+                    </p>
+                    
+                    <a href="Clase_SQL.html" target="_blank" class="inline-flex items-center bg-[#DA291C] hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition hover:scale-105 group border-2 border-transparent hover:border-white">
+                        <i data-lucide="external-link" class="w-5 h-5 mr-2"></i>
+                        Abrir Guía Teórica Completa
+                    </a>
+                </div>
+            </section>
+
+            <section id="notebooklm" class="mb-20 scroll-mt-24">
+                <div class="bg-white rounded-xl shadow-lg border border-blue-200 p-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500 rounded-full opacity-10"></div>
+                    
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i data-lucide="brain-circuit" class="w-8 h-8 text-blue-600 mr-3"></i>
+                        Estrategia con IA (NotebookLM)
+                    </h3>
+                    
+                    <p class="text-gray-600 mb-6 border-l-4 border-[#FFCC00] pl-4 italic">
+                        "Usa la Inteligencia Artificial para validar tu diseño, no para hacerlo por ti. Un arquitecto usa la IA como copiloto, no como piloto."
+                    </p>
+
+                    <div class="bg-blue-50 rounded-lg p-6 mb-6">
+                        <h4 class="font-bold text-[#003366] mb-4 flex items-center">
+                            <i data-lucide="message-square" class="w-4 h-4 mr-2"></i>
+                            Prompts de Ingeniería Sugeridos:
+                        </h4>
+                        <ul class="space-y-4 text-gray-700 text-sm">
+                            <li class="bg-white p-4 rounded border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+                                <strong class="block text-[#DA291C] mb-1">Validación de Normalización:</strong>
+                                "Tengo una tabla con columnas: <code>Cliente, Dirección, Producto, Cantidad</code>. Analiza si cumple con la <strong>2NF</strong> y sugiere cómo dividirla para evitar redundancia."
+                            </li>
+                            <li class="bg-white p-4 rounded border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+                                <strong class="block text-[#DA291C] mb-1">Generación de Diagramas:</strong>
+                                "Genera código <strong>Mermaid.js</strong> para un diagrama ER de un sistema de Biblioteca (Libros, Autores, Préstamos) resolviendo correctamente las relaciones N:M."
+                            </li>
+                            <li class="bg-white p-4 rounded border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+                                <strong class="block text-[#DA291C] mb-1">Arquitectura & Performance:</strong>
+                                "¿Cuál es la diferencia de rendimiento (trade-offs) entre usar un <code>GUID</code> vs un <code>INT IDENTITY</code> como Primary Key en SQL Server para una tabla con millones de inserciones diarias?"
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="https://notebooklm.google.com/notebook/d8ebe22f-58c8-4206-b257-d82795bd0cf4" target="_blank" class="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
+                        Consultar Asistente (NotebookLM)
+                        <i data-lucide="bot" class="ml-2 w-4 h-4"></i>
+                    </a>
+                </div>
+            </section>
+
+            <section id="challenge" class="mb-20 scroll-mt-24">
+                <div class="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl shadow-2xl overflow-hidden text-white relative">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-[#DA291C] opacity-10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+                    
+                    <div class="p-8 md:p-12 relative z-10">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+                            <div>
+                                <div class="inline-block bg-[#FFCC00] text-[#003366] font-black px-3 py-1 rounded text-xs uppercase tracking-widest mb-2">
+                                    Reto de Ingeniería #3
+                                </div>
+                                <h2 class="text-3xl md:text-4xl font-bold">Ingeniería Inversa & Normalización</h2>
+                            </div>
+                            <div class="mt-4 md:mt-0">
+                                <i data-lucide="layers" class="w-16 h-16 text-gray-600 opacity-50"></i>
+                            </div>
+                        </div>
+                        
+                        <p class="text-gray-300 text-lg mb-8 border-l-4 border-[#DA291C] pl-4">
+                            Recibirás una base de datos "sucia" y desnormalizada. Tu misión es analizarla, proponer un nuevo esquema en <strong>3NF</strong> y migrar los datos mediante SQL.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <div class="bg-white/5 p-6 rounded-lg backdrop-blur-sm border border-white/10">
+                                <h3 class="text-[#FFCC00] font-bold mb-4">Instrucciones Técnicas</h3>
+                                <ul class="space-y-3 text-sm text-gray-300">
+                                    <li class="flex items-start">
+                                        <i data-lucide="check" class="w-4 h-4 mr-2 text-green-400 mt-0.5"></i>
+                                        Clonar el repositorio oficial.
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i data-lucide="check" class="w-4 h-4 mr-2 text-green-400 mt-0.5"></i>
+                                        Restaurar el backup <code>.bak</code> en tu contenedor Docker.
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i data-lucide="check" class="w-4 h-4 mr-2 text-green-400 mt-0.5"></i>
+                                        Ejecutar los scripts de migración DDL/DML.
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="bg-white/5 p-6 rounded-lg backdrop-blur-sm border border-white/10 flex flex-col justify-center items-center">
+                                <div class="text-center w-full">
+                                    <p class="text-xs text-gray-400 uppercase tracking-widest mb-4">Enlace al Repositorio</p>
+                                    <a href="https://github.com/Izainea/reto_4_5_dgd_2026" target="_blank" class="flex items-center justify-center w-full bg-[#DA291C] hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition-all shadow-lg hover:shadow-red-900/50 group">
+                                        <i data-lucide="github" class="w-5 h-5 mr-2"></i>
+                                        Acceder al Reto en GitHub
+                                        <i data-lucide="arrow-right" class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <footer class="bg-[#003366] text-white py-8 border-t border-blue-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                <span class="font-bold text-xl tracking-tight">USTA</span>
+                <span class="text-sm opacity-75 ml-2">| Diplomado en Estrategias de Datos</span>
+            </div>
+            <div class="text-center md:text-right text-xs text-gray-300">
+                <p>&copy; 2025 Universidad Santo Tomás</p>
+                <p class="mt-1">Designed for Data Architects</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Inicializar Iconos
+        lucide.createIcons();
+
+        // Inicializar Resaltado de Sintaxis
+        hljs.highlightAll();
+
+        // Scroll Spy para Sidebar
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.sidebar-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
