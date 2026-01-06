@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 6: DDL, Internals y Performance | Diplomado Data Strategy</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Iconos -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Diagramas -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <style>
+        :root {
+            --usta-blue: #003366;
+            --usta-red: #DA291C;
+            --usta-gray: #f8f9fa;
+            --code-bg: #1e1e1e;
+        }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--usta-gray); color: #333; }
+        code { font-family: 'Source Code Pro', monospace; }
+        
+        .bg-usta-blue { background-color: var(--usta-blue); }
+        .text-usta-blue { color: var(--usta-blue); }
+        .border-usta-blue { border-color: var(--usta-blue); }
+        .bg-usta-red { background-color: var(--usta-red); }
+        .text-usta-red { color: var(--usta-red); }
+        
+        /* Sidebar Navigation */
+        .nav-item {
+            transition: all 0.2s ease-in-out;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover, .nav-item.active {
+            background-color: #e9ecef;
+            border-left-color: var(--usta-blue);
+            color: var(--usta-blue);
+            font-weight: 600;
+        }
+
+        /* Cards & Containers */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tables */
+        .academic-table th {
+            background-color: var(--usta-blue);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 14px;
+        }
+        .academic-table td {
+            border-bottom: 1px solid #eee;
+            padding: 14px;
+            font-size: 0.9rem;
+            vertical-align: top;
+        }
+        .academic-table tr:last-child td { border-bottom: none; }
+        .academic-table tr:hover { background-color: #f8fafc; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-72 bg-white border-r border-gray-200 flex-shrink-0 hidden md:flex flex-col z-20 h-full shadow-lg">
+        <div class="p-8 border-b border-gray-100 text-center bg-gray-50">
+            <h1 class="text-3xl font-black text-usta-blue tracking-tighter">USTA</h1>
+            <p class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mt-2">Facultad de Ingeniería</p>
+        </div>
+        
+        <nav class="flex-1 overflow-y-auto py-6">
+            <div class="px-6 mb-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Navegación del Módulo</div>
+            <ul class="space-y-1">
+                <li>
+                    <a href="index.html" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Inicio
+                    </a>
+                </li>
+                <li>
+                    <a href="#intro" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm active">
+                        <i data-lucide="book-open" class="w-4 h-4"></i> 1. Introducción
+                    </a>
+                </li>
+                <li>
+                    <a href="#ddl" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="hard-drive" class="w-4 h-4"></i> 2. DDL Internals
+                    </a>
+                </li>
+                <li>
+                    <a href="#algebra" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="sigma" class="w-4 h-4"></i> 3. Álgebra Relacional
+                    </a>
+                </li>
+                <li>
+                    <a href="#physical-joins" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="layers" class="w-4 h-4"></i> 4. Operadores Físicos
+                    </a>
+                </li>
+                <li>
+                    <a href="#performance" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="gauge" class="w-4 h-4"></i> 5. Lab de Tuning
+                    </a>
+                </li>
+                <li>
+                    <a href="#reto" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="trophy" class="w-4 h-4 text-usta-red"></i> 6. Reto Final
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100 bg-gray-50">
+            <a href="https://notebooklm.google.com/notebook/2e985b77-0448-4218-ab28-fd14851c00d8" target="_blank" class="flex items-center justify-center gap-2 w-full bg-white border border-gray-200 text-usta-blue text-xs font-bold py-3 px-4 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition shadow-sm group">
+                <i data-lucide="sparkles" class="w-4 h-4 text-usta-red group-hover:animate-pulse"></i> 
+                Asistente IA del Curso
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto bg-[#f8f9fa] relative scroll-smooth">
+        
+        <!-- Mobile Header -->
+        <header class="md:hidden bg-white p-4 border-b flex justify-between items-center sticky top-0 z-30 shadow-sm">
+            <span class="font-bold text-usta-blue">Capítulo 6</span>
+            <button class="p-2 hover:bg-gray-100 rounded"><i data-lucide="menu" class="w-6 h-6"></i></button>
+        </header>
+
+        <div class="max-w-6xl mx-auto px-8 py-12 space-y-20">
+
+            <!-- Hero Section -->
+            <section id="intro" class="relative">
+                <div class="flex flex-col md:flex-row justify-between items-start border-b border-gray-200 pb-10">
+                    <div class="max-w-3xl">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-usta-blue text-xs font-bold mb-4 uppercase tracking-wide">
+                            Módulo de Ingeniería
+                        </div>
+                        <h1 class="text-4xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
+                            DDL Avanzado, Internals y <br><span class="text-usta-blue">Optimización de Consultas</span>
+                        </h1>
+                        <p class="text-lg text-gray-600 leading-relaxed text-justify">
+                            Para escribir SQL eficiente, debemos dejar de ver la base de datos como una "caja negra". En este capítulo, abriremos el motor para entender cómo se almacenan y eliminan físicamente los datos (Páginas de 8KB), cómo funciona el Álgebra Relacional detrás de un <code>JOIN</code> y cómo interpretar un Plan de Ejecución para evitar bloqueos masivos.
+                        </p>
+                    </div>
+                    
+                    <!-- KPI Cards -->
+                    <div class="hidden lg:grid grid-cols-1 gap-4 mt-8 md:mt-0">
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-48 text-center">
+                            <span class="block text-3xl font-bold text-usta-red">O(1)</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Complejidad Truncate</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-48 text-center">
+                            <span class="block text-3xl font-bold text-usta-blue">8 KB</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Tamaño de Página</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DDL Section -->
+            <section id="ddl">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-red-100 rounded-lg text-usta-red"><i data-lucide="server-crash" class="w-6 h-6"></i></div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">2. Ingeniería de Eliminación (DDL Internals)</h2>
+                        <p class="text-sm text-gray-500 mt-1">No es solo borrar; es cómo afecta al Log de Transacciones y al Disco.</p>
+                    </div>
+                </div>
+                
+                <div class="card overflow-hidden mb-8">
+                    <table class="w-full text-left academic-table">
+                        <thead>
+                            <tr>
+                                <th>Comando</th>
+                                <th>Tipo</th>
+                                <th>Mecanismo Interno (The "Under the Hood")</th>
+                                <th>Impacto Log</th>
+                                <th>Reset Identity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-bold text-blue-700 font-mono">DELETE</td>
+                                <td><span class="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded border border-blue-100 font-bold">DML</span></td>
+                                <td class="text-gray-600">
+                                    <strong class="text-gray-800">Row-by-Row:</strong> El motor lee cada página, localiza la fila, la marca como borrada y escribe el cambio. Consume mucha I/O.
+                                </td>
+                                <td class="text-red-600 font-semibold text-xs">Alto (1 registro por fila)</td>
+                                <td class="text-center text-red-500"><i data-lucide="x" class="w-4 h-4 inline"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-yellow-600 font-mono">TRUNCATE</td>
+                                <td><span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded border border-gray-200 font-bold">DDL</span></td>
+                                <td class="text-gray-600">
+                                    <strong class="text-gray-800">Page Deallocation:</strong> No toca los datos. Simplemente marca las páginas de 8KB como "libres" en el mapa de asignación (GAM/SGAM).
+                                </td>
+                                <td class="text-green-600 font-semibold text-xs">Mínimo (Solo desasignación)</td>
+                                <td class="text-center text-green-500"><i data-lucide="check" class="w-4 h-4 inline"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-red-600 font-mono">DROP</td>
+                                <td><span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded border border-gray-200 font-bold">DDL</span></td>
+                                <td class="text-gray-600">Elimina la metadata del objeto en <code>sys.objects</code>. La estructura deja de existir. Libera espacio inmediatamente.</td>
+                                <td class="text-green-600 font-semibold text-xs">Mínimo</td>
+                                <td class="text-center text-gray-400">N/A</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mitos vs Realidad -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-100">
+                        <h4 class="font-bold text-usta-blue mb-3 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> Mito Común</h4>
+                        <p class="text-sm text-gray-700 italic">"TRUNCATE no se puede deshacer (Rollback) porque no guarda log."</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg border border-green-200 shadow-sm">
+                        <h4 class="font-bold text-green-700 mb-3 flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4"></i> Realidad Técnica</h4>
+                        <p class="text-sm text-gray-600">
+                            <strong>Falso.</strong> TRUNCATE sí registra la operación en el log (la desasignación de páginas). Si está dentro de una transacción (<code>BEGIN TRAN ... ROLLBACK</code>), es completamente reversible.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Algebra Section -->
+            <section id="algebra">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-blue-100 rounded-lg text-usta-blue"><i data-lucide="sigma" class="w-6 h-6"></i></div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">3. Fundamentos: Álgebra Relacional</h2>
+                        <p class="text-sm text-gray-500 mt-1">El lenguaje matemático que el optimizador de consultas entiende.</p>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-10">
+                    <div class="space-y-6">
+                        <div class="card p-6 border-l-4 border-l-usta-blue">
+                            <h3 class="font-bold text-gray-800 mb-2">Selección ($\sigma$)</h3>
+                            <p class="text-sm text-gray-600 mb-2">Filtro horizontal de filas.</p>
+                            <code class="bg-gray-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">SQL: WHERE precio > 100</code>
+                        </div>
+                        <div class="card p-6 border-l-4 border-l-usta-blue">
+                            <h3 class="font-bold text-gray-800 mb-2">Proyección ($\pi$)</h3>
+                            <p class="text-sm text-gray-600 mb-2">Selección vertical de columnas.</p>
+                            <code class="bg-gray-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">SQL: SELECT nombre, apellido</code>
+                        </div>
+                        <div class="card p-6 border-l-4 border-l-usta-red bg-red-50/30">
+                            <h3 class="font-bold text-usta-red mb-2">Producto Cartesiano ($\times$)</h3>
+                            <p class="text-sm text-gray-600 mb-2">Combina <strong>cada</strong> fila de A con <strong>cada</strong> fila de B. Crecimiento exponencial.</p>
+                            <code class="bg-white text-red-600 border border-red-200 px-2 py-1 rounded text-xs font-bold">SQL: CROSS JOIN</code>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col items-center justify-center">
+                        <h4 class="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Anatomía de un JOIN</h4>
+                        <div class="mermaid w-full">
+                            graph TD
+                            A[Tabla A] --> PC{Producto Cartesiano}
+                            B[Tabla B] --> PC
+                            PC -->|Datos Masivos| SEL[Selección ON A.id = B.id]
+                            SEL -->|Filtrado| PROJ[Proyección SELECT]
+                            PROJ --> RES[Resultado Final]
+                            
+                            style PC fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+                            style SEL fill:#dcfce7,stroke:#22c55e
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-4 text-center italic max-w-xs">
+                            Nota: Los motores modernos optimizan esto para no materializar todo el cartesiano en memoria, usando Hash Match o Merge Join.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Physical Joins (NEW SECTION) -->
+            <section id="physical-joins">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-purple-100 rounded-lg text-purple-700"><i data-lucide="cpu" class="w-6 h-6"></i></div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">4. Operadores Físicos de Unión</h2>
+                        <p class="text-sm text-gray-500 mt-1">Cómo el motor une los datos realmente en la CPU y RAM.</p>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Nested Loop -->
+                    <div class="card p-6 hover:border-purple-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-gray-800">Nested Loops</h3>
+                            <i data-lucide="refresh-cw" class="w-5 h-5 text-purple-600"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 font-mono mb-2 bg-gray-50 p-1 rounded inline-block">Complejidad: O(N*M)</p>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Toma una fila de la tabla pequeña (Outer) y busca coincidencias en la tabla grande (Inner).
+                        </p>
+                        <div class="border-t border-gray-100 pt-3">
+                            <span class="text-xs font-bold text-green-600">Ideal cuando:</span>
+                            <p class="text-xs text-gray-500">Una tabla es muy pequeña y la otra tiene un índice en la columna de unión.</p>
+                        </div>
+                    </div>
+
+                    <!-- Hash Match -->
+                    <div class="card p-6 hover:border-purple-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-gray-800">Hash Match</h3>
+                            <i data-lucide="hash" class="w-5 h-5 text-purple-600"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 font-mono mb-2 bg-gray-50 p-1 rounded inline-block">Costo: CPU + RAM (TempDB)</p>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Crea una tabla Hash en memoria con las filas de la tabla más pequeña y luego escanea la otra tabla para hacer match.
+                        </p>
+                        <div class="border-t border-gray-100 pt-3">
+                            <span class="text-xs font-bold text-blue-600">Ideal cuando:</span>
+                            <p class="text-xs text-gray-500">Tablas grandes, sin ordenar y sin índices adecuados.</p>
+                        </div>
+                    </div>
+
+                    <!-- Merge Join -->
+                    <div class="card p-6 hover:border-purple-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-gray-800">Merge Join</h3>
+                            <i data-lucide="git-merge" class="w-5 h-5 text-purple-600"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 font-mono mb-2 bg-gray-50 p-1 rounded inline-block">Costo: Muy bajo (O(N+M))</p>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Lee ambas tablas simultáneamente y avanza punteros. Requiere que ambas entradas estén ordenadas.
+                        </p>
+                        <div class="border-t border-gray-100 pt-3">
+                            <span class="text-xs font-bold text-green-600">Ideal cuando:</span>
+                            <p class="text-xs text-gray-500">Ambas columnas de unión están ordenadas (tienen índices Clustered).</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Lab -->
+            <section id="performance">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-green-100 rounded-lg text-green-700"><i data-lucide="microscope" class="w-6 h-6"></i></div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">5. Laboratorio de Performance</h2>
+                        <p class="text-sm text-gray-500 mt-1">Interpretación forense de <code>SET STATISTICS IO</code>.</p>
+                    </div>
+                </div>
+
+                <!-- Code Block Diagnosis -->
+                <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-2xl mb-8">
+                    <div class="bg-[#2d2d2d] px-4 py-2 border-b border-[#3e3e3e] flex items-center justify-between">
+                        <span class="text-xs text-gray-400 font-mono">SQL Query Editor</span>
+                        <div class="flex gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                    </div>
+                    <div class="p-6 font-mono text-sm">
+                        <div class="text-gray-400 mb-4">-- 1. Activar el monitor de I/O y Tiempo</div>
+                        <div class="text-purple-400">SET</div> <div class="text-blue-400 inline">STATISTICS</div> <div class="text-yellow-400 inline">IO</div> <div class="text-blue-400 inline">ON</div>;
+                        <br>
+                        <div class="text-purple-400 inline">SET</div> <div class="text-blue-400 inline">STATISTICS</div> <div class="text-yellow-400 inline">TIME</div> <div class="text-blue-400 inline">ON</div>;
+                        <br><br>
+                        <div class="text-gray-400 mb-2">-- 2. Ejecutar la consulta sospechosa</div>
+                        <div class="text-purple-400 inline">SELECT</div> * <div class="text-purple-400 inline">FROM</div> Ventas v <div class="text-purple-400 inline">INNER JOIN</div> Clientes c <div class="text-purple-400 inline">ON</div> v.Id = c.Id;
+                    </div>
+                </div>
+
+                <!-- Metrics Anatomy -->
+                <div class="bg-white border border-gray-200 rounded-xl p-8">
+                    <h3 class="font-bold text-gray-800 mb-6 uppercase tracking-wider text-xs">Anatomía de la Salida (Messages Tab)</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-start gap-4">
+                            <div class="w-32 flex-shrink-0 text-right font-mono text-xs font-bold text-gray-500 pt-1">Logical Reads</div>
+                            <div class="flex-1">
+                                <div class="h-2 bg-blue-100 rounded-full w-full mb-1 relative overflow-hidden">
+                                    <div class="absolute h-full bg-blue-600 w-3/4"></div>
+                                </div>
+                                <p class="text-sm text-gray-700 font-bold">La Métrica Reina.</p>
+                                <p class="text-xs text-gray-500">Número de páginas de 8KB leídas de la memoria caché (Buffer Pool). Si este número es alto, tu consulta es ineficiente, incluso si es rápida (porque todo estaba en RAM).</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-4">
+                            <div class="w-32 flex-shrink-0 text-right font-mono text-xs font-bold text-gray-500 pt-1">Physical Reads</div>
+                            <div class="flex-1">
+                                <div class="h-2 bg-red-100 rounded-full w-full mb-1 relative overflow-hidden">
+                                    <div class="absolute h-full bg-red-500 w-1/4"></div>
+                                </div>
+                                <p class="text-sm text-gray-700 font-bold">Lectura de Disco.</p>
+                                <p class="text-xs text-gray-500">Páginas que NO estaban en memoria y tuvieron que ser traídas del disco duro. Es la operación más lenta.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4">
+                            <div class="w-32 flex-shrink-0 text-right font-mono text-xs font-bold text-gray-500 pt-1">Read-Ahead Reads</div>
+                            <div class="flex-1">
+                                <div class="h-2 bg-green-100 rounded-full w-full mb-1 relative overflow-hidden">
+                                    <div class="absolute h-full bg-green-500 w-1/2"></div>
+                                </div>
+                                <p class="text-sm text-gray-700 font-bold">Predicción del Motor.</p>
+                                <p class="text-xs text-gray-500">El motor predice qué páginas necesitarás y las carga antes de que las pidas. Útil en Table Scans grandes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reto -->
+            <section id="reto">
+                <div class="bg-white border border-gray-200 rounded-xl p-10 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-blue-50 rounded-bl-full z-0 opacity-50"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-red-50 rounded-tr-full z-0 opacity-50"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-between mb-8">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-usta-blue text-white p-3 rounded-lg shadow-md">
+                                    <i data-lucide="trophy" class="w-8 h-8"></i>
+                                </div>
+                                <div>
+                                    <span class="text-usta-red font-bold text-xs uppercase tracking-widest block mb-1">Reto Final de Módulo</span>
+                                    <h2 class="text-3xl font-black text-gray-900">The SQL Architect Protocol</h2>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-8 max-w-3xl text-lg">
+                            Eres el Lead Data Engineer de <strong>LegacyRetail S.A.</strong>. La base de datos es un desastre de archivos planos y el servidor se bloquea cada mañana. Tienes dos misiones críticas:
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-8 mb-10">
+                            <!-- Mision A -->
+                            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 hover:shadow-md transition">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <span class="bg-blue-100 text-usta-blue font-bold px-2 py-1 rounded text-xs">MISIÓN A</span>
+                                    <h4 class="font-bold text-gray-800">El Arquitecto (Diseño 3NF)</h4>
+                                </div>
+                                <ul class="text-sm text-gray-600 space-y-3">
+                                    <li class="flex gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-500 flex-shrink-0"></i> Analiza el archivo <code>raw_sales_dump.csv</code>.</li>
+                                    <li class="flex gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-500 flex-shrink-0"></i> Diseña un esquema normalizado separando <strong>Clientes</strong>, <strong>Productos</strong> y <strong>Sucursales</strong>.</li>
+                                    <li class="flex gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-500 flex-shrink-0"></i> Implementa integridad referencial (FK) estricta.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Mision B -->
+                            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 hover:shadow-md transition">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <span class="bg-red-100 text-usta-red font-bold px-2 py-1 rounded text-xs">MISIÓN B</span>
+                                    <h4 class="font-bold text-gray-800">El Auditor (Tuning)</h4>
+                                </div>
+                                <ul class="text-sm text-gray-600 space-y-3">
+                                    <li class="flex gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-500 flex-shrink-0"></i> Replica el incidente del <strong>CROSS JOIN</strong>.</li>
+                                    <li class="flex gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-500 flex-shrink-0"></i> Activa <code>STATISTICS IO</code> y captura la evidencia del desastre.</li>
+                                    <li class="flex gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-500 flex-shrink-0"></i> Compara métricas contra tu solución optimizada (INNER JOIN).</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4 border-t border-gray-100 pt-8">
+                            <a href="reto_5_6_dgd_2026_master/README.md" class="bg-usta-blue text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-800 transition flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                                <i data-lucide="download" class="w-5 h-5"></i> Descargar Kit del Reto (Datos + Scripts)
+                            </a>
+                            <a href="https://notebooklm.google.com/notebook/2e985b77-0448-4218-ab28-fd14851c00d8" target="_blank" class="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                                <i data-lucide="bot" class="w-5 h-5 text-usta-blue"></i> Consultar al Tutor IA
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="text-center text-gray-400 text-xs py-10 border-t border-gray-200">
+                <div class="flex justify-center items-center gap-2 mb-2">
+                    <span class="font-bold text-usta-blue">USTA</span>
+                    <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                    <span>Diplomado en Estrategias de Datos</span>
+                </div>
+                <p>&copy; 2026 Universidad Santo Tomás. Vigilada Mineducación.</p>
+            </footer>
+
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        hljs.highlightAll();
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+
+        // Scroll Spy Logic
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-item');
+
+        document.querySelector('main').addEventListener('scroll', () => {
+            let current = '';
+            const main = document.querySelector('main');
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (main.scrollTop >= (sectionTop - 150)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
