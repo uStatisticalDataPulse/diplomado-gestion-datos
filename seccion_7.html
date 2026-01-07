@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 7: Analítica Avanzada (OLAP) y CTEs | Diplomado Data Strategy</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Iconos -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Diagramas -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <style>
+        :root {
+            --usta-blue: #003366;
+            --usta-red: #DA291C;
+            --usta-gray: #f8f9fa;
+            --code-bg: #1e1e1e;
+        }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--usta-gray); color: #333; }
+        code { font-family: 'Source Code Pro', monospace; }
+        
+        .bg-usta-blue { background-color: var(--usta-blue); }
+        .text-usta-blue { color: var(--usta-blue); }
+        .border-usta-blue { border-color: var(--usta-blue); }
+        .bg-usta-red { background-color: var(--usta-red); }
+        .text-usta-red { color: var(--usta-red); }
+        
+        /* Sidebar Navigation */
+        .nav-item {
+            transition: all 0.2s ease-in-out;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover, .nav-item.active {
+            background-color: #e9ecef;
+            border-left-color: var(--usta-blue);
+            color: var(--usta-blue);
+            font-weight: 600;
+        }
+
+        /* Cards & Containers */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tables */
+        .academic-table th {
+            background-color: var(--usta-blue);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 14px;
+        }
+        .academic-table td {
+            border-bottom: 1px solid #eee;
+            padding: 14px;
+            font-size: 0.9rem;
+            vertical-align: top;
+        }
+        .academic-table tr:last-child td { border-bottom: none; }
+        .academic-table tr:hover { background-color: #f8fafc; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-72 bg-white border-r border-gray-200 flex-shrink-0 hidden md:flex flex-col z-20 h-full shadow-lg">
+        <div class="p-8 border-b border-gray-100 text-center bg-gray-50">
+            <h1 class="text-3xl font-black text-usta-blue tracking-tighter">USTA</h1>
+            <p class="text-[10px] text-gray-500 font-bold tracking-widest uppercase mt-2">Facultad de Ingeniería</p>
+        </div>
+        
+        <nav class="flex-1 overflow-y-auto py-6">
+            <div class="px-6 mb-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Navegación del Módulo</div>
+            <ul class="space-y-1">
+                <li>
+                    <a href="index.html" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Inicio
+                    </a>
+                </li>
+                <li>
+                    <a href="#intro" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm active">
+                        <i data-lucide="book-open" class="w-4 h-4"></i> 1. Introducción
+                    </a>
+                </li>
+                <li>
+                    <a href="#window-concept" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="layout-template" class="w-4 h-4"></i> 2. Concepto Window
+                    </a>
+                </li>
+                <li>
+                    <a href="#ranking" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="list-ordered" class="w-4 h-4"></i> 3. Ranking Functions
+                    </a>
+                </li>
+                <li>
+                    <a href="#time-travel" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="history" class="w-4 h-4"></i> 4. LEAD & LAG
+                    </a>
+                </li>
+                <li>
+                    <a href="#ctes" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="network" class="w-4 h-4"></i> 5. CTEs Avanzados
+                    </a>
+                </li>
+                <li>
+                    <a href="#reto" class="nav-item flex items-center px-6 py-3 text-gray-600 gap-3 text-sm">
+                        <i data-lucide="trophy" class="w-4 h-4 text-usta-red"></i> 6. Reto Financiero
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-gray-100 bg-gray-50">
+            <a href="https://notebooklm.google.com/notebook/3a11d607-230b-41a9-bd2b-fb06971bb639" target="_blank" class="flex items-center justify-center gap-2 w-full bg-white border border-gray-200 text-usta-blue text-xs font-bold py-3 px-4 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition shadow-sm group">
+                <i data-lucide="sparkles" class="w-4 h-4 text-usta-red group-hover:animate-pulse"></i> 
+                Asistente IA del Curso
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto bg-[#f8f9fa] relative scroll-smooth">
+        
+        <!-- Mobile Header -->
+        <header class="md:hidden bg-white p-4 border-b flex justify-between items-center sticky top-0 z-30 shadow-sm">
+            <span class="font-bold text-usta-blue">Capítulo 7</span>
+            <button class="p-2 hover:bg-gray-100 rounded"><i data-lucide="menu" class="w-6 h-6"></i></button>
+        </header>
+
+        <div class="max-w-6xl mx-auto px-8 py-12 space-y-20">
+
+            <!-- Hero Section -->
+            <section id="intro" class="relative">
+                <div class="flex flex-col md:flex-row justify-between items-start border-b border-gray-200 pb-10">
+                    <div class="max-w-3xl">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-usta-blue text-xs font-bold mb-4 uppercase tracking-wide">
+                            SQL Avanzado
+                        </div>
+                        <h1 class="text-4xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
+                            Analítica Avanzada (OLAP) y <br><span class="text-usta-blue">Common Table Expressions</span>
+                        </h1>
+                        <p class="text-lg text-gray-600 leading-relaxed text-justify">
+                            En este capítulo, rompemos la barrera de "una fila por grupo". Aprenderás a usar <strong>Window Functions</strong> para realizar cálculos complejos como acumulados anuales (YTD), rankings y comparativas mes a mes (MoM) sin perder el detalle de los datos, usando la potencia de <code>OVER()</code> y organizando tu código con CTEs.
+                        </p>
+                    </div>
+                    
+                    <!-- KPI Cards -->
+                    <div class="hidden lg:grid grid-cols-1 gap-4 mt-8 md:mt-0">
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-48 text-center">
+                            <span class="block text-3xl font-bold text-usta-red">OVER()</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">La Cláusula Mágica</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 w-48 text-center">
+                            <span class="block text-3xl font-bold text-usta-blue">CTE</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Código Limpio</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Concept Section -->
+            <section id="window-concept">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-blue-100 rounded-lg text-usta-blue"><i data-lucide="layout-template" class="w-6 h-6"></i></div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">2. El Concepto de "Ventana" (Window)</h2>
+                        <p class="text-sm text-gray-500 mt-1">¿Cómo mirar "alrededor" de la fila actual sin agrupar todo?</p>
+                    </div>
+                </div>
+                
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div class="card p-8 bg-white border-l-4 border-l-usta-blue">
+                        <h3 class="font-bold text-gray-800 mb-4">GROUP BY vs. PARTITION BY</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-bold bg-gray-200 px-2 py-1 rounded">GROUP BY</span>
+                                    <span class="text-xs text-red-500 font-bold">Colapsa Filas</span>
+                                </div>
+                                <p class="text-sm text-gray-600">
+                                    Reduce múltiples filas en una sola. Pierdes el detalle individual. <br>
+                                    <em>Ej: "Suma total de ventas por mes".</em>
+                                </p>
+                            </div>
+                            <div class="border-t border-gray-100 pt-4">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded">OVER(PARTITION BY)</span>
+                                    <span class="text-xs text-green-500 font-bold">Mantiene Filas</span>
+                                </div>
+                                <p class="text-sm text-gray-600">
+                                    Mantiene todas las filas originales pero añade una columna con el cálculo agregado repetido o acumulado. <br>
+                                    <em>Ej: "Venta de esta factura vs el promedio del mes".</em>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Diagrama Mermaid -->
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 flex flex-col items-center">
+                        <h4 class="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Anatomía de la Ventana</h4>
+                        <div class="mermaid w-full">
+                            graph TD
+                            T[Tabla Completa] --> P1[Partición A: Ventas Enero]
+                            T --> P2[Partición B: Ventas Febrero]
+                            
+                            subgraph "Ventana-Window"
+                                P1 --> R1[Fila 1: $100]
+                                P1 --> R2[Fila 2: $200]
+                                R1 -.->|SUM OVER...| CALC[Acumulado: $100]
+                                R2 -.->|SUM OVER...| CALC2[Acumulado: $300]
+                            end
+                            
+                            style P1 fill:#dbeafe,stroke:#2563eb
+                            style CALC fill:#dcfce7,stroke:#22c55e
+                            style CALC2 fill:#dcfce7,stroke:#22c55e
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ranking Functions -->
+            <section id="ranking">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-purple-100 rounded-lg text-purple-700"><i data-lucide="list-ordered" class="w-6 h-6"></i></div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">3. Funciones de Ranking</h2>
+                        <p class="text-sm text-gray-500 mt-1">Diferencias críticas en cómo enumerar filas con empates.</p>
+                    </div>
+                </div>
+
+                <div class="card overflow-hidden">
+                    <table class="w-full text-left academic-table">
+                        <thead>
+                            <tr>
+                                <th>Valor (Ventas)</th>
+                                <th>ROW_NUMBER()</th>
+                                <th>RANK()</th>
+                                <th>DENSE_RANK()</th>
+                                <th>Explicación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-mono">$5000</td>
+                                <td class="font-bold text-center">1</td>
+                                <td class="font-bold text-center">1</td>
+                                <td class="font-bold text-center">1</td>
+                                <td class="text-xs text-gray-500">Líder indiscutible.</td>
+                            </tr>
+                            <tr class="bg-yellow-50">
+                                <td class="font-mono font-bold text-usta-blue">$3000</td>
+                                <td class="font-bold text-center">2</td>
+                                <td class="font-bold text-center text-red-600">2</td>
+                                <td class="font-bold text-center text-green-600">2</td>
+                                <td class="text-xs text-gray-500">Empate detectado.</td>
+                            </tr>
+                            <tr class="bg-yellow-50">
+                                <td class="font-mono font-bold text-usta-blue">$3000</td>
+                                <td class="font-bold text-center">3</td>
+                                <td class="font-bold text-center text-red-600">2</td>
+                                <td class="font-bold text-center text-green-600">2</td>
+                                <td class="text-xs text-gray-500">ROW_NUMBER desempató forzosamente.</td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono">$1000</td>
+                                <td class="font-bold text-center">4</td>
+                                <td class="font-bold text-center text-red-600">4</td>
+                                <td class="font-bold text-center text-green-600">3</td>
+                                <td class="text-xs text-gray-500">RANK salta (2->4). DENSE_RANK no salta (2->3).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Time Travel Functions -->
+            <section id="time-travel">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-green-100 rounded-lg text-green-700"><i data-lucide="history" class="w-6 h-6"></i></div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">4. Viaje en el Tiempo: LEAD & LAG</h2>
+                        <p class="text-sm text-gray-500 mt-1">Acceder a filas anteriores o posteriores sin hacer Self-Joins.</p>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Code Block -->
+                    <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-xl">
+                        <div class="bg-[#2d2d2d] px-4 py-2 border-b border-[#3e3e3e] flex items-center justify-between">
+                            <span class="text-xs text-gray-400 font-mono">SQL Editor</span>
+                        </div>
+                        <div class="p-6 font-mono text-sm">
+                            <div class="text-purple-400 inline">SELECT</div><br>
+                            &nbsp;&nbsp;Mes,<br>
+                            &nbsp;&nbsp;VentaActual,<br>
+                            &nbsp;&nbsp;<span class="text-yellow-400">LAG</span>(VentaActual) <span class="text-blue-400">OVER</span> (<span class="text-blue-400">ORDER BY</span> Mes) <span class="text-gray-500">AS</span> VentaMesAnterior,<br>
+                            &nbsp;&nbsp;VentaActual - <span class="text-yellow-400">LAG</span>(VentaActual) <span class="text-blue-400">OVER</span> (<span class="text-blue-400">ORDER BY</span> Mes) <span class="text-gray-500">AS</span> Diferencia<br>
+                            <div class="text-purple-400 inline">FROM</div> VentasMensuales;
+                        </div>
+                    </div>
+
+                    <!-- Visual Explanation -->
+                    <div class="flex flex-col justify-center space-y-4">
+                        <div class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+                            <div class="bg-gray-100 p-2 rounded font-mono text-xs">Fila N (Feb)</div>
+                            <i data-lucide="arrow-left" class="text-usta-blue"></i>
+                            <div class="bg-yellow-100 p-2 rounded font-mono text-xs font-bold text-yellow-800">LAG(1)</div>
+                            <span class="text-xs text-gray-500">Trae el valor de Enero a la fila de Febrero.</span>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+                            <div class="bg-gray-100 p-2 rounded font-mono text-xs">Fila N (Feb)</div>
+                            <i data-lucide="arrow-right" class="text-usta-blue"></i>
+                            <div class="bg-green-100 p-2 rounded font-mono text-xs font-bold text-green-800">LEAD(1)</div>
+                            <span class="text-xs text-gray-500">Trae el valor de Marzo a la fila de Febrero.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTEs -->
+            <section id="ctes">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-orange-100 rounded-lg text-orange-700"><i data-lucide="network" class="w-6 h-6"></i></div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-800">5. Common Table Expressions (CTEs)</h2>
+                        <p class="text-sm text-gray-500 mt-1">El fin de las subconsultas anidadas ilegibles.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+                    <p class="text-gray-600 mb-6 text-sm">
+                        Un CTE (definido con <code>WITH</code>) crea una tabla temporal que solo existe durante la ejecución de la consulta. Es vital para limpiar datos antes de analizarlos.
+                    </p>
+                    
+                    <pre><code class="language-sql text-sm rounded-lg border border-gray-200">WITH VentasLimpias AS (
+    -- Paso 1: Limpieza
+    SELECT 
+        UPPER(Cliente) as Cliente,
+        CAST(Fecha AS DATE) as FechaVenta,
+        Monto
+    FROM RawData
+),
+VentasMensuales AS (
+    -- Paso 2: Agregación
+    SELECT 
+        YEAR(FechaVenta) as Anio,
+        MONTH(FechaVenta) as Mes,
+        SUM(Monto) as Total
+    FROM VentasLimpias
+    GROUP BY YEAR(FechaVenta), MONTH(FechaVenta)
+)
+-- Paso 3: Análisis Final
+SELECT * FROM VentasMensuales;</code></pre>
+                </div>
+            </section>
+
+            <!-- Reto -->
+            <section id="reto">
+                <div class="bg-white border border-gray-200 rounded-3xl p-10 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-blue-50 opacity-50 rounded-full blur-3xl -mt-10 -mr-10"></div>
+                    <div class="absolute bottom-0 left-0 w-40 h-40 bg-red-50 opacity-50 rounded-full blur-2xl -mb-10 -ml-10"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="bg-usta-blue/10 p-3 rounded-lg">
+                                <i data-lucide="trending-up" class="w-8 h-8 text-usta-blue"></i>
+                            </div>
+                            <div>
+                                <span class="text-usta-red font-bold text-xs uppercase tracking-widest block mb-1">Reto Final de Módulo</span>
+                                <h2 class="text-3xl font-black text-gray-800">The Financial Analyst Protocol</h2>
+                            </div>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-8 max-w-2xl text-lg">
+                            El CFO necesita un reporte urgente. Excel colapsó. Debes generar una <strong>Consulta Única</strong> que muestre el rendimiento histórico de ventas.
+                        </p>
+
+                        <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8">
+                            <h4 class="font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">Requerimientos del Query (Single SELECT):</h4>
+                            <ul class="space-y-4 text-sm text-gray-700">
+                                <li class="flex gap-3">
+                                    <span class="bg-usta-blue text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs">1</span>
+                                    <span><strong>Limpieza (CTE):</strong> Usa el dataset <code>raw_sales_dump.csv</code> normalizado.</span>
+                                </li>
+                                <li class="flex gap-3">
+                                    <span class="bg-usta-blue text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs">2</span>
+                                    <span><strong>Venta Mensual:</strong> Agrupa las ventas por Año y Mes.</span>
+                                </li>
+                                <li class="flex gap-3">
+                                    <span class="bg-usta-blue text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs">3</span>
+                                    <span><strong>Growth (MoM):</strong> Usa <code>LAG()</code> para calcular el % de crecimiento respecto al mes anterior.</span>
+                                </li>
+                                <li class="flex gap-3">
+                                    <span class="bg-usta-blue text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs">4</span>
+                                    <span><strong>Acumulado (YTD):</strong> Usa <code>SUM() OVER(PARTITION BY Anio ORDER BY Mes)</code> para el Running Total.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="https://github.com/Izainea/reto_7_dgd_2026" target="_blank" class="bg-usta-blue text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-800 transition shadow-lg flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-5 h-5"></i> Descargar Reto
+                            </a>
+                            <a href="https://notebooklm.google.com/notebook/3a11d607-230b-41a9-bd2b-fb06971bb639" target="_blank" class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-50 transition shadow-lg flex items-center justify-center gap-2">
+                                <i data-lucide="bot" class="w-5 h-5 text-usta-blue"></i> Ayuda con IA
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="text-center text-gray-400 text-xs py-10 border-t border-gray-200">
+                <div class="flex justify-center items-center gap-2 mb-2">
+                    <span class="font-bold text-usta-blue">USTA</span>
+                    <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                    <span>Diplomado en Estrategias de Datos</span>
+                </div>
+                <p>&copy; 2026 Universidad Santo Tomás. Vigilada Mineducación.</p>
+            </footer>
+
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        hljs.highlightAll();
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+
+        // Scroll Spy Logic
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-item');
+
+        document.querySelector('main').addEventListener('scroll', () => {
+            let current = '';
+            const main = document.querySelector('main');
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (main.scrollTop >= (sectionTop - 150)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
