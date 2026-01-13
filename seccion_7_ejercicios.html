@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Quest: El Ascenso del Analista</title>
+    <style>
+        :root {
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --text-main: #e0e0e0;
+            --accent: #00bcd4;
+            --highlight: #ff9800;
+            --code-bg: #2d2d2d;
+            --success: #4caf50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2, h3 { color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .hero-banner {
+            text-align: center;
+            padding: 40px;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            margin-bottom: 40px;
+            background: linear-gradient(45deg, #1e1e1e, #2a2a2a);
+        }
+
+        .level-section {
+            border-left: 4px solid var(--highlight);
+            padding-left: 20px;
+            margin-bottom: 60px;
+        }
+
+        .power-unlock {
+            background-color: rgba(0, 188, 212, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--accent);
+        }
+
+        .query-card {
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .query-title { font-weight: bold; color: var(--highlight); margin-bottom: 10px; display: block; }
+        .query-desc { font-size: 0.9em; margin-bottom: 15px; color: #b0b0b0; }
+
+        pre {
+            background-color: var(--code-bg);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            color: #dcdcaa;
+            font-family: 'Consolas', monospace;
+            border: 1px solid #444;
+        }
+
+        /* Syntax Highlighting Fake */
+        .kw { color: #569cd6; font-weight: bold; } /* Keywords */
+        .fn { color: #dcdcaa; } /* Functions */
+        .str { color: #ce9178; } /* Strings */
+        .num { color: #b5cea8; } /* Numbers */
+        .com { color: #6a9955; font-style: italic; } /* Comments */
+
+        .boss-fight {
+            border: 4px solid #f44336;
+            background-color: #2a0e0e;
+        }
+        
+        .boss-title { color: #f44336; text-align: center; font-size: 2em; }
+
+        footer { text-align: center; margin-top: 50px; font-size: 0.8em; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+    <div class="hero-banner">
+        <h1>SQL Quest: El Ascenso</h1>
+        <p>Tu viaje desde el GROUP BY hasta la Maestría Analítica</p>
+        <p><em>Dataset: Tabla 'trips' (Taxis) | Motor: SQL Server</em></p>
+    </div>
+
+    <div class="level-section">
+        <h2>Nivel 1: El Despertar de la Ventana</h2>
+        <div class="power-unlock">
+            <h3>⚡ Poder Desbloqueado: OVER()</h3>
+            <p><strong>El problema:</strong> Hasta ahora, el <code>GROUP BY</code> colapsaba tus filas. Perdías el detalle.</p>
+            <p><strong>La solución:</strong> <code>OVER()</code> abre una "ventana" sobre los datos. Te permite calcular agregados (SUM, AVG) sin destruir la fila original.</p>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 01: La Visión Global</span>
+            <p class="query-desc">Calcula el promedio de duración de TODOS los viajes y muéstralo junto a cada viaje individual.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    trip_duration,
+    <span class="fn">AVG</span>(trip_duration) <span class="kw">OVER</span>() <span class="kw">AS</span> promedio_global
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 02: La Comparación Inmediata</span>
+            <p class="query-desc">¿Es este viaje más largo o más corto que el promedio global?</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    trip_duration,
+    trip_duration - <span class="fn">AVG</span>(trip_duration) <span class="kw">OVER</span>() <span class="kw">AS</span> diferencia_vs_global
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 03: El Peso del Individuo</span>
+            <p class="query-desc">¿Qué porcentaje representa la duración de este viaje sobre el tiempo TOTAL de todos los viajes?</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    trip_duration,
+    <span class="fn">CAST</span>(trip_duration <span class="kw">AS FLOAT</span>) / <span class="fn">SUM</span>(trip_duration) <span class="kw">OVER</span>() * <span class="num">100</span> <span class="kw">AS</span> pct_del_total
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 04: Contando sin Agrupar</span>
+            <p class="query-desc">Muestra el ID del viaje y cuántos viajes existen en total en la tabla (en cada fila).</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    <span class="fn">COUNT</span>(*) <span class="kw">OVER</span>() <span class="kw">AS</span> total_filas_tabla
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 05: El Máximo Histórico</span>
+            <p class="query-desc">Muestra junto a cada viaje, cuál es el viaje más largo registrado en toda la base.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    trip_duration,
+    <span class="fn">MAX</span>(trip_duration) <span class="kw">OVER</span>() <span class="kw">AS</span> record_global
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+    </div>
+
+    <div class="level-section">
+        <h2>Nivel 2: La Habilidad de Particionar</h2>
+        <div class="power-unlock">
+            <h3>⚡ Poder Desbloqueado: PARTITION BY</h3>
+            <p><strong>El concepto:</strong> <code>OVER()</code> ve todo. <code>PARTITION BY</code> crea mini-ventanas. Es como hacer un GROUP BY para el cálculo, pero manteniendo las filas.</p>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 06: Contexto del Proveedor</span>
+            <p class="query-desc">Calcula el promedio de duración, pero SOLO considerando los viajes de ese mismo `vendor_id`.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    vendor_id,
+    trip_duration,
+    <span class="fn">AVG</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id) <span class="kw">AS</span> promedio_vendor
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 07: Volumen por Proveedor</span>
+            <p class="query-desc">Cuenta cuántos viajes hizo el proveedor de la fila actual.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    vendor_id,
+    <span class="fn">COUNT</span>(*) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id) <span class="kw">AS</span> total_viajes_vendor
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 08: Porcentaje de Carga del Proveedor</span>
+            <p class="query-desc">De todo el tiempo trabajado por el Vendor 1, ¿cuánto representa este viaje específico?</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    vendor_id,
+    trip_duration,
+    <span class="fn">CAST</span>(trip_duration <span class="kw">AS FLOAT</span>) / <span class="fn">SUM</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id) * <span class="num">100</span> <span class="kw">AS</span> pct_contribucion_vendor
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 09: Análisis por Pasajeros</span>
+            <p class="query-desc">Calcula la duración máxima observada para viajes con la misma cantidad de pasajeros.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    passenger_count,
+    trip_duration,
+    <span class="fn">MAX</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> passenger_count) <span class="kw">AS</span> max_duracion_grupo
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 10: Partición Múltiple</span>
+            <p class="query-desc">Particiona por Proveedor Y por Día. El cálculo se reinicia cada día para cada proveedor.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    vendor_id,
+    <span class="fn">CAST</span>(pickup_datetime <span class="kw">AS DATE</span>) <span class="kw">AS</span> dia,
+    <span class="fn">COUNT</span>(*) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id, <span class="fn">CAST</span>(pickup_datetime <span class="kw">AS DATE</span>)) <span class="kw">AS</span> viajes_ese_dia_ese_vendor
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+    </div>
+
+    <div class="level-section">
+        <h2>Nivel 3: El Orden y el Marco</h2>
+        <div class="power-unlock">
+            <h3>⚡ Poder Desbloqueado: ORDER BY (dentro de OVER)</h3>
+            <p><strong>El concepto:</strong> Cuando añades <code>ORDER BY</code> dentro de la ventana, cambias el comportamiento. Ahora la función se aplica "fila a fila" acumulando valores. Creas <em>Running Totals</em>.</p>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 11: Total Acumulado (Running Total)</span>
+            <p class="query-desc">Suma la duración de los viajes acumulada cronológicamente a lo largo de los días.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">20</span>
+    id, 
+    pickup_datetime,
+    trip_duration,
+    <span class="fn">SUM</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> pickup_datetime) <span class="kw">AS</span> duracion_acumulada_historica
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 12: Acumulado Reiniciable</span>
+            <p class="query-desc">Suma acumulada, pero se reinicia a 0 cuando cambia el proveedor (Partition + Order).</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">20</span>
+    id, 
+    vendor_id,
+    pickup_datetime,
+    trip_duration,
+    <span class="fn">SUM</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> pickup_datetime) <span class="kw">AS</span> acumulado_vendor
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 13: El Récord Móvil</span>
+            <p class="query-desc">Muestra cuál era la duración máxima vista *hasta ese momento* en el tiempo.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">20</span>
+    pickup_datetime,
+    trip_duration,
+    <span class="fn">MAX</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> pickup_datetime) <span class="kw">AS</span> maximo_hasta_ahora
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 14: Promedio Móvil Simple</span>
+            <p class="query-desc">Promedio de duración de todos los viajes hasta el punto actual.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">20</span>
+    id, 
+    trip_duration,
+    <span class="fn">AVG</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> pickup_datetime) <span class="kw">AS</span> promedio_movil_historico
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+    </div>
+
+    <div class="level-section">
+        <h2>Nivel 4: Jerarquías y Rankings</h2>
+        <div class="power-unlock">
+            <h3>⚡ Poder Desbloqueado: RANK(), DENSE_RANK(), ROW_NUMBER()</h3>
+            <p><strong>La misión:</strong> Asignar posiciones de podio.</p>
+            <ul>
+                <li><code>ROW_NUMBER()</code>: Ranking forzado (1, 2, 3, 4).</li>
+                <li><code>RANK()</code>: Salta empates (1, 2, 2, 4).</li>
+                <li><code>DENSE_RANK()</code>: Mantiene secuencia en empates (1, 2, 2, 3).</li>
+            </ul>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 15: Ranking Simple</span>
+            <p class="query-desc">Ordena los viajes por duración descendente globalmente.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id, 
+    trip_duration,
+    <span class="fn">RANK</span>() <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> trip_duration <span class="kw">DESC</span>) <span class="kw">AS</span> ranking_global
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 16: El Top 1 por Proveedor</span>
+            <p class="query-desc">Ranking reiniciado por proveedor. ¿Cuál es el viaje #1 de cada uno?</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">20</span>
+    id, 
+    vendor_id,
+    trip_duration,
+    <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> trip_duration <span class="kw">DESC</span>) <span class="kw">AS</span> ranking_interno
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 17: Diferencia Rank vs Dense_Rank</span>
+            <p class="query-desc">Observa cómo manejan los empates.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">20</span>
+    trip_duration,
+    <span class="fn">RANK</span>() <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> trip_duration <span class="kw">DESC</span>) <span class="kw">AS</span> rnk,
+    <span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> trip_duration <span class="kw">DESC</span>) <span class="kw">AS</span> dense_rnk
+<span class="kw">FROM</span> trips
+<span class="kw">ORDER BY</span> trip_duration <span class="kw">DESC</span>;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 18: Deciles (NTILE)</span>
+            <p class="query-desc">Divide todos los viajes en 10 grupos de igual tamaño según su duración (del 1 al 10).</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">20</span>
+    id,
+    trip_duration,
+    <span class="fn">NTILE</span>(10) <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> trip_duration) <span class="kw">AS</span> decil
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 19: Identificar el Último Viaje</span>
+            <p class="query-desc">Usa Row Number ordenado por fecha DESC para marcar el viaje más reciente con un 1.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">20</span>
+    id,
+    vendor_id,
+    pickup_datetime,
+    <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> pickup_datetime <span class="kw">DESC</span>) <span class="kw">AS</span> orden_inverso
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 20: Detección de Duplicados</span>
+            <p class="query-desc">Si hay dos filas con el mismo ID, el Row Number será 2.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    id,
+    <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> id <span class="kw">ORDER BY</span> id) <span class="kw">AS</span> duplicado_check
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+    </div>
+
+    <div class="level-section">
+        <h2>Nivel 5: Viaje en el Tiempo</h2>
+        <div class="power-unlock">
+            <h3>⚡ Poder Desbloqueado: LEAD y LAG</h3>
+            <p><strong>El concepto:</strong> Accede a la fila ANTERIOR (<code>LAG</code>) o a la SIGUIENTE (<code>LEAD</code>) sin hacer Joins complejos.</p>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 21: El Valor Anterior</span>
+            <p class="query-desc">Trae la duración del viaje inmediatamente anterior de este mismo proveedor.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    vendor_id,
+    pickup_datetime,
+    trip_duration,
+    <span class="fn">LAG</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> pickup_datetime) <span class="kw">AS</span> duracion_anterior
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 22: Diferencia (Delta)</span>
+            <p class="query-desc">Calcula cuántos segundos más (o menos) duró este viaje respecto al anterior.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    vendor_id,
+    trip_duration,
+    trip_duration - <span class="fn">LAG</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> pickup_datetime) <span class="kw">AS</span> delta
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 23: Tiempo Muerto (Idle Time)</span>
+            <p class="query-desc">Diferencia entre el Dropoff del viaje anterior y el Pickup del viaje actual.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    vendor_id,
+    pickup_datetime,
+    <span class="fn">LAG</span>(dropoff_datetime) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> pickup_datetime) <span class="kw">AS</span> dropoff_previo,
+    <span class="fn">DATEDIFF</span>(minute, 
+        <span class="fn">LAG</span>(dropoff_datetime) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> pickup_datetime),
+        pickup_datetime
+    ) <span class="kw">AS</span> minutos_descanso
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 24: Mirando al Futuro (LEAD)</span>
+            <p class="query-desc">¿Cuál será la duración del PRÓXIMO viaje?</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    vendor_id,
+    trip_duration,
+    <span class="fn">LEAD</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> pickup_datetime) <span class="kw">AS</span> siguiente_duracion
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 25: First Value del Día</span>
+            <p class="query-desc">Compara cada viaje del día con el PRIMER viaje de ese mismo día.</p>
+            <pre><code><span class="kw">SELECT TOP</span> <span class="num">10</span>
+    pickup_datetime,
+    trip_duration,
+    <span class="fn">FIRST_VALUE</span>(trip_duration) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> <span class="fn">CAST</span>(pickup_datetime <span class="kw">AS DATE</span>) <span class="kw">ORDER BY</span> pickup_datetime) <span class="kw">AS</span> primera_duracion_dia
+<span class="kw">FROM</span> trips;</code></pre>
+        </div>
+    </div>
+
+    <div class="level-section">
+        <h2>Nivel 6: El Arquitecto (CTEs)</h2>
+        <div class="power-unlock">
+            <h3>⚡ Poder Desbloqueado: WITH (Common Table Expressions)</h3>
+            <p><strong>El problema:</strong> Las subconsultas anidadas son difíciles de leer.</p>
+            <p><strong>La solución:</strong> Crea "tablas temporales virtuales" para organizar tu lógica paso a paso.</p>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 26: CTE de Limpieza</span>
+            <p class="query-desc">Paso 1: Limpia los datos. Paso 2: Selecciónalos.</p>
+            <pre><code><span class="kw">WITH</span> DatosLimpios <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> id, vendor_id, trip_duration 
+    <span class="kw">FROM</span> trips 
+    <span class="kw">WHERE</span> trip_duration <span class="kw">IS NOT NULL</span> <span class="kw">AND</span> trip_duration > <span class="num">0</span>
+)
+<span class="kw">SELECT TOP</span> <span class="num">10</span> * <span class="kw">FROM</span> DatosLimpios;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 27: CTE de Agregación</span>
+            <p class="query-desc">Calcula totales diarios en una CTE y úsalos después.</p>
+            <pre><code><span class="kw">WITH</span> ResumenDiario <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> <span class="fn">CAST</span>(pickup_datetime <span class="kw">AS DATE</span>) <span class="kw">AS</span> Fecha, <span class="fn">SUM</span>(trip_duration) <span class="kw">AS</span> Total
+    <span class="kw">FROM</span> trips
+    <span class="kw">GROUP BY</span> <span class="fn">CAST</span>(pickup_datetime <span class="kw">AS DATE</span>)
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> ResumenDiario <span class="kw">ORDER BY</span> Fecha;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 28: CTE + Window Function</span>
+            <p class="query-desc">Usa el resultado de la CTE para hacer un ranking de los días con más tráfico.</p>
+            <pre><code><span class="kw">WITH</span> ResumenDiario <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> <span class="fn">CAST</span>(pickup_datetime <span class="kw">AS DATE</span>) <span class="kw">AS</span> Fecha, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> CantidadViajes
+    <span class="kw">FROM</span> trips
+    <span class="kw">GROUP BY</span> <span class="fn">CAST</span>(pickup_datetime <span class="kw">AS DATE</span>)
+)
+<span class="kw">SELECT</span> 
+    Fecha, 
+    CantidadViajes, 
+    <span class="fn">RANK</span>() <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> CantidadViajes <span class="kw">DESC</span>) <span class="kw">AS</span> RankingDia
+<span class="kw">FROM</span> ResumenDiario;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 29: Filtrando el Resultado de Window Function</span>
+            <p class="query-desc">¡Truco! No puedes usar WHERE sobre un ranking directamente. Necesitas una CTE.</p>
+            <pre><code><span class="kw">WITH</span> RankingCalculado <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> id, vendor_id, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> trip_duration <span class="kw">DESC</span>) <span class="kw">AS</span> rn
+    <span class="kw">FROM</span> trips
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> RankingCalculado <span class="kw">WHERE</span> rn = <span class="num">1</span>;</code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Reto 30: CTEs Encadenadas</span>
+            <p class="query-desc">Define una CTE y úsala dentro de la siguiente CTE.</p>
+            <pre><code><span class="kw">WITH</span> Paso1 <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> id, trip_duration <span class="kw">FROM</span> trips <span class="kw">WHERE</span> trip_duration > <span class="num">100</span>
+),
+Paso2 <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> id, trip_duration * <span class="num">2</span> <span class="kw">AS</span> duracion_doble <span class="kw">FROM</span> Paso1
+)
+<span class="kw">SELECT TOP</span> <span class="num">5</span> * <span class="kw">FROM</span> Paso2;</code></pre>
+        </div>
+    </div>
+
+    <div class="level-section boss-fight">
+        <h2 class="boss-title">☠️ JEFE FINAL: EL REPORTE DEL CFO ☠️</h2>
+        <div class="power-unlock" style="background-color: rgba(244, 67, 54, 0.1); border-color: #f44336;">
+            <h3>Misión: Todo o Nada</h3>
+            <p>El CFO exige un reporte mensual con:</p>
+            <ol>
+                <li>Limpieza de datos (CTE).</li>
+                <li>Agregación mensual (CTE).</li>
+                <li>Crecimiento vs Mes Anterior (Window Function - LAG).</li>
+                <li>Acumulado del año (Window Function - SUM).</li>
+            </ol>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Paso 1: Preparar el Terreno (Reto 36)</span>
+            <pre><code><span class="kw">WITH</span> DataLimpia <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> 
+        vendor_id, 
+        <span class="fn">CAST</span>(pickup_datetime <span class="kw">AS DATE</span>) <span class="kw">AS</span> Fecha,
+        trip_duration
+    <span class="kw">FROM</span> trips
+    <span class="kw">WHERE</span> trip_duration > <span class="num">0</span>
+)
+<span class="com">-- ...continuará</span></code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">Paso 2: La Agregación (Reto 37)</span>
+            <pre><code><span class="com">-- ...viene de DataLimpia</span>
+, AgregadoMensual <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> 
+        vendor_id,
+        <span class="fn">YEAR</span>(Fecha) <span class="kw">AS</span> Anio,
+        <span class="fn">MONTH</span>(Fecha) <span class="kw">AS</span> Mes,
+        <span class="fn">SUM</span>(trip_duration) <span class="kw">AS</span> Ventas
+    <span class="kw">FROM</span> DataLimpia
+    <span class="kw">GROUP BY</span> vendor_id, <span class="fn">YEAR</span>(Fecha), <span class="fn">MONTH</span>(Fecha)
+)
+<span class="com">-- ...continuará</span></code></pre>
+        </div>
+
+        <div class="query-card">
+            <span class="query-title">EL GOLPE FINAL (Reto 40: Query Maestra)</span>
+            <p class="query-desc">Ejecuta esto en tu consola para ganar el juego.</p>
+            <pre><code><span class="kw">WITH</span> DataLimpia <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> vendor_id, <span class="fn">CAST</span>(pickup_datetime <span class="kw">AS DATE</span>) <span class="kw">AS</span> Fecha, trip_duration
+    <span class="kw">FROM</span> trips <span class="kw">WHERE</span> trip_duration > <span class="num">0</span>
+),
+AgregadoMensual <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> vendor_id, <span class="fn">YEAR</span>(Fecha) <span class="kw">AS</span> Anio, <span class="fn">MONTH</span>(Fecha) <span class="kw">AS</span> Mes, <span class="fn">SUM</span>(trip_duration) <span class="kw">AS</span> Total
+    <span class="kw">FROM</span> DataLimpia
+    <span class="kw">GROUP BY</span> vendor_id, <span class="fn">YEAR</span>(Fecha), <span class="fn">MONTH</span>(Fecha)
+)
+<span class="kw">SELECT</span> 
+    vendor_id, Anio, Mes, Total,
+    <span class="com">-- Ataque 1: Crecimiento MoM</span>
+    <span class="fn">LAG</span>(Total) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> Anio, Mes) <span class="kw">AS</span> Mes_Anterior,
+    (Total - <span class="fn">LAG</span>(Total) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id <span class="kw">ORDER BY</span> Anio, Mes)) <span class="kw">AS</span> Diferencia_Neta,
+    
+    <span class="com">-- Ataque 2: Acumulado YTD</span>
+    <span class="fn">SUM</span>(Total) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> vendor_id, Anio <span class="kw">ORDER BY</span> Mes) <span class="kw">AS</span> Acumulado_Anual
+<span class="kw">FROM</span> AgregadoMensual
+<span class="kw">ORDER BY</span> vendor_id, Anio, Mes;</code></pre>
+        </div>
+    </div>
+
+    <footer>
+        <p>SQL Master Class - Generado para practicar en SQL Server</p>
+    </footer>
+
+</body>
+</html>
