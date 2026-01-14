@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Class: SQL Server Internals</title>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base Setup */
+        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #334155; }
+        code { font-family: 'Source Code Pro', monospace; }
+        
+        /* USTA Colors */
+        .bg-usta-blue { background-color: #003366; }
+        .text-usta-blue { color: #003366; }
+        .bg-usta-red { background-color: #DA291C; }
+        .text-usta-red { color: #DA291C; }
+        .border-usta-yellow { border-color: #FFCC00; }
+        
+        /* Advanced Visuals */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            backdrop-filter: blur(4px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Page Anatomy Visualizer (CSS Art) */
+        .page-visual {
+            width: 100%;
+            height: 320px;
+            background: #f8fafc;
+            border: 2px solid #94a3b8;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+        }
+        .page-header-block {
+            height: 30px;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            color: white;
+            font-size: 0.7rem;
+            font-family: 'Source Code Pro', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #1e40af;
+        }
+        .page-body-block {
+            flex-grow: 1;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 3px;
+            position: relative;
+        }
+        .data-row {
+            height: 18px;
+            background: #10b981;
+            width: calc(10% - 3px);
+            border-radius: 2px;
+            opacity: 0.9;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .data-row:hover {
+            background: #DA291C;
+            transform: scale(1.2);
+            z-index: 20;
+        }
+        .free-space {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px dashed #cbd5e1;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-weight: 600;
+            pointer-events: none;
+        }
+        .slot-array-block {
+            height: 25px;
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            color: white;
+            font-size: 0.7rem;
+            font-family: 'Source Code Pro', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid #b45309;
+        }
+
+        /* Interactive Nav */
+        .nav-item.active { background-color: #eff6ff; border-left: 4px solid #003366; color: #003366; font-weight: 700; }
+        .nav-item i { transition: color 0.3s; }
+        .nav-item.active i { color: #DA291C; }
+
+        /* Lab Cards */
+        .lab-card {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid transparent;
+        }
+        .lab-card:hover {
+            transform: translateY(-8px);
+            border-color: #003366;
+            box-shadow: 0 25px 50px -12px rgba(0, 51, 102, 0.25);
+        }
+        .lab-badge {
+            position: absolute;
+            top: 10px; right: 10px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navbar -->
+    <header class="bg-usta-blue text-white sticky top-0 z-50 shadow-2xl border-b-4 border-usta-yellow">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <a href="index.html" class="flex items-center hover:text-yellow-400 transition-colors group">
+                    <div class="bg-white/10 p-2 rounded-full group-hover:bg-white/20 transition backdrop-blur-sm">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    </div>
+                    <span class="ml-3 font-bold tracking-wide text-sm md:text-base group-hover:underline decoration-2 underline-offset-4">Dashboard</span>
+                </a>
+                <div class="h-8 w-px bg-white/20 hidden md:block"></div>
+                <h1 class="text-lg font-black tracking-tight hidden md:block">SQL SERVER <span class="text-yellow-400">INTERNALS</span></h1>
+            </div>
+            <div class="flex items-center gap-3 bg-black/20 px-4 py-2 rounded-lg backdrop-blur-md border border-white/10">
+                <i data-lucide="cpu" class="w-5 h-5 text-yellow-400"></i>
+                <div class="text-right leading-none">
+                    <p class="text-[10px] text-gray-300 uppercase tracking-wider">Capítulo</p>
+                    <p class="font-bold text-sm">08</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-grow max-w-8xl mx-auto w-full bg-gradient-to-b from-gray-50 to-white">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="hidden lg:block w-80 h-[calc(100vh-5rem)] sticky top-20 bg-white border-r border-gray-200 overflow-y-auto shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+            <div class="p-6">
+                <div class="mb-10">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 pl-2">Teoría Core</h3>
+                    <nav class="space-y-2">
+                        <a href="#intro" class="nav-item flex items-center px-4 py-3 text-sm text-gray-600 rounded-lg hover:bg-gray-50 transition duration-200">
+                            <i data-lucide="book-open" class="w-4 h-4 mr-3 text-gray-400"></i> Introducción
+                        </a>
+                        <a href="#pages" class="nav-item flex items-center px-4 py-3 text-sm text-gray-600 rounded-lg hover:bg-gray-50 transition duration-200">
+                            <i data-lucide="box" class="w-4 h-4 mr-3 text-gray-400"></i> 1. Anatomía de Página
+                        </a>
+                        <a href="#files" class="nav-item flex items-center px-4 py-3 text-sm text-gray-600 rounded-lg hover:bg-gray-50 transition duration-200">
+                            <i data-lucide="hard-drive" class="w-4 h-4 mr-3 text-gray-400"></i> 2. Archivos y Extents
+                        </a>
+                        <a href="#buffer" class="nav-item flex items-center px-4 py-3 text-sm text-gray-600 rounded-lg hover:bg-gray-50 transition duration-200">
+                            <i data-lucide="memory-stick" class="w-4 h-4 mr-3 text-gray-400"></i> 3. Buffer Pool RAM
+                        </a>
+                        <a href="#btree" class="nav-item flex items-center px-4 py-3 text-sm text-gray-600 rounded-lg hover:bg-gray-50 transition duration-200">
+                            <i data-lucide="git-fork" class="w-4 h-4 mr-3 text-gray-400"></i> 4. Índices B-Tree
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-50 to-white p-5 rounded-2xl border border-blue-100 shadow-sm relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-blue-500 opacity-5 rounded-full blur-2xl -mr-10 -mt-10 group-hover:opacity-10 transition"></div>
+                    <h4 class="font-bold text-usta-blue text-sm mb-3 flex items-center relative z-10">
+                        <i data-lucide="flask-conical" class="w-4 h-4 mr-2"></i> Zona de Práctica
+                    </h4>
+                    <p class="text-xs text-gray-600 mb-4 relative z-10 leading-relaxed">
+                        La teoría sin práctica es estéril. Completa los 3 laboratorios para desbloquear tu certificación.
+                    </p>
+                    <a href="#labs" class="inline-flex items-center text-xs font-bold text-blue-600 hover:text-blue-800 transition relative z-10">
+                        Ir a Laboratorios <i data-lucide="arrow-down" class="ml-1 w-3 h-3"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-8 lg:p-16 overflow-y-auto scroll-smooth">
+            
+            <!-- Hero Section -->
+            <section id="intro" class="mb-24 animate-fade-in relative">
+                <div class="absolute -top-10 -left-10 w-64 h-64 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+                <div class="absolute -top-10 -right-10 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+                
+                <div class="relative">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-usta-red/10 text-usta-red text-xs font-bold uppercase rounded-full mb-6 border border-usta-red/20">
+                        <span class="w-2 h-2 rounded-full bg-usta-red animate-pulse"></span>
+                        Ingeniería de Datos Profunda
+                    </div>
+                    <h1 class="text-5xl md:text-7xl font-black text-gray-900 mb-8 leading-tight tracking-tight">
+                        La "Caja Negra" <br> <span class="bg-clip-text bg-gradient-to-r from-usta-blue to-blue-500">al Descubierto</span>
+                    </h1>
+                    <p class="text-xl text-gray-600 leading-relaxed max-w-4xl border-l-4 border-usta-yellow pl-6">
+                        SQL Server no es mágico. Es un software complejo que obedece las leyes de la física (latencia de disco) y de la computación (páginas de memoria). <br><br>
+                        Entender qué pasa cuando presionas <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-mono text-gray-800">F5</kbd> es lo que separa a un usuario de SQL de un <strong>Ingeniero de Datos Senior</strong>.
+                    </p>
+                </div>
+            </section>
+
+            <!-- MODULE 1: THE PAGE -->
+            <section id="pages" class="mb-32 scroll-mt-24">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-900/20">
+                        <i data-lucide="layers" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900">1. La Unidad Atómica: La Página</h2>
+                        <p class="text-sm font-mono text-blue-600 mt-1">Size: 8192 Bytes (8KB)</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-12">
+                    <div class="space-y-6">
+                        <p class="text-gray-700 leading-relaxed">
+                            Olvida el concepto de "fila" por un momento. El motor de almacenamiento no lee filas, lee <strong>Páginas</strong>. Es el bloque más pequeño de I/O.
+                        </p>
+                        
+                        <div class="glass-card p-6 rounded-xl">
+                            <h4 class="font-bold text-usta-blue mb-4 flex items-center"><i data-lucide="microscope" class="w-4 h-4 mr-2"></i> Anatomía Interna</h4>
+                            <ul class="space-y-4 text-sm text-gray-600">
+                                <li class="flex gap-4">
+                                    <div class="w-12 font-mono text-xs font-bold text-right pt-1 text-blue-500">Header</div>
+                                    <div class="flex-1">
+                                        <strong class="text-gray-900 block">96 Bytes Fijos</strong>
+                                        Contiene metadatos críticos: `PageID`, `ObjectId` (a qué tabla pertenece), y punteros `PrevPage` / `NextPage` (lista doblemente enlazada).
+                                    </div>
+                                </li>
+                                <li class="flex gap-4">
+                                    <div class="w-12 font-mono text-xs font-bold text-right pt-1 text-green-600">Body</div>
+                                    <div class="flex-1">
+                                        <strong class="text-gray-900 block">8060 Bytes (Max)</strong>
+                                        Aquí viven tus datos. Las filas se apilan una tras otra. Si una fila no cabe en el espacio restante, se mueve a una página nueva.
+                                    </div>
+                                </li>
+                                <li class="flex gap-4">
+                                    <div class="w-12 font-mono text-xs font-bold text-right pt-1 text-orange-500">Tail</div>
+                                    <div class="flex-1">
+                                        <strong class="text-gray-900 block">Slot Array (Variable)</strong>
+                                        Crece desde el final de la página hacia arriba. Es un índice inverso: el Slot 0 apunta al byte donde empieza la Fila 0.
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-red-50 border-l-4 border-red-500 p-5 rounded-r-xl">
+                            <h4 class="font-bold text-red-800 text-sm mb-2 flex items-center">
+                                <i data-lucide="alert-octagon" class="w-4 h-4 mr-2"></i> El Enemigo: Page Splits
+                            </h4>
+                            <p class="text-xs text-red-700 leading-relaxed">
+                                Si intentas insertar una fila en una página llena (ej: insertando un ID=5 entre el 4 y el 6), SQL Server debe romper la página en dos, mover la mitad de los datos y actualizar punteros.
+                                <br><strong class="block mt-2">Consecuencia: I/O Masivo + Fragmentación Lógica (Páginas al 50% de uso).</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Visualizador CSS -->
+                    <div class="space-y-4">
+                        <div class="page-visual rounded-lg">
+                            <div class="page-header-block">
+                                <span class="opacity-75 mr-2">0x0000</span> HEADER (96 Bytes) <span class="opacity-75 ml-2">PageID: 1:154</span>
+                            </div>
+                            <div class="page-body-block">
+                                <!-- Filas Simuladas -->
+                                <div class="data-row" title="Row 1"></div><div class="data-row" title="Row 2"></div>
+                                <div class="data-row" title="Row 3"></div><div class="data-row" title="Row 4"></div>
+                                <div class="data-row" title="Row 5"></div><div class="data-row" title="Row 6"></div>
+                                <div class="data-row" title="Row 7"></div><div class="data-row" title="Row 8"></div>
+                                <div class="data-row" title="Row 9"></div><div class="data-row" title="Row 10"></div>
+                                <div class="data-row" title="Row 11"></div><div class="data-row" title="Row 12"></div>
+                                <div class="data-row" title="Row 13"></div><div class="data-row" title="Row 14"></div>
+                                <div class="data-row" title="Row 15"></div><div class="data-row" title="Row 16"></div>
+                                <div class="data-row" title="Row 17"></div><div class="data-row" title="Row 18"></div>
+                                <div class="data-row" title="Row 19"></div><div class="data-row" title="Row 20"></div>
+                                <div class="data-row" title="Row 21"></div><div class="data-row" title="Row 22"></div>
+                                <div class="data-row" title="Row 23"></div><div class="data-row" title="Row 24"></div>
+                                
+                                <div class="free-space">Espacio Libre (Contiguo)</div>
+                            </div>
+                            <div class="slot-array-block">
+                                SLOT ARRAY (Grow Upwards)
+                            </div>
+                        </div>
+                        <p class="text-center text-xs text-gray-500 italic">Diagrama interactivo: Pasa el mouse sobre las filas verdes</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 2: FILES -->
+            <section id="files" class="mb-32 scroll-mt-24">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-4 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-900/20">
+                        <i data-lucide="hard-drive" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900">2. Extents y Archivos Físicos</h2>
+                        <p class="text-sm font-mono text-indigo-600 mt-1">Allocation Unit: 64KB</p>
+                    </div>
+                </div>
+
+                <div class="prose prose-lg text-gray-600 mb-8 max-w-none">
+                    <p>Las páginas no flotan en el vacío. Se agrupan en <strong>Extents</strong> (8 páginas = 64KB) para optimizar la lectura secuencial (Read-Ahead).</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- MDF -->
+                    <div class="glass-card p-6 rounded-xl border-t-4 border-blue-500">
+                        <h4 class="font-bold text-gray-800 text-lg mb-2">Primary (.mdf)</h4>
+                        <p class="text-xs text-gray-500 mb-4 uppercase tracking-wide font-bold">Metadata & Data</p>
+                        <p class="text-sm text-gray-600 mb-4">El cerebro. Contiene el catálogo del sistema y (usualmente) los datos de usuario si no hay NDFs.</p>
+                        <div class="h-2 w-full bg-blue-100 rounded-full overflow-hidden"><div class="h-full w-3/4 bg-blue-500"></div></div>
+                    </div>
+                    <!-- NDF -->
+                    <div class="glass-card p-6 rounded-xl border-t-4 border-cyan-500">
+                        <h4 class="font-bold text-gray-800 text-lg mb-2">Secondary (.ndf)</h4>
+                        <p class="text-xs text-gray-500 mb-4 uppercase tracking-wide font-bold">Partitioning</p>
+                        <p class="text-sm text-gray-600 mb-4">Archivos opcionales para distribuir datos en diferentes discos físicos (Filegroups).</p>
+                        <div class="h-2 w-full bg-cyan-100 rounded-full overflow-hidden"><div class="h-full w-1/2 bg-cyan-500"></div></div>
+                    </div>
+                    <!-- LDF -->
+                    <div class="glass-card p-6 rounded-xl border-t-4 border-red-500 bg-red-50/50">
+                        <h4 class="font-bold text-gray-800 text-lg mb-2">Log (.ldf)</h4>
+                        <p class="text-xs text-gray-500 mb-4 uppercase tracking-wide font-bold">Write-Ahead Log</p>
+                        <p class="text-sm text-gray-600 mb-4">Circular. Registra CADA transacción antes de que toque los datos. Vital para recuperación (ACID).</p>
+                        <div class="flex gap-1">
+                            <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                            <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse delay-75"></div>
+                            <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse delay-150"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 3: BUFFER POOL -->
+            <section id="buffer" class="mb-32 scroll-mt-24">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-4 bg-green-600 text-white rounded-2xl shadow-lg shadow-green-900/20">
+                        <i data-lucide="memory-stick" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900">3. Buffer Pool: La Sala de Espera</h2>
+                        <p class="text-sm font-mono text-green-600 mt-1">RAM Speed vs Disk Latency</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 text-white p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+                    <div class="absolute -right-20 -top-20 w-96 h-96 bg-green-600/20 rounded-full blur-3xl"></div>
+                    
+                    <h3 class="text-2xl font-bold mb-8 text-center">Lifecycle de una Consulta SELECT</h3>
+                    
+                    <div class="mermaid flex justify-center bg-white/5 p-6 rounded-2xl border border-white/10">
+                        graph LR
+                        User((Usuario)) -->|SELECT *| Engine[Motor Relacional]
+                        Engine -->|Solicita Página 1:500| BP{Buffer Pool}
+                        
+                        BP -->|¿Está en Caché?| Check
+                        Check -- SI (Logical Read) --> RAM_HIT[Retorno Instantáneo]
+                        Check -- NO (Physical Read) --> DISK[(Disco SSD)]
+                        
+                        DISK -->|Copia Página a RAM| BP
+                        
+                        style BP fill:#15803d,stroke:#fff,stroke-width:2px
+                        style DISK fill:#2472E3,stroke:#FFFFFF
+                        style RAM_HIT fill:#facc15,color:#000,stroke:none
+                        style Engine fill:#2563eb,color:#fff
+                    </div>
+
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        <div class="bg-white/10 p-4 rounded-lg border-l-4 border-green-400">
+                            <strong class="text-green-400 block mb-1">Logical Read (El Bueno)</strong>
+                            La página ya estaba en memoria. Latencia: Nanosegundos.
+                            <br>Tu objetivo: Buffer Cache Hit Ratio > 99%.
+                        </div>
+                        <div class="bg-white/10 p-4 rounded-lg border-l-4 border-red-400">
+                            <strong class="text-red-400 block mb-1">Physical Read (El Malo)</strong>
+                            Hubo que ir al disco. Latencia: Milisegundos (x1000 más lento).
+                            <br>Causa bloqueos de espera (PAGEIOLATCH).
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 4: B-TREES -->
+            <section id="btree" class="mb-32 scroll-mt-24">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-4 bg-yellow-500 text-white rounded-2xl shadow-lg shadow-yellow-900/20">
+                        <i data-lucide="git-fork" class="w-8 h-8"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900">4. B-Trees: Navegación Inteligente</h2>
+                        <p class="text-sm font-mono text-yellow-600 mt-1">Balanced Trees O(log N)</p>
+                    </div>
+                </div>
+
+                <p class="text-gray-700 mb-8 max-w-3xl">
+                    Los índices no son listas planas; son pirámides. El motor "baja" por los niveles del árbol comparando valores hasta llegar a la hoja que contiene el dato.
+                </p>
+
+                <div class="relative w-full h-96 bg-white rounded-2xl shadow-inner border border-gray-200 p-6 flex items-center justify-center overflow-hidden">
+                     <div class="mermaid w-full text-center scale-90">
+                        graph TD
+                        Root[Página Raíz] --> |1-500| Inter1[Nivel Intermedio]
+                        Root --> |501-1000| Inter2[Nivel Intermedio]
+                        
+                        Inter1 --> |1-100| Leaf1[Hoja: Datos A-C]
+                        Inter1 --> |101-200| Leaf2[Hoja: Datos D-F]
+                        
+                        Inter2 --> |501-600| Leaf3[Hoja: Datos M-O]
+                        Inter2 --> |601-700| Leaf4[Hoja: Datos P-R]
+                        
+                        style Root fill:#fef9c3,stroke:#eab308,stroke-width:4px
+                        style Inter1 fill:#bae6fd,stroke:#0ea5e9
+                        style Inter2 fill:#bae6fd,stroke:#0ea5e9
+                        style Leaf1 fill:#bbf7d0,stroke:#22c55e,stroke-dasharray: 5 5
+                        style Leaf2 fill:#bbf7d0,stroke:#22c55e,stroke-dasharray: 5 5
+                        style Leaf3 fill:#bbf7d0,stroke:#22c55e,stroke-dasharray: 5 5
+                        style Leaf4 fill:#bbf7d0,stroke:#22c55e,stroke-dasharray: 5 5
+                     </div>
+                </div>
+
+                <div class="mt-8 bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                    <h4 class="font-bold text-yellow-800 mb-2 flex items-center">
+                        <i data-lucide="help-circle" class="w-4 h-4 mr-2"></i> Clustered vs Non-Clustered
+                    </h4>
+                    <p class="text-sm text-yellow-900/80 mb-0">
+                        En el diagrama de arriba: Si es un <strong>Clustered Index</strong>, las cajas verdes (Hojas) contienen <strong>TODA LA FILA</strong> de datos.
+                        <br>Si es un <strong>Non-Clustered Index</strong>, las cajas verdes solo contienen un puntero (como el número de página de un libro) que te dice dónde buscar el resto de la fila.
+                    </p>
+                </div>
+            </section>
+
+            <!-- LABS ZONE -->
+            <section id="labs" class="mb-20 scroll-mt-24 pt-16 border-t border-gray-200">
+                <div class="text-center mb-16">
+                    <span class="text-blue-600 font-bold tracking-widest text-xs uppercase mb-2 block">Laboratorio Práctico</span>
+                    <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-6">El Desafío: NYC Taxi Data</h2>
+                    <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                        Hemos cubierto la teoría. Ahora te toca optimizar 3 millones de registros reales. Elige tu misión.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Mission 1 -->
+                    <a href="seccion_8_p1.html" class="lab-card group bg-white rounded-3xl p-8 flex flex-col h-full cursor-pointer">
+                        <div class="lab-badge bg-blue-100 text-blue-700">Fase 1</div>
+                        <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-blue-500/30 group-hover:scale-110 transition">
+                            <i data-lucide="database" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3 group-hover:text-blue-600 transition">Arquitectura & Ingesta</h3>
+                        <p class="text-gray-500 text-sm mb-8 leading-relaxed">
+                            Carga masiva con BULK INSERT. Aprende cómo el mal tipado de datos explota tu almacenamiento y destruye el Buffer Pool.
+                        </p>
+                        <div class="mt-auto flex items-center text-blue-600 font-bold text-sm">
+                            Iniciar Misión <i data-lucide="arrow-right" class="ml-2 w-4 h-4 group-hover:translate-x-1 transition"></i>
+                        </div>
+                    </a>
+
+                    <!-- Mission 2 -->
+                    <a href="seccion_8_p2.html" class="lab-card group bg-white rounded-3xl p-8 flex flex-col h-full cursor-pointer">
+                        <div class="lab-badge bg-yellow-100 text-yellow-700">Fase 2</div>
+                        <div class="w-14 h-14 bg-yellow-500 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-yellow-500/30 group-hover:scale-110 transition">
+                            <i data-lucide="search" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-3 group-hover:text-yellow-600 transition">Estrategia de Índices</h3>
+                        <p class="text-gray-500 text-sm mb-8 leading-relaxed">
+                            Domina la batalla Seek vs Scan. Diseña índices "Covering" para eliminar los costosos Key Lookups y acelerar consultas un 99%.
+                        </p>
+                        <div class="mt-auto flex items-center text-yellow-600 font-bold text-sm">
+                            Iniciar Misión <i data-lucide="arrow-right" class="ml-2 w-4 h-4 group-hover:translate-x-1 transition"></i>
+                        </div>
+                    </a>
+
+                    <!-- Mission 3 -->
+                    <a href="seccion_8_reto.html" class="lab-card group bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-8 flex flex-col h-full cursor-pointer text-white border-0 shadow-2xl">
+                        <div class="lab-badge bg-red-600 text-white shadow-red-500/50 shadow-lg">FINAL BOSS</div>
+                        <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-6 backdrop-blur-sm group-hover:bg-red-600 transition duration-500">
+                            <i data-lucide="skull" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-3 group-hover:text-red-400 transition">El Taxi Fantasma</h3>
+                        <p class="text-gray-400 text-sm mb-8 leading-relaxed">
+                            Resuelve un fraude en tiempo real. Un problema de SARGability que colapsa el servidor. Solo para expertos.
+                        </p>
+                        <div class="mt-auto flex items-center text-white font-bold text-sm opacity-80 group-hover:opacity-100">
+                            Aceptar Reto <i data-lucide="flame" class="ml-2 w-4 h-4 group-hover:scale-110 transition"></i>
+                        </div>
+                    </a>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Initialization Scripts -->
+    <script>
+        // Init Icons
+        lucide.createIcons();
+        
+        // Init Diagrams
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e0f2fe',
+                edgeLabelBackground: '#ffffff',
+                tertiaryColor: '#fef9c3',
+                fontFamily: 'Montserrat'
+            },
+            flowchart: { curve: 'basis' }
+        });
+
+        // Scroll Spy & Animation Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-item');
+            const main = document.querySelector('main');
+
+            main.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    // Offset para activar la sección un poco antes de llegar
+                    if (main.scrollTop >= (sectionTop - 300)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

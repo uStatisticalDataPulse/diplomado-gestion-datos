@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 1: Arquitectura & Ingesta | Diplomado Data Strategy</title>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base Setup */
+        body { font-family: 'Montserrat', sans-serif; background-color: #f8fafc; color: #334155; }
+        code { font-family: 'Source Code Pro', monospace; }
+        
+        /* USTA Colors */
+        .bg-usta-blue { background-color: #003366; }
+        .text-usta-blue { color: #003366; }
+        .bg-usta-red { background-color: #DA291C; }
+        .text-usta-red { color: #DA291C; }
+        .border-usta-yellow { border-color: #FFCC00; }
+        
+        /* Components */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+        }
+        .code-window {
+            background: #1e293b;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #334155;
+            position: relative;
+        }
+        .code-header {
+            background: #0f172a;
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+        .copy-btn {
+            background: transparent;
+            border: 1px solid #475569;
+            color: #94a3b8;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background: #334155; color: white; border-color: #64748b; }
+
+        /* Step Indicators */
+        .step-circle {
+            width: 3rem; height: 3rem;
+            border-radius: 9999px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 1.25rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+        .step-line {
+            position: absolute; left: 1.5rem; top: 3rem; bottom: -3rem;
+            width: 2px; background: #e2e8f0; z-index: 0;
+        }
+        
+        /* Interactive Nav */
+        .nav-item.active { background-color: #eff6ff; border-left: 4px solid #003366; color: #003366; font-weight: 700; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navbar -->
+    <header class="bg-usta-blue text-white sticky top-0 z-50 shadow-xl border-b-4 border-usta-yellow">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <a href="seccion_8.html" class="flex items-center hover:text-yellow-400 transition-colors group">
+                    <div class="bg-white/10 p-2 rounded-full group-hover:bg-white/20 transition backdrop-blur-sm">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    </div>
+                    <span class="ml-3 font-bold tracking-wide text-sm md:text-base group-hover:underline decoration-2 underline-offset-4">Volver al Hub</span>
+                </a>
+                <div class="h-8 w-px bg-white/20 hidden md:block"></div>
+                <h1 class="text-lg font-black tracking-tight hidden md:block">LABORATORIO <span class="text-yellow-400">01</span></h1>
+            </div>
+            <div class="flex items-center gap-3 bg-blue-800/50 px-4 py-2 rounded-lg backdrop-blur-md border border-blue-400/30">
+                <i data-lucide="database" class="w-5 h-5 text-yellow-400"></i>
+                <div class="text-right leading-none">
+                    <p class="text-[10px] text-gray-300 uppercase tracking-wider">Misión</p>
+                    <p class="font-bold text-sm">Arquitectura & Ingesta</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-grow max-w-8xl mx-auto w-full bg-gradient-to-b from-gray-50 to-white">
+        
+        <!-- Sidebar -->
+        <aside class="hidden lg:block w-72 h-[calc(100vh-5rem)] sticky top-20 bg-white border-r border-gray-200 overflow-y-auto">
+            <div class="p-6">
+                <div class="mb-8">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 pl-2">Pasos del Lab</h3>
+                    <nav class="space-y-2">
+                        <a href="#setup" class="nav-item flex items-center px-4 py-3 text-sm text-gray-600 rounded-lg hover:bg-gray-50 transition active">
+                            <i data-lucide="download" class="w-4 h-4 mr-3 text-blue-500"></i> 1. Obtener Datos
+                        </a>
+                        <a href="#staging" class="nav-item flex items-center px-4 py-3 text-sm text-gray-600 rounded-lg hover:bg-gray-50 transition">
+                            <i data-lucide="container" class="w-4 h-4 mr-3 text-yellow-600"></i> 2. Staging (Bulk)
+                        </a>
+                        <a href="#analysis" class="nav-item flex items-center px-4 py-3 text-sm text-gray-600 rounded-lg hover:bg-gray-50 transition">
+                            <i data-lucide="microscope" class="w-4 h-4 mr-3 text-red-500"></i> 3. Análisis de Costo
+                        </a>
+                        <a href="#etl" class="nav-item flex items-center px-4 py-3 text-sm text-gray-600 rounded-lg hover:bg-gray-50 transition">
+                            <i data-lucide="filter" class="w-4 h-4 mr-3 text-green-600"></i> 4. Limpieza (ETL)
+                        </a>
+                    </nav>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Herramientas</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded font-bold">Python</span>
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded font-bold">SQL Server</span>
+                        <span class="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded font-bold">Pandas</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 lg:p-12 overflow-y-auto scroll-smooth">
+            
+            <!-- Intro Hero -->
+            <div class="mb-16 text-center max-w-3xl mx-auto">
+                <span class="text-blue-600 font-bold tracking-widest text-xs uppercase mb-2 block">Fase 1: Ingesta</span>
+                <h1 class="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+                    Domando el Caos: <br>De CSV Sucio a <span class="text-usta-blue">Producción</span>
+                </h1>
+                <p class="text-gray-600 text-lg">
+                    La mayoría de los proyectos de datos fallan en la ingesta. En este laboratorio, aprenderás la técnica profesional: <strong>ELT (Extract, Load, Transform)</strong> usando tablas Staging de alta velocidad.
+                </p>
+            </div>
+
+            <div class="max-w-5xl mx-auto">
+                
+                <!-- Architecture Diagram -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-16 overflow-hidden">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase mb-4 text-center">Arquitectura del Laboratorio</h3>
+                    <div class="mermaid flex justify-center">
+                        graph LR
+                        RAW[CSV Sucio] -->|Python| DISK[Disco Local]
+                        DISK -->|BULK INSERT| STG[(SQL Staging)]
+                        STG -->|TRY_CAST & Filter| PROD[(SQL Producción)]
+                        
+                        style RAW fill:#f1f5f9,stroke:#64748b,stroke-dasharray: 5 5
+                        style DISK fill:#e2e8f0,stroke:#64748b
+                        style STG fill:#fef9c3,stroke:#eab308,stroke-width:2px
+                        style PROD fill:#dcfce7,stroke:#16a34a,stroke-width:2px
+                    </div>
+                </div>
+
+                <!-- STEP 1: FETCH -->
+                <section id="setup" class="mb-20 relative pl-12 scroll-mt-28">
+                    <div class="step-line"></div>
+                    <div class="absolute left-0 top-0 step-circle bg-blue-600 text-white">1</div>
+                    
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Generar "Datos Sucios"</h2>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Para simular un escenario real y difícil, no usaremos un archivo limpio. Usaremos Python para descargar datos oficiales y convertirlos a un <strong>CSV sin cabeceras y sin tipos definidos</strong>. Así es como llegan los datos de sistemas Legacy.
+                    </p>
+
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span><i data-lucide="terminal" class="inline w-3 h-3 mr-2"></i>00_fetch_data.py</span>
+                            <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('c1').innerText)">Copiar</button>
+                        </div>
+                        <pre><code id="c1" class="language-python">import pandas as pd
+import os
+
+# 1. Fuente Oficial: NYC Taxi & Limousine Commission (Enero 2023)
+url = "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet"
+
+print(f"Descargando datos desde {url}...")
+# Pandas lee Parquet nativamente (mucho más eficiente que CSV)
+df = pd.read_parquet(url)
+
+# 2. Muestreo: Tomamos 1 millón de filas para el ejercicio
+df = df.sample(n=1000000, random_state=42)
+
+print("Corrompiendo formato para simular Legacy CSV...")
+# Guardamos SIN index y SIN header. Esto obliga a definir la estructura manualmente en SQL.
+output_file = "C:\\Data\\taxi_dirty.csv" # Asegúrate que esta carpeta exista
+df.to_csv(output_file, index=False, header=False)
+
+print(f"¡Hecho! Archivo generado en: {output_file}")
+print(f"Filas: {len(df)}")</code></pre>
+                    </div>
+                </section>
+
+                <!-- STEP 2: STAGING -->
+                <section id="staging" class="mb-20 relative pl-12 scroll-mt-28">
+                    <div class="step-line"></div>
+                    <div class="absolute left-0 top-0 step-circle bg-yellow-500 text-white">2</div>
+                    
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">La Estrategia Staging</h2>
+                    
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-5 rounded-r-xl mb-6">
+                        <h4 class="font-bold text-yellow-800 text-sm mb-2 flex items-center">
+                            <i data-lucide="shield-alert" class="w-4 h-4 mr-2"></i> Regla de Oro de Ingeniería
+                        </h4>
+                        <p class="text-sm text-yellow-900/80">
+                            Nunca intentes transformar datos durante la carga. Si defines una columna como <code>INT</code> y llega una letra "A", la carga de 1 millón de filas fallará por completo.
+                            <br><strong>Solución:</strong> Carga todo como <code>VARCHAR</code> en una tabla Staging (Heap) y limpia después.
+                        </p>
+                    </div>
+
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span><i data-lucide="database" class="inline w-3 h-3 mr-2"></i>01_bulk_load.sql</span>
+                            <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('c2').innerText)">Copiar</button>
+                        </div>
+                        <pre><code id="c2" class="language-sql">CREATE DATABASE NYC_Taxi_Lab;
+GO
+USE NYC_Taxi_Lab;
+
+-- 1. Tabla STAGING (Heap Table, sin Clustered Index)
+-- Todo es VARCHAR para máxima permisividad.
+CREATE TABLE Staging_Trips (
+    VendorID VARCHAR(50),
+    tpep_pickup_datetime VARCHAR(50),
+    tpep_dropoff_datetime VARCHAR(50),
+    passenger_count VARCHAR(50),
+    trip_distance VARCHAR(50),
+    RatecodeID VARCHAR(50),
+    store_and_fwd_flag VARCHAR(50),
+    PULocationID VARCHAR(50),
+    DOLocationID VARCHAR(50),
+    payment_type VARCHAR(50),
+    fare_amount VARCHAR(50),
+    extra VARCHAR(50),
+    mta_tax VARCHAR(50),
+    tip_amount VARCHAR(50),
+    tolls_amount VARCHAR(50),
+    improvement_surcharge VARCHAR(50),
+    total_amount VARCHAR(50),
+    congestion_surcharge VARCHAR(50),
+    airport_fee VARCHAR(50)
+);
+
+-- 2. Carga de Alta Velocidad (Minimal Logging)
+BULK INSERT Staging_Trips
+FROM 'C:\Data\taxi_dirty.csv'
+WITH (
+    FIELDTERMINATOR = ',',  -- Separador de columnas CSV
+    ROWTERMINATOR = '\n',   -- Salto de línea
+    FIRSTROW = 1,           -- No hay headers
+    TABLOCK                 -- IMPORTANTE: Permite carga paralela y minimiza log
+);
+
+-- Verificación rápida
+SELECT TOP 5 * FROM Staging_Trips;</code></pre>
+                    </div>
+                </section>
+
+                <!-- STEP 3: ANALYSIS -->
+                <section id="analysis" class="mb-20 relative pl-12 scroll-mt-28">
+                    <div class="step-line"></div>
+                    <div class="absolute left-0 top-0 step-circle bg-red-500 text-white">3</div>
+                    
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Anatomía del Desastre</h2>
+                    <p class="text-gray-600 mb-6">
+                        Antes de limpiar, analicemos el costo de un mal diseño. ¿Cuánto espacio desperdicia usar <code>VARCHAR</code> para todo?
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <!-- Bad Design Card -->
+                        <div class="glass-card p-6 rounded-xl border-t-4 border-red-500">
+                            <h4 class="font-bold text-red-700 mb-4 flex items-center">
+                                <i data-lucide="x-circle" class="w-4 h-4 mr-2"></i> Diseño Staging
+                            </h4>
+                            <div class="space-y-3 font-mono text-xs">
+                                <div class="flex justify-between border-b pb-1">
+                                    <span>Pickup (Fecha)</span>
+                                    <span class="text-red-600 font-bold">VARCHAR(50) ~ 25 bytes</span>
+                                </div>
+                                <div class="flex justify-between border-b pb-1">
+                                    <span>Passengers</span>
+                                    <span class="text-red-600 font-bold">VARCHAR(50) ~ 15 bytes</span>
+                                </div>
+                                <div class="flex justify-between pt-2">
+                                    <span class="font-bold">Total / Fila</span>
+                                    <span class="text-red-600 font-bold">~200 Bytes</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-xs text-gray-500 bg-red-50 p-2 rounded">
+                                <strong>Consecuencia:</strong> Caben pocas filas por página de 8KB. Lectura lenta.
+                            </div>
+                        </div>
+
+                        <!-- Good Design Card -->
+                        <div class="glass-card p-6 rounded-xl border-t-4 border-green-500">
+                            <h4 class="font-bold text-green-700 mb-4 flex items-center">
+                                <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Diseño Producción
+                            </h4>
+                            <div class="space-y-3 font-mono text-xs">
+                                <div class="flex justify-between border-b pb-1">
+                                    <span>Pickup (Fecha)</span>
+                                    <span class="text-green-600 font-bold">DATETIME2(0) = 8 bytes</span>
+                                </div>
+                                <div class="flex justify-between border-b pb-1">
+                                    <span>Passengers</span>
+                                    <span class="text-green-600 font-bold">TINYINT = 1 byte</span>
+                                </div>
+                                <div class="flex justify-between pt-2">
+                                    <span class="font-bold">Total / Fila</span>
+                                    <span class="text-green-600 font-bold">~40 Bytes</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-xs text-gray-500 bg-green-50 p-2 rounded">
+                                <strong>Mejora:</strong> ¡500% más densidad de datos! Lectura ultra-rápida.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- STEP 4: ETL -->
+                <section id="etl" class="mb-20 relative pl-12 scroll-mt-28">
+                    <div class="absolute left-0 top-0 step-circle bg-green-600 text-white">4</div>
+                    
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Transformación y Limpieza</h2>
+                    <p class="text-gray-600 mb-6">
+                        Migramos de Staging a Producción. Aquí usamos <code>TRY_CAST</code> para manejar datos corruptos sin detener el proceso, y definimos un <strong>Clustered Index</strong> secuencial.
+                    </p>
+
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span><i data-lucide="database" class="inline w-3 h-3 mr-2"></i>02_clean_architecture.sql</span>
+                            <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('c3').innerText)">Copiar</button>
+                        </div>
+                        <pre><code id="c3" class="language-sql">-- 1. Tabla Producción (Optimizada)
+CREATE TABLE Trips (
+    TripID INT IDENTITY(1,1) NOT NULL, -- Surrogate Key (Secuencial)
+    VendorID TINYINT,
+    Pickup DATETIME2(0),      -- Precisión de segundo
+    Dropoff DATETIME2(0),
+    PassengerCount TINYINT,   -- 1 byte (0-255)
+    TripDistance DECIMAL(10,2),
+    TotalAmount DECIMAL(10,2),
+    
+    -- El Clustered Index define el orden físico en disco.
+    -- Usar IDENTITY evita la fragmentación (Page Splits).
+    CONSTRAINT PK_Trips PRIMARY KEY CLUSTERED (TripID)
+);
+
+-- 2. ETL Intra-Base (Transformación)
+INSERT INTO Trips (VendorID, Pickup, Dropoff, PassengerCount, TripDistance, TotalAmount)
+SELECT 
+    TRY_CAST(VendorID AS TINYINT),
+    TRY_CAST(tpep_pickup_datetime AS DATETIME2(0)),
+    TRY_CAST(tpep_dropoff_datetime AS DATETIME2(0)),
+    -- Lógica de negocio: Si pasajeros es nulo/basura, asumir 1
+    COALESCE(TRY_CAST(passenger_count AS TINYINT), 1),
+    TRY_CAST(trip_distance AS DECIMAL(10,2)),
+    TRY_CAST(total_amount AS DECIMAL(10,2))
+FROM Staging_Trips
+WHERE TRY_CAST(trip_distance AS DECIMAL(10,2)) > 0; -- Filtramos viajes inválidos
+
+-- 3. La Prueba Final (Space Used)
+EXEC sp_spaceused 'Staging_Trips';
+EXEC sp_spaceused 'Trips'; 
+-- ¡Deberías ver una reducción drástica en el tamaño 'Data'!</code></pre>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Footer Navigation -->
+            <div class="max-w-5xl mx-auto border-t border-gray-200 pt-12 flex justify-between items-center">
+                <div class="text-sm text-gray-500">
+                    <p>Has completado la Fase 1.</p>
+                    <p>Datos cargados y optimizados.</p>
+                </div>
+                <a href="seccion_8_p2.html" class="group flex items-center gap-4 bg-usta-blue text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-blue-900 transition transform hover:-translate-y-1">
+                    <div class="text-right">
+                        <p class="text-xs text-blue-300 uppercase tracking-widest">Siguiente Misión</p>
+                        <p>Estrategia de Índices</p>
+                    </div>
+                    <div class="bg-white/20 p-2 rounded-full group-hover:bg-white/30">
+                        <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                    </div>
+                </a>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Initialization -->
+    <script>
+        lucide.createIcons();
+        hljs.highlightAll();
+        mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { fontFamily: 'Montserrat' } });
+
+        // Scroll Spy Logic
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-item');
+        const main = document.querySelector('main');
+
+        main.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (main.scrollTop >= (sectionTop - 300)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

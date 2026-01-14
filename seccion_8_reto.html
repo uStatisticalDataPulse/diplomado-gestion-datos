@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reto Final: The Ghost Taxi | Data Engineering</title>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Dark Theme Setup */
+        body { font-family: 'Montserrat', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        code { font-family: 'Source Code Pro', monospace; }
+        
+        /* Neon Accents */
+        .text-neon-red { color: #f43f5e; text-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }
+        .text-neon-green { color: #34d399; text-shadow: 0 0 10px rgba(52, 211, 153, 0.5); }
+        .border-neon-red { border-color: #f43f5e; box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); }
+        
+        /* Components */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        
+        .code-window {
+            background: #020617;
+            border-radius: 0.5rem;
+            border: 1px solid #1e293b;
+            overflow: hidden;
+        }
+        .code-header {
+            background: #0f172a;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center;
+            font-family: 'Source Code Pro', monospace; font-size: 0.75rem; color: #64748b;
+        }
+
+        /* Animations */
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(244, 63, 94, 0); }
+        }
+        .animate-pulse-red { animation: pulse-red 2s infinite; }
+        
+        .nav-item.active { background: rgba(244, 63, 94, 0.1); border-left: 4px solid #f43f5e; color: #fff; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <a href="seccion_8.html" class="flex items-center hover:text-white transition-colors group text-slate-400">
+                    <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition"></i>
+                    <span class="ml-3 font-bold tracking-wide text-sm uppercase">Abort Mission</span>
+                </a>
+                <div class="h-8 w-px bg-slate-700 hidden md:block"></div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                    <h1 class="text-lg font-black tracking-widest text-white uppercase">Incident #90210: <span class="text-neon-red">GHOST TAXI</span></h1>
+                </div>
+            </div>
+            <div class="px-3 py-1 border border-red-500/50 rounded text-xs font-mono text-red-400 bg-red-500/10">
+                SERVER LOAD: 98%
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-grow max-w-8xl mx-auto w-full">
+        
+        <!-- Sidebar -->
+        <aside class="hidden lg:block w-72 h-[calc(100vh-5rem)] sticky top-20 bg-slate-900 border-r border-slate-800 overflow-y-auto">
+            <div class="p-6">
+                <div class="mb-8">
+                    <h3 class="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-6 pl-2">Protocolo de Respuesta</h3>
+                    <nav class="space-y-2">
+                        <a href="#briefing" class="nav-item flex items-center px-4 py-3 text-sm text-slate-400 rounded transition active">
+                            <i data-lucide="siren" class="w-4 h-4 mr-3 text-red-500"></i> 1. El Incidente
+                        </a>
+                        <a href="#rootcause" class="nav-item flex items-center px-4 py-3 text-sm text-slate-400 rounded transition">
+                            <i data-lucide="microscope" class="w-4 h-4 mr-3 text-yellow-500"></i> 2. Causa Raíz
+                        </a>
+                        <a href="#patch" class="nav-item flex items-center px-4 py-3 text-sm text-slate-400 rounded transition">
+                            <i data-lucide="code-2" class="w-4 h-4 mr-3 text-blue-500"></i> 3. El Parche
+                        </a>
+                        <a href="#deploy" class="nav-item flex items-center px-4 py-3 text-sm text-slate-400 rounded transition">
+                            <i data-lucide="rocket" class="w-4 h-4 mr-3 text-green-500"></i> 4. Despliegue
+                        </a>
+                    </nav>
+                </div>
+                
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Objetivos</h4>
+                    <ul class="text-xs text-slate-300 space-y-2 font-mono">
+                        <li class="flex items-center"><span class="text-red-500 mr-2">[ ]</span> Detener Scan</li>
+                        <li class="flex items-center"><span class="text-red-500 mr-2">[ ]</span> Implementar SARG</li>
+                        <li class="flex items-center"><span class="text-red-500 mr-2">[ ]</span> Reducir CPU &lt; 5%</li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 lg:p-12 overflow-y-auto scroll-smooth bg-gradient-to-b from-[#0f172a] to-[#020617]">
+            
+            <!-- STEP 1: BRIEFING -->
+            <section id="briefing" class="mb-24 scroll-mt-28">
+                <div class="max-w-4xl mx-auto text-center mb-12">
+                    <div class="inline-block p-4 rounded-full bg-red-500/10 mb-6 border border-red-500/50 animate-pulse-red">
+                        <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500"></i>
+                    </div>
+                    <h2 class="text-4xl font-black text-white mb-4">Briefing de la Misión</h2>
+                    <p class="text-slate-400 text-lg">
+                        El sistema de detección de fraudes ha identificado un patrón: Viajes que duran <strong>0 minutos</strong> (Pickup = Dropoff) pero cobran tarifas altas (>$50). 
+                        <br>El equipo de analítica intentó correr una consulta para auditarlos, pero colapsó el servidor de producción.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900 border border-red-900/50 rounded-xl p-6 relative max-w-3xl mx-auto overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-3 py-1">QUERY TÓXICA</div>
+                    <pre><code class="language-sql text-red-200">-- Intento Fallido (Duration: 45s, Reads: 3.5M)
+SELECT * FROM Trips 
+WHERE DATEDIFF(MINUTE, Pickup, Dropoff) = 0 
+  AND TotalAmount > 50;</code></pre>
+                </div>
+            </section>
+
+            <!-- STEP 2: ROOT CAUSE -->
+            <section id="rootcause" class="mb-24 scroll-mt-28">
+                <div class="flex items-center gap-4 mb-8 border-b border-slate-800 pb-4">
+                    <span class="text-4xl font-black text-slate-700">02</span>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Análisis Forense (Root Cause)</h2>
+                        <p class="text-slate-400 text-sm">Por qué falló el índice.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div>
+                        <p class="text-slate-300 mb-6 leading-relaxed">
+                            El problema es la función <code>DATEDIFF()</code> en el <code>WHERE</code>. 
+                            <br><br>
+                            Esto rompe la regla de <strong>SARGability</strong> (Search ARGument Ability). Al envolver las columnas en una función, el motor no puede mirar el índice y saltar a la fecha correcta. Tiene que calcular la resta para <strong>CADA UNA</strong> de las 3 millones de filas antes de saber si el resultado es 0.
+                        </p>
+                        <div class="bg-red-950/30 p-4 rounded border-l-4 border-red-500">
+                            <strong class="text-red-400 block text-sm mb-1">Diagnóstico:</strong>
+                            Index Scan (Lectura Completa) + Alto uso de CPU por cálculo fila por fila.
+                        </div>
+                    </div>
+                    
+                    <!-- Visual Explain -->
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h4 class="text-xs font-bold text-slate-500 uppercase mb-4 text-center">Visualización del Problema</h4>
+                        <div class="relative h-40 w-full bg-slate-900 rounded border border-slate-600 overflow-hidden flex items-center justify-center">
+                            <!-- Animation elements could go here, static for now -->
+                            <div class="text-center">
+                                <div class="flex gap-1 mb-2 justify-center">
+                                    <span class="w-2 h-8 bg-red-500 rounded opacity-50"></span>
+                                    <span class="w-2 h-8 bg-red-500 rounded opacity-50"></span>
+                                    <span class="w-2 h-8 bg-red-500 rounded opacity-50"></span>
+                                    <span class="w-2 h-8 bg-red-500 rounded opacity-50"></span>
+                                    <span class="w-2 h-8 bg-red-500 rounded opacity-50"></span>
+                                    <span class="w-2 h-8 bg-red-500 rounded opacity-50"></span>
+                                    <span class="w-2 h-8 bg-red-500 rounded opacity-50"></span>
+                                </div>
+                                <span class="text-xs text-red-400 font-mono">Scanning 3,000,000 Rows...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 3: THE PATCH -->
+            <section id="patch" class="mb-24 scroll-mt-28">
+                <div class="flex items-center gap-4 mb-8 border-b border-slate-800 pb-4">
+                    <span class="text-4xl font-black text-slate-700">03</span>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Ingeniería de Solución</h2>
+                        <p class="text-slate-400 text-sm">Materializar el cálculo.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="glass-panel p-6 rounded-xl">
+                        <h3 class="text-blue-400 font-bold mb-4 flex items-center"><i data-lucide="save" class="w-4 h-4 mr-2"></i> 1. Columna Calculada Persistida</h3>
+                        <p class="text-sm text-slate-300 mb-4">
+                            Creamos una columna virtual que almacena el resultado de <code>DATEDIFF</code> físicamente en el disco. El cálculo se hace UNA vez al insertar, no cada vez que consultas.
+                        </p>
+                        <div class="code-window">
+                            <pre><code class="language-sql">ALTER TABLE Trips 
+ADD DurationMinutes AS 
+    DATEDIFF(MINUTE, Pickup, Dropoff) 
+    PERSISTED; -- < La clave</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-xl">
+                        <h3 class="text-yellow-400 font-bold mb-4 flex items-center"><i data-lucide="list-tree" class="w-4 h-4 mr-2"></i> 2. Indexar lo Calculado</h3>
+                        <p class="text-sm text-slate-300 mb-4">
+                            Ahora que el dato existe físicamente, podemos indexarlo. Ordenamos por duración para que todos los "0" queden juntos.
+                        </p>
+                        <div class="code-window">
+                            <pre><code class="language-sql">CREATE INDEX IX_Duration_Scam 
+ON Trips(DurationMinutes) 
+INCLUDE (TotalAmount);</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mermaid flex justify-center bg-slate-800/50 p-6 rounded-xl border border-slate-700">
+                    graph LR
+                    Insert[INSERT Data] --> Calc[CPU Calcula DATEDIFF]
+                    Calc --> Disk[(Guardar en Disco)]
+                    Disk --> Index[Actualizar Índice B-Tree]
+                    Query[SELECT] -->|Lee Índice| Seek[Index Seek Rápido]
+                    
+                    style Insert fill:#1e293b,stroke:#94a3b8,color:#fff
+                    style Calc fill:#b45309,stroke:#f59e0b,color:#fff
+                    style Disk fill:#1e293b,stroke:#94a3b8,color:#fff
+                    style Index fill:#064e3b,stroke:#10b981,color:#fff
+                    style Seek fill:#064e3b,stroke:#10b981,color:#fff
+                </div>
+            </section>
+
+            <!-- STEP 4: DEPLOY -->
+            <section id="deploy" class="mb-20 scroll-mt-28">
+                <div class="flex items-center gap-4 mb-8 border-b border-slate-800 pb-4">
+                    <span class="text-4xl font-black text-slate-700">04</span>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Despliegue y Verificación</h2>
+                        <p class="text-slate-400 text-sm">La consulta SARGable.</p>
+                    </div>
+                </div>
+
+                <div class="code-window mb-8 relative">
+                    <div class="code-header text-green-400 border-green-900/30">
+                        <i data-lucide="check-circle" class="w-3 h-3 mr-2"></i> PATCHED QUERY
+                    </div>
+                    <pre><code class="language-sql">-- Consulta Optimizada
+SELECT * FROM Trips 
+WHERE DurationMinutes = 0  -- Ahora busca en el índice
+  AND TotalAmount > 50;</code></pre>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                        <div class="text-xs text-slate-500 uppercase font-bold">Tiempo</div>
+                        <div class="text-2xl font-black text-white">45s <span class="text-green-500 text-sm">→ 2ms</span></div>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                        <div class="text-xs text-slate-500 uppercase font-bold">Lecturas</div>
+                        <div class="text-2xl font-black text-white">3.5M <span class="text-green-500 text-sm">→ 12</span></div>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                        <div class="text-xs text-slate-500 uppercase font-bold">CPU Load</div>
+                        <div class="text-2xl font-black text-white">100% <span class="text-green-500 text-sm">→ 0%</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer Action -->
+            <div class="border-t border-slate-800 pt-12 flex flex-col items-center">
+                <p class="text-slate-400 mb-6 text-sm">Incidente Resuelto. Servidor Estable.</p>
+                <a href="seccion_8.html" class="group flex items-center gap-3 bg-green-600 hover:bg-green-500 text-white px-8 py-4 rounded-full font-bold shadow-lg shadow-green-900/20 transition-all transform hover:scale-105">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    <span>Volver al Centro de Mando</span>
+                </a>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        hljs.highlightAll();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+        // Scroll Spy
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-item');
+        const main = document.querySelector('main');
+
+        main.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (main.scrollTop >= (sectionTop - 300)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
