@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 9: Apache Spark Core | Data Strategy Command</title>
+    
+    <!-- Librerías Core -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- Tipografía Técnica -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base Theme: Deep Space / Spark Orange */
+        :root {
+            --spark-orange: #E25A1C;
+            --spark-dark: #1b1f24;
+            --bg-deep: #0f172a;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* CORRECCIÓN DE SCROLL: Body fijo, Main con scroll */
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: var(--bg-deep); 
+            color: #e2e8f0; 
+            overflow: hidden; /* Evita doble scrollbar */
+            height: 100vh;
+        }
+        
+        code, .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Efectos Neón y Glassmorphism */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .spark-glow {
+            box-shadow: 0 0 15px rgba(226, 90, 28, 0.3);
+            border-color: var(--spark-orange);
+        }
+
+        .node-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .node-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--spark-orange);
+            box-shadow: 0 10px 25px -5px rgba(226, 90, 28, 0.2);
+        }
+
+        /* Navegación Lateral */
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(226,90,28,0.1) 0%, transparent 100%);
+            border-left: 4px solid var(--spark-orange);
+            color: #fff;
+        }
+        
+        /* Asegurar que el contenido principal tenga scrollbar estilizado */
+        main::-webkit-scrollbar { width: 8px; }
+        main::-webkit-scrollbar-track { background: #0f172a; }
+        main::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        main::-webkit-scrollbar-thumb:hover { background: var(--spark-orange); }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+    <!-- Header de Misión (Fijo) -->
+    <header class="h-16 border-b border-slate-700 bg-slate-900/90 backdrop-blur-md z-50 flex items-center px-6 justify-between flex-shrink-0">
+        <div class="flex items-center gap-4">
+            <a href="index.html" class="text-slate-400 hover:text-white transition-colors group">
+                <i data-lucide="arrow-left-circle" class="w-6 h-6 group-hover:-translate-x-1 transition-transform"></i>
+            </a>
+            <div class="h-6 w-px bg-slate-700"></div>
+            <div class="flex items-center gap-2">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Apache_Spark_logo.svg" alt="Spark Logo" class="h-8">
+                <span class="font-bold text-white tracking-tight hidden md:block">CORE ARCHITECTURE</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-green-500/10 text-green-400 rounded-full text-xs font-mono border border-green-500/20">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                CLUSTER STATUS: ONLINE
+            </div>
+            <div class="text-xs text-slate-400 font-mono text-right">
+                <p>MÓDULO 03</p>
+                <p>BIG DATA</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor Flex para Sidebar y Main -->
+    <div class="flex flex-1 overflow-hidden h-full">
+        
+        <!-- Sidebar de Navegación -->
+        <aside class="w-72 bg-slate-900 border-r border-slate-700 hidden lg:flex flex-col overflow-y-auto flex-shrink-0">
+            <div class="p-6">
+                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Sistemas Críticos</h3>
+                <nav class="space-y-1">
+                    <a href="#paradigm" class="nav-item flex items-center px-4 py-3 text-sm text-slate-300 rounded-lg hover:bg-slate-800 transition active">
+                        <i data-lucide="cpu" class="w-4 h-4 mr-3 text-blue-400"></i> Paradigma Distribuido
+                    </a>
+                    <a href="#cluster" class="nav-item flex items-center px-4 py-3 text-sm text-slate-300 rounded-lg hover:bg-slate-800 transition">
+                        <i data-lucide="server" class="w-4 h-4 mr-3 text-[var(--spark-orange)]"></i> Arquitectura Física
+                    </a>
+                    <a href="#catalyst" class="nav-item flex items-center px-4 py-3 text-sm text-slate-300 rounded-lg hover:bg-slate-800 transition">
+                        <i data-lucide="brain-circuit" class="w-4 h-4 mr-3 text-purple-400"></i> El Cerebro (Catalyst)
+                    </a>
+                    <a href="#lifecycle" class="nav-item flex items-center px-4 py-3 text-sm text-slate-300 rounded-lg hover:bg-slate-800 transition">
+                        <i data-lucide="git-merge" class="w-4 h-4 mr-3 text-green-400"></i> Jobs, Stages & Tasks
+                    </a>
+                    <a href="#shuffle" class="nav-item flex items-center px-4 py-3 text-sm text-slate-300 rounded-lg hover:bg-slate-800 transition">
+                        <i data-lucide="shuffle" class="w-4 h-4 mr-3 text-red-400"></i> The Shuffle
+                    </a>
+                </nav>
+
+                <div class="mt-8 pt-8 border-t border-slate-800">
+                    <h4 class="text-xs font-bold text-slate-400 mb-3 flex items-center">
+                        <i data-lucide="terminal" class="w-3 h-3 mr-2"></i> Tu Stack Docker
+                    </h4>
+                    <div class="bg-black/30 rounded p-3 text-[10px] font-mono text-slate-400 space-y-2">
+                        <div class="flex justify-between"><span>Driver:</span> <span class="text-white">jupyter-lab</span></div>
+                        <div class="flex justify-between"><span>Master:</span> <span class="text-[var(--spark-orange)]">spark-master</span></div>
+                        <div class="flex justify-between"><span>Worker:</span> <span class="text-blue-400">spark-worker-1</span></div>
+                        <div class="mt-2 text-center text-xs text-green-500">Connected via Network: ml-net</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto h-full p-8 lg:p-12 relative scroll-smooth">
+            
+            <!-- Background Grid -->
+            <div class="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none z-0"></div>
+            <div class="fixed inset-0 bg-gradient-to-b from-slate-900 via-[#0f172a] to-black pointer-events-none z-0"></div>
+
+            <!-- Content Container -->
+            <div class="max-w-5xl mx-auto relative z-10 pb-20">
+
+                <!-- 1. PARADIGM SHIFT -->
+                <section id="paradigm" class="mb-32 pt-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 text-xs font-bold uppercase rounded-full mb-6 border border-blue-500/20">
+                        <i data-lucide="globe" class="w-3 h-3"></i> Cambio de Mentalidad
+                    </div>
+                    <h1 class="text-5xl md:text-6xl font-black text-white mb-6 leading-tight">
+                        De Monolito a <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--spark-orange)] to-yellow-500">Computación Distribuida</span>
+                    </h1>
+                    <p class="text-xl text-slate-300 leading-relaxed max-w-3xl border-l-4 border-[var(--spark-orange)] pl-6 mb-12">
+                        En Pandas o SQL Server, el límite es el hardware de <strong>una sola máquina</strong>. 
+                        En Spark, el límite es tu presupuesto para agregar más máquinas al cluster.
+                        <br><br>
+                        Spark no procesa datos; **Spark orquesta el procesamiento de datos** a través de una red de computadoras.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Monolito -->
+                        <div class="glass-panel p-6 rounded-xl border border-slate-700 opacity-60 hover:opacity-100 transition">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i data-lucide="server" class="w-6 h-6 text-slate-400"></i>
+                                <h3 class="text-lg font-bold text-slate-300">Paradigma Vertical (SQL/Pandas)</h3>
+                            </div>
+                            <div class="h-32 bg-slate-800 rounded-lg flex items-center justify-center border border-slate-600 relative overflow-hidden">
+                                <div class="absolute inset-0 bg-red-500/10 animate-pulse"></div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-black text-slate-500">1 SERVIDOR</div>
+                                    <div class="text-xs text-red-400 font-mono mt-1">⚠️ OutOfMemory Error</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Distribuido -->
+                        <div class="glass-panel p-6 rounded-xl border border-[var(--spark-orange)] shadow-[0_0_30px_rgba(226,90,28,0.1)]">
+                            <div class="flex items-center gap-3 mb-4">
+                                <i data-lucide="share-2" class="w-6 h-6 text-[var(--spark-orange)]"></i>
+                                <h3 class="text-lg font-bold text-white">Paradigma Horizontal (Spark)</h3>
+                            </div>
+                            <div class="h-32 bg-slate-800/50 rounded-lg flex items-center justify-center gap-2 p-4">
+                                <div class="w-1/4 h-full bg-blue-600/20 border border-blue-500 rounded flex items-center justify-center"><i data-lucide="cpu" class="w-4 h-4 text-blue-400"></i></div>
+                                <div class="w-1/4 h-full bg-blue-600/20 border border-blue-500 rounded flex items-center justify-center"><i data-lucide="cpu" class="w-4 h-4 text-blue-400"></i></div>
+                                <div class="w-1/4 h-full bg-blue-600/20 border border-blue-500 rounded flex items-center justify-center"><i data-lucide="cpu" class="w-4 h-4 text-blue-400"></i></div>
+                                <div class="w-1/4 h-full bg-blue-600/20 border border-blue-500 rounded flex items-center justify-center"><i data-lucide="plus" class="w-4 h-4 text-slate-500"></i></div>
+                            </div>
+                            <p class="text-xs text-center mt-3 text-blue-300 font-mono">✅ Scaling: Divide y Vencerás</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. ARCHITECTURE DIAGRAM -->
+                <section id="cluster" class="mb-32 pt-10 border-t border-slate-800">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="p-3 bg-[var(--spark-orange)] rounded-lg text-white">
+                            <i data-lucide="network" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">Arquitectura Física del Cluster</h2>
+                            <p class="text-slate-400 font-mono text-sm">Entendiendo los Roles: Jefe, Gerente y Obreros.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-8 rounded-2xl relative overflow-hidden">
+                        <div class="absolute -right-20 -top-20 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start relative z-10">
+                            
+                            <!-- DRIVER -->
+                            <div class="node-card bg-slate-800 p-6 rounded-xl border border-slate-600 flex flex-col items-center text-center">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/Jupyter_logo.svg" alt="Jupyter" class="w-8 h-8">
+                                </div>
+                                <h3 class="font-bold text-white text-lg">El Driver</h3>
+                                <p class="text-xs text-green-400 font-mono mb-2">Container: jupyter-lab</p>
+                                <p class="text-sm text-slate-400 mb-4">
+                                    Es el "Arquitecto". Aquí corre tu `main()`. Convierte tu código Python en un <strong>DAG (Grafo de Tareas)</strong>.
+                                    <br><span class="text-red-400 text-xs mt-2 block">⚠️ NO procesa datos pesados. Si traes datos aquí (`.collect()`), explota.</span>
+                                </p>
+                            </div>
+
+                            <!-- MASTER -->
+                            <div class="node-card bg-slate-800 p-6 rounded-xl border border-[var(--spark-orange)] flex flex-col items-center text-center transform lg:-translate-y-4 shadow-[0_0_20px_rgba(226,90,28,0.15)]">
+                                <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg border-2 border-[var(--spark-orange)]">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Apache_Spark_logo.svg" alt="Spark" class="w-10 h-10">
+                                </div>
+                                <h3 class="font-bold text-white text-lg">Cluster Master</h3>
+                                <p class="text-xs text-[var(--spark-orange)] font-mono mb-2">Container: spark-master</p>
+                                <p class="text-sm text-slate-400 mb-4">
+                                    Es el "Gerente de Recursos". Negocia con el Cluster Manager (YARN/K8s/Standalone) para conseguir CPU y RAM.
+                                    <br><span class="text-[var(--spark-orange)] text-xs mt-2 block">Monitoriza la salud de los Workers.</span>
+                                </p>
+                            </div>
+
+                            <!-- WORKER -->
+                            <div class="node-card bg-slate-800 p-6 rounded-xl border border-blue-500 flex flex-col items-center text-center">
+                                <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+                                    <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+                                </div>
+                                <h3 class="font-bold text-white text-lg">Executors (Workers)</h3>
+                                <p class="text-xs text-blue-400 font-mono mb-2">Container: spark-worker</p>
+                                <p class="text-sm text-slate-400 mb-4">
+                                    Son los "Obreros". Ejecutan las tareas (Tasks).
+                                    <br>Tienen <strong>Slots (Núcleos)</strong> y <strong>Caché</strong>.
+                                    <br><span class="text-blue-300 text-xs mt-2 block">Aquí vive el dato real.</span>
+                                </p>
+                                <div class="grid grid-cols-4 gap-1 w-full opacity-50">
+                                    <div class="h-2 bg-blue-500 rounded" title="Core 1"></div><div class="h-2 bg-blue-500 rounded" title="Core 2"></div>
+                                    <div class="h-2 bg-blue-500 rounded" title="Core 3"></div><div class="h-2 bg-blue-500 rounded" title="Core 4"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. THE CATALYST OPTIMIZER (NUEVO) -->
+                <section id="catalyst" class="mb-32 pt-10 border-t border-slate-800">
+                    <div class="flex items-center gap-4 mb-10">
+                        <div class="p-3 bg-purple-600 rounded-lg text-white">
+                            <i data-lucide="brain-circuit" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">El Cerebro: Catalyst Optimizer</h2>
+                            <p class="text-slate-400 text-sm font-mono">Por qué Spark es más inteligente que tú.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <div class="space-y-6 text-slate-300">
+                            <p>
+                                Cuando escribes código PySpark, no estás dando órdenes directas. Estás describiendo <strong>qué quieres</strong>, no <strong>cómo hacerlo</strong>.
+                            </p>
+                            <p>
+                                Antes de ejecutar nada, el <strong>Optimizador Catalyst</strong> toma tu código ineficiente y lo reescribe.
+                            </p>
+                            <ul class="space-y-3">
+                                <li class="bg-slate-800 p-3 rounded border-l-4 border-green-500">
+                                    <strong class="text-green-400 block text-xs uppercase mb-1">Predicate Pushdown</strong>
+                                    Si filtras `df.filter(c > 5)`, Catalyst empuja ese filtro hasta la base de datos o archivo Parquet. Spark solo lee las filas que cumplen la condición.
+                                </li>
+                                <li class="bg-slate-800 p-3 rounded border-l-4 border-blue-500">
+                                    <strong class="text-blue-400 block text-xs uppercase mb-1">Column Pruning</strong>
+                                    Si solo usas 2 columnas de 100, Spark solo leerá esas 2 del disco. Ahorro masivo de I/O.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-panel p-6 rounded-xl flex flex-col items-center">
+                            <div class="mermaid">
+                                graph TD
+                                Code[Tu Código Python] -->|Unresolved Plan| Analysis
+                                Analysis -->|Logical Plan| Opt[Catalyst Optimizer]
+                                Opt -->|Optimized Plan| Phy[Physical Plan]
+                                Phy -->|Code Generation| Tungsten[Tungsten Engine]
+                                Tungsten -->|Bytecode| CPU
+                                
+                                style Code fill:#fff,stroke:#333,color:#000
+                                style Opt fill:#9333ea,stroke:#fff,color:#fff
+                                style Tungsten fill:#e25516,stroke:#fff,color:#fff
+                            </div>
+                            <p class="text-xs text-center text-slate-500 mt-4 italic">
+                                *Tungsten gestiona la memoria a nivel binario, evitando el Garbage Collector de Java.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. EXECUTION HIERARCHY (NUEVO) -->
+                <section id="lifecycle" class="mb-32 pt-10 border-t border-slate-800">
+                    <h2 class="text-3xl font-bold text-white mb-6">Jerarquía de Ejecución</h2>
+                    <p class="text-slate-300 mb-8 max-w-3xl">
+                        Para entender la interfaz de monitoreo (Spark UI), debes entender cómo se rompe tu trabajo.
+                    </p>
+
+                    <div class="space-y-6">
+                        <!-- Application -->
+                        <div class="border border-slate-600 rounded-lg p-4 bg-slate-900">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded font-bold">APPLICATION</span>
+                                <span class="text-white font-mono text-sm">Tu sesión de `SparkContext`. Vive mientras el notebook esté activo.</span>
+                            </div>
+                            
+                            <!-- Job -->
+                            <div class="ml-6 border-l-2 border-slate-700 pl-6 mt-4">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">JOB</span>
+                                    <span class="text-slate-300 text-sm">Se crea cada vez que ejecutas una <strong>ACCIÓN</strong> (`.count()`, `.write()`).</span>
+                                </div>
+
+                                <!-- Stage -->
+                                <div class="ml-6 border-l-2 border-slate-700 pl-6 mt-4">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <span class="bg-yellow-600 text-white text-xs px-2 py-1 rounded font-bold">STAGE</span>
+                                        <span class="text-slate-300 text-sm">Límite físico. Un Job se divide en Stages cuando hay un <strong>Shuffle</strong> (intercambio de datos).</span>
+                                    </div>
+
+                                    <!-- Task -->
+                                    <div class="ml-6 border-l-2 border-slate-700 pl-6 mt-4 flex gap-2">
+                                        <div class="bg-slate-800 p-2 rounded text-xs border border-slate-600 text-slate-400">Task 1</div>
+                                        <div class="bg-slate-800 p-2 rounded text-xs border border-slate-600 text-slate-400">Task 2</div>
+                                        <div class="bg-slate-800 p-2 rounded text-xs border border-slate-600 text-slate-400">Task N</div>
+                                        <span class="text-xs text-slate-500 flex items-center ml-2">← Unidad mínima. 1 Task = 1 Partición.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. THE SHUFFLE -->
+                <section id="shuffle" class="mb-32 pt-10 border-t border-slate-800">
+                    <div class="flex items-center gap-4 mb-10">
+                        <div class="p-3 bg-slate-800 rounded-lg text-red-500 border border-slate-700">
+                            <i data-lucide="shuffle" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">The Shuffle: El Asesino del Performance</h2>
+                            <p class="text-slate-400 text-sm font-mono">Wide vs Narrow Transformations</p>
+                        </div>
+                    </div>
+
+                    <div class="prose prose-invert max-w-none text-slate-300 mb-8">
+                        <p>
+                            En un sistema distribuido, mover datos de una máquina a otra es la operación más lenta y costosa.
+                            Esto ocurre cuando necesitas agrupar datos (`groupBy`, `join`) que están dispersos en diferentes Workers.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Narrow -->
+                        <div class="glass-panel p-6 rounded-xl border-t-4 border-green-500">
+                            <h4 class="font-bold text-white text-lg mb-2">Narrow Transformation</h4>
+                            <p class="text-xs text-green-400 uppercase font-bold mb-4">Rápido (Memoria Local)</p>
+                            <p class="text-sm text-slate-400 mb-4">
+                                Cada partición de entrada contribuye a solo una de salida. No hay tráfico de red.
+                                <br>Ejemplos: <code>filter()</code>, <code>select()</code>, <code>map()</code>.
+                            </p>
+                        </div>
+
+                        <!-- Wide -->
+                        <div class="glass-panel p-6 rounded-xl border-t-4 border-red-500">
+                            <h4 class="font-bold text-white text-lg mb-2">Wide Transformation (Shuffle)</h4>
+                            <p class="text-xs text-red-400 uppercase font-bold mb-4">Lento (Disco + Red)</p>
+                            <p class="text-sm text-slate-400 mb-4">
+                                Las filas deben reorganizarse y viajar a otros nodos. Implica:
+                                1. Escribir en disco (Serialización).
+                                2. Enviar por red.
+                                3. Leer y Deserializar.
+                                <br>Ejemplos: <code>groupBy()</code>, <code>join()</code>.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- LAUNCHPAD -->
+                <section class="mb-20 pt-16 border-t border-slate-700 text-center">
+                    <h2 class="text-4xl font-black text-white mb-6">Misión de Campo</h2>
+                    <p class="text-slate-400 text-lg mb-8 max-w-2xl mx-auto">
+                        Suficiente teoría. Es hora de usar el Cluster.
+                        <br>Analizaremos datos reales de <strong>Contratación Pública (SECOP II)</strong> usando PySpark y Delta Lake.
+                    </p>
+
+                    <a href="seccion_9_taller.html" class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-[var(--spark-orange)] font-mono rounded-lg hover:bg-orange-700 hover:shadow-lg hover:shadow-orange-500/40 focus:outline-none ring-offset-2 focus:ring-2 ring-orange-400">
+                        <span class="mr-2 text-xl"><i data-lucide="rocket" class="w-6 h-6"></i></span>
+                        INICIAR TALLER SECOP II
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
+                    </a>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        hljs.highlightAll();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { fontFamily: 'Montserrat' } });
+        
+        // Efecto visual simple para el diagrama de arquitectura
+        document.querySelectorAll('.node-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.borderColor = 'var(--spark-orange)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.borderColor = ''; // Revert to CSS default
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 3: Construyendo un Data Lakehouse con SECOP | Diplomado Data</title>
+    
+    <!-- Librerías -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Tema Base */
+        :root {
+            --spark-orange: #E25A1C;
+            --delta-blue: #00AEEF;
+            --bg-deep: #0f172a;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--bg-deep); color: #e2e8f0; }
+        code, .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Componentes */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .code-window {
+            background: #0d1117;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid #30363d;
+            margin-bottom: 1.5rem;
+        }
+        
+        .code-header {
+            background: #161b22;
+            padding: 0.5rem 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #30363d;
+            font-size: 0.75rem; color: #8b949e; font-family: 'JetBrains Mono', monospace;
+        }
+
+        .step-number {
+            width: 2.5rem; height: 2.5rem;
+            background: var(--spark-orange); color: white;
+            border-radius: 9999px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 1.25rem;
+            flex-shrink: 0;
+            box-shadow: 0 0 15px rgba(226, 90, 28, 0.4);
+        }
+
+        /* Mermaid Styles Override */
+        .mermaid { background: transparent; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--spark-orange); }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="h-16 border-b border-slate-700 bg-slate-900/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-6 justify-between flex-shrink-0">
+        <div class="flex items-center gap-4">
+            <a href="seccion_9.html" class="text-slate-400 hover:text-white transition-colors group">
+                <i data-lucide="arrow-left-circle" class="w-6 h-6 group-hover:-translate-x-1 transition-transform"></i>
+            </a>
+            <div class="h-6 w-px bg-slate-700"></div>
+            <div class="flex items-center gap-2">
+                <i data-lucide="database" class="w-6 h-6 text-[var(--delta-blue)]"></i>
+                <span class="font-bold text-white tracking-tight hidden md:block">LABORATORIO <span class="text-[var(--spark-orange)]">SECOP II</span></span>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-xs font-mono border border-blue-500/20">
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                DOCKER: RUNNING
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-72 bg-slate-900 border-r border-slate-700 hidden lg:flex flex-col overflow-y-auto flex-shrink-0">
+            <div class="p-6">
+                <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Fases del Taller</h3>
+                <nav class="space-y-2">
+                    <a href="#intro" class="flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 rounded transition">
+                        <i data-lucide="info" class="w-4 h-4 mr-3 text-blue-400"></i> Introducción
+                    </a>
+                    <a href="#docker" class="flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 rounded transition">
+                        <i data-lucide="container" class="w-4 h-4 mr-3 text-[var(--spark-orange)]"></i> 1. Infraestructura Docker
+                    </a>
+                    <a href="#lakehouse" class="flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 rounded transition">
+                        <i data-lucide="layers" class="w-4 h-4 mr-3 text-[var(--delta-blue)]"></i> 2. Concepto Lakehouse
+                    </a>
+                    <a href="#ingest" class="flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 rounded transition">
+                        <i data-lucide="upload-cloud" class="w-4 h-4 mr-3 text-green-400"></i> 3. Ingesta (Bronce)
+                    </a>
+                    <a href="#transform" class="flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 rounded transition">
+                        <i data-lucide="filter" class="w-4 h-4 mr-3 text-yellow-400"></i> 4. Limpieza (Plata)
+                    </a>
+                    <a href="#analytics" class="flex items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 rounded transition">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 mr-3 text-purple-400"></i> 5. Analítica (Oro)
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-8 lg:p-12 scroll-smooth relative">
+            
+            <!-- Background -->
+            <div class="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none z-0"></div>
+            
+            <div class="max-w-5xl mx-auto relative z-10 pb-20">
+
+                <!-- INTRO -->
+                <section id="intro" class="mb-24 text-center">
+                    <span class="text-[var(--spark-orange)] font-bold tracking-widest text-xs uppercase mb-4 block">Big Data Hands-on</span>
+                    <h1 class="text-4xl md:text-5xl font-black text-white mb-6">
+                        Construyendo un <span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--delta-blue)] to-cyan-400">Data Lakehouse</span>
+                    </h1>
+                    <p class="text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed mb-8">
+                        Olvídate de los Data Warehouses tradicionales. Hoy construiremos una arquitectura moderna usando <strong>Docker, Apache Spark y Delta Lake</strong> para procesar datos reales de contratación pública (SECOP II).
+                    </p>
+                    
+                    <div class="glass-panel p-6 rounded-xl border border-slate-700 inline-block text-left">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">Tecnologías del Lab</h4>
+                        <div class="flex gap-6 text-sm text-slate-200">
+                            <div class="flex items-center gap-2"><i data-lucide="container" class="text-blue-500"></i> Docker Compose</div>
+                            <div class="flex items-center gap-2"><i data-lucide="zap" class="text-[var(--spark-orange)]"></i> PySpark 3.5</div>
+                            <div class="flex items-center gap-2"><i data-lucide="box" class="text-[var(--delta-blue)]"></i> Delta Lake 3.0</div>
+                            <div class="flex items-center gap-2"><i data-lucide="file-text" class="text-green-500"></i> SECOP CSV</div>
+                        </div>
+                    </div>
+                </section>
+                
+                                <!-- 1. CUSTOM DOCKER BUILD -->
+                <section id="docker-build" class="mb-24 pt-10 border-t border-slate-800">
+                    <div class="flex items-start gap-6 mb-8">
+                        <div class="step-number bg-purple-600 shadow-purple-500/40">1</div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">Construyendo la Imagen</h2>
+                            <p class="text-slate-400 mt-2">
+                                Vamos a escribir nuestro propio <code>Dockerfile</code>. Spark está escrito en Scala (que corre en la JVM), por lo que nuestra imagen de Python necesita <strong>Java</strong> obligatoriamente.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        
+                        <!-- Dockerfile Explanation -->
+                        <div class="code-window mb-0 h-full">
+                            <div class="code-header">
+                                <span class="flex items-center gap-2 text-blue-400"><i data-lucide="file-code" class="w-3 h-3"></i> Dockerfile</span>
+                                <span class="text-xs text-slate-500">Define el entorno</span>
+                            </div>
+                            <pre><code class="language-dockerfile"># 1. Base ligera de Python
+FROM python:3.10-slim
+
+# 2. Instalar Java (Requisito OBLIGATORIO para Spark)
+# También instalamos 'procps' para ver procesos y 'curl'
+RUN apt-get update && \
+    apt-get install -y default-jdk procps curl && \
+    apt-get clean
+
+# 3. Variables de Entorno Clave
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+ENV SPARK_VERSION=3.5.0
+
+# 4. Instalar Spark y Delta vía Pip
+# Esto descarga los binarios de Spark y los wrappers de Python
+RUN pip install --no-cache-dir \
+    pyspark==${SPARK_VERSION} \
+    delta-spark==3.0.0 \
+    pandas \
+    jupyterlab
+
+# 5. Directorio de trabajo
+WORKDIR /app
+
+# 6. Exponer puertos (Jupyter y Spark UI)
+EXPOSE 8888 4040
+
+# 7. Comando de inicio: Jupyter Lab
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--no-browser", "--NotebookApp.token=''"]</code></pre>
+                        </div>
+
+                        <!-- Docker Compose Explanation -->
+                        <div class="space-y-4">
+                            <div class="code-window mb-0">
+                                <div class="code-header">
+                                    <span class="flex items-center gap-2 text-yellow-400"><i data-lucide="container" class="w-3 h-3"></i> docker-compose.yml</span>
+                                    <span class="text-xs text-slate-500">Orquesta el servicio</span>
+                                </div>
+                                <pre><code class="language-yaml">version: '3'
+services:
+  spark-lab:
+    build: .  # Construye el Dockerfile actual
+    container_name: mi_spark_lab
+    ports:
+      - "8888:8888" # Acceso a Jupyter
+      - "4040:4040" # Acceso a Spark UI
+    volumes:
+      # Conecta tu carpeta local 'data' al contenedor
+      - ./data:/app/data
+      - ./notebooks:/app/notebooks
+    environment:
+      - SPARK_LOCAL_IP=0.0.0.0</code></pre>
+                            </div>
+                            
+                            <div class="bg-blue-900/20 border border-blue-500/30 p-4 rounded-lg">
+                                <h4 class="font-bold text-blue-400 text-sm mb-2 flex items-center">
+                                    <i data-lucide="terminal" class="w-4 h-4 mr-2"></i> Comandos de Despliegue
+                                </h4>
+                                <pre><code class="language-bash text-xs bg-transparent p-0"># 1. Construir y Levantar
+docker-compose up --build -d
+
+# 2. Ver logs (para buscar errores)
+docker logs -f mi_spark_lab</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. LAKEHOUSE THEORY -->
+                <section id="lakehouse" class="mb-24 pt-10 border-t border-slate-800">
+                    <div class="flex items-start gap-6 mb-8">
+                        <div class="step-number bg-[var(--delta-blue)] shadow-cyan-500/40">2</div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">¿Qué es un Data Lakehouse?</h2>
+                            <p class="text-slate-400 mt-2">
+                                Combinamos lo mejor de dos mundos: la flexibilidad de un <strong>Data Lake</strong> (archivos baratos) y la confiabilidad de un <strong>Data Warehouse</strong> (transacciones ACID).
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-8 rounded-xl mb-8">
+                        <div class="mermaid flex justify-center">
+                            graph LR
+                            Raw[Datos Crudos] -->|Ingesta| Bronze[(Capa Bronce\nRaw Delta)]
+                            Bronze -->|Limpieza| Silver[(Capa Plata\nClean Delta)]
+                            Silver -->|Agregación| Gold[(Capa Oro\nBusiness Delta)]
+                            
+                            style Bronze fill:#cd7f32,stroke:#fff,color:#000
+                            style Silver fill:#c0c0c0,stroke:#fff,color:#000
+                            style Gold fill:#ffd700,stroke:#fff,color:#000
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 mt-6 text-center text-sm">
+                            <div class="text-orange-300">
+                                <strong>Bronce:</strong> Copia exacta del origen (CSV, JSON). "La verdad cruda".
+                            </div>
+                            <div class="text-slate-300">
+                                <strong>Plata:</strong> Datos limpios, tipados y deduplicados. Listo para Data Science.
+                            </div>
+                            <div class="text-yellow-300">
+                                <strong>Oro:</strong> Agregaciones de negocio (KPIs). Listo para BI/Tableros.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-900/20 border border-blue-500/30 p-5 rounded-lg">
+                        <h4 class="font-bold text-blue-400 mb-2 flex items-center"><i data-lucide="info" class="w-4 h-4 mr-2"></i> ¿Por qué Delta Lake?</h4>
+                        <ul class="list-disc list-inside text-sm text-slate-300 space-y-2">
+                            <li><strong>Transacciones ACID:</strong> O se escriben todos los datos o ninguno. Adiós a archivos corruptos a medias.</li>
+                            <li><strong>Schema Enforcement:</strong> Si intentas guardar texto en una columna numérica, Delta bloquea la operación.</li>
+                            <li><strong>Time Travel:</strong> Puedes consultar cómo estaban los datos ayer con <code>VERSION AS OF</code>.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- 3. INGEST (BRONZE) -->
+                <section id="ingest" class="mb-24 pt-10 border-t border-slate-800">
+                    <div class="flex items-start gap-6 mb-8">
+                        <div class="step-number bg-green-600 shadow-green-500/40">3</div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">Fase 1: Ingesta (Capa Bronce)</h2>
+                            <p class="text-slate-400 mt-2">
+                                Vamos a leer el archivo CSV de SECOP. Spark distribuirá la lectura entre los workers.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Setup Code -->
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span><i data-lucide="file-code" class="inline w-3 h-3 mr-2"></i> 01_setup_session.py</span>
+                            <button class="text-xs text-slate-500 hover:text-white" onclick="navigator.clipboard.writeText(document.getElementById('c1').innerText)">Copiar</button>
+                        </div>
+                        <pre><code id="c1" class="language-python">from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, to_date, sum, desc
+
+# 1. Inicializar Spark con soporte para Delta
+spark = SparkSession.builder \
+    .appName("Lakehouse_SECOP") \
+    .config("spark.jars.packages", "io.delta:delta-spark_2.12:3.0.0") \
+    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+    .getOrCreate()
+
+print("Cluster activo. Workers listos.")</code></pre>
+                    </div>
+
+                    <!-- Ingest Code -->
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span><i data-lucide="upload" class="inline w-3 h-3 mr-2"></i> 02_read_csv.py</span>
+                        </div>
+                        <pre><code class="language-python"># 2. Leer datos crudos (Lazy Evaluation)
+# header=True: Usa la primera fila como nombres de columna
+# inferSchema=True: Spark intenta adivinar tipos (lento pero útil para prototipos)
+df_raw = spark.read \
+    .format("csv") \
+    .option("header", "true") \
+    .option("delimiter", ",") \
+    .option("inferSchema", "true") \
+    .load("data/SECOP_II_Contratos_Electronicos.csv")
+
+# Persistir en formato Delta (Capa Bronce)
+# Esto convierte el CSV lento en formato Parquet optimizado + Transaction Log
+df_raw.write.format("delta").mode("overwrite").save("lakehouse/bronze/secop")
+
+print(f"Total registros: {df_raw.count()}")
+df_raw.printSchema()</code></pre>
+                    </div>
+                </section>
+
+                <!-- 4. TRANSFORM (SILVER) -->
+                <section id="transform" class="mb-24 pt-10 border-t border-slate-800">
+                    <div class="flex items-start gap-6 mb-8">
+                        <div class="step-number bg-yellow-500 shadow-yellow-500/40">4</div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">Fase 2: Limpieza (Capa Plata)</h2>
+                            <p class="text-slate-400 mt-2">
+                                Los datos crudos son un caos. Nombres de columnas con espacios, fechas como texto, valores nulos. Vamos a arreglarlo.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 mb-6">
+                        <h4 class="font-bold text-slate-300 mb-2">Diagrama de Transformación</h4>
+                        <div class="mermaid">
+                            graph TD
+                            A[Bronce: df_raw] --> B{Filtro de Calidad}
+                            B -->|Precio > 0| C[Renombrar Columnas]
+                            C -->|Standard| D[Casteo de Tipos]
+                            D --> E[Plata: df_silver]
+                            
+                            style A fill:#cd7f32,stroke:#fff
+                            style E fill:#c0c0c0,stroke:#fff,color:#000
+                        </div>
+                    </div>
+
+                    <div class="code-window">
+                        <div class="code-header">
+                            <span><i data-lucide="filter" class="inline w-3 h-3 mr-2"></i> 03_clean_silver.py</span>
+                        </div>
+                        <pre><code class="language-python"># Leer desde Bronce (ahora es rápido porque es Delta)
+df_bronze = spark.read.format("delta").load("lakehouse/bronze/secop")
+
+# Transformaciones
+df_silver = df_bronze \
+    .withColumnRenamed("Precio Base", "precio_base") \
+    .withColumnRenamed("Departamento", "departamento") \
+    .withColumnRenamed("Fecha de Firma", "fecha_firma_str") \
+    .withColumn("fecha_firma", to_date(col("fecha_firma_str"), "MM/dd/yyyy")) \
+    .filter(col("precio_base") > 0) \
+    .select("entidad", "departamento", "precio_base", "fecha_firma")
+
+# Guardar en Plata
+df_silver.write.format("delta").mode("overwrite").save("lakehouse/silver/secop")
+
+print("Datos limpios guardados en capa Plata.")
+df_silver.show(5)</code></pre>
+                    </div>
+                </section>
+
+                <!-- 5. ANALYTICS (GOLD) -->
+                <section id="analytics" class="mb-24 pt-10 border-t border-slate-800">
+                    <div class="flex items-start gap-6 mb-8">
+                        <div class="step-number bg-purple-600 shadow-purple-500/40">5</div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">Fase 3: Analítica (Capa Oro)</h2>
+                            <p class="text-slate-400 mt-2">
+                                Finalmente, respondemos preguntas de negocio. Agrupamos los datos limpios para dashboards.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="code-window mb-8">
+                        <div class="code-header">
+                            <span><i data-lucide="bar-chart" class="inline w-3 h-3 mr-2"></i> 04_gold_analytics.py</span>
+                        </div>
+                        <pre><code class="language-python"># Pregunta: ¿Cuáles son los departamentos con mayor contratación?
+df_gold = df_silver \
+    .groupBy("departamento") \
+    .agg(sum("precio_base").alias("total_contratado")) \
+    .orderBy(desc("total_contratado")) \
+    .limit(10)
+
+# Guardar resultado final
+df_gold.write.format("delta").mode("overwrite").save("lakehouse/gold/top_deptos")
+
+# Convertir a Pandas para graficar (Solo porque son 10 filas)
+pdf = df_gold.toPandas()
+print(pdf)</code></pre>
+                    </div>
+
+                    <!-- Simulación de Gráfico -->
+                    <div class="glass-panel p-6 rounded-xl border border-slate-700">
+                        <h4 class="text-center font-bold text-slate-300 mb-4">Resultado: Top Contratación por Departamento</h4>
+                        <div class="relative h-64 w-full">
+                            <canvas id="chartSecop"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FINAL CHALLENGE -->
+                <section class="mb-20 pt-10 border-t border-slate-800 text-center">
+                    <div class="inline-block p-4 rounded-full bg-blue-500/10 mb-6 border border-blue-500/50">
+                        <i data-lucide="trophy" class="w-12 h-12 text-blue-400"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-white mb-4">Reto Final: Detección de Anomalías</h2>
+                    <p class="text-slate-400 max-w-xl mx-auto mb-8">
+                        Usa la Capa Plata para encontrar: <strong>¿Qué contrato tiene el valor más alto en la historia de tu departamento?</strong>
+                        <br>Escribe el código SQL o PySpark para resolverlo.
+                    </p>
+                    <a href="seccion_9.html" class="inline-flex items-center text-slate-400 hover:text-white transition gap-2 border border-slate-600 px-6 py-3 rounded-full hover:border-[var(--spark-orange)]">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i> Volver al Centro de Mando
+                    </a>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Chart Script -->
+    <script>
+        lucide.createIcons();
+        hljs.highlightAll();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { fontFamily: 'Montserrat' } });
+
+        // Chart.js Render
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chartSecop').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['BOGOTA', 'ANTIOQUIA', 'VALLE', 'CUNDINAMARCA', 'SANTANDER', 'ATLANTICO', 'BOLIVAR'],
+                    datasets: [{
+                        label: 'Total Contratado (Billones)',
+                        data: [550, 420, 310, 280, 210, 190, 150],
+                        backgroundColor: 'rgba(226, 90, 28, 0.7)',
+                        borderColor: '#E25A1C',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
