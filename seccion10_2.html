@@ -3,34 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capítulo 10.2: Calidad de Datos (Expectations) | Data Strategy</title>
+    <title>Capítulo 10.2: Modelado SQL con dbt | Data Strategy</title>
     
-    <!-- Core Libraries -->
+    <!-- Librerías Core -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     
-    <!-- Typography -->
+    <!-- Tipografía Técnica -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-deep: #020408;
+            --dbt-orange: #FF694B;
             --code-bg: #0d1117;
-            --code-border: #30363d;
+            --border-color: #30363d;
+            --bg-deep: #020408;
             --text-main: #cbd5e1;
-            
-            /* Semáforo de Calidad */
-            --severity-warn: #eab308;  /* Yellow 500 */
-            --severity-drop: #f97316;  /* Orange 500 */
-            --severity-fail: #ef4444;  /* Red 500 */
-            --quality-pass: #10b981;   /* Emerald 500 */
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
         }
         
         body { 
@@ -38,8 +35,9 @@
             background-color: var(--bg-deep); 
             color: var(--text-main);
             background-image: 
-                radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.05) 0%, transparent 25%),
-                radial-gradient(circle at 0% 100%, rgba(239, 68, 68, 0.05) 0%, transparent 25%);
+                linear-gradient(rgba(16, 185, 129, 0.02) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(16, 185, 129, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
         
         .font-mono { font-family: 'JetBrains Mono', monospace; }
@@ -48,27 +46,76 @@
         .glass-panel {
             background: rgba(13, 17, 23, 0.85);
             backdrop-filter: blur(12px);
-            border: 1px solid var(--code-border);
+            border: 1px solid var(--border-color);
             border-radius: 0.75rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover {
+            border-color: rgba(16, 185, 129, 0.3); /* Green hover for modeling */
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
         }
 
-        .severity-card {
-            border-top-width: 4px;
+        .step-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-green);
+            opacity: 0.9;
         }
-        .severity-card:hover {
-            transform: translateY(-2px);
+
+        .code-block-header {
+            padding: 0.5rem 1rem;
+            background: #161b22;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .code-lang-badge {
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
         }
 
         /* Syntax Highlighting */
         .hljs { background: transparent !important; padding: 0 !important; }
         pre { margin: 0; padding: 1.5rem; overflow-x: auto; }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-deep); }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        /* Sidebar Navigation */
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.03);
+            color: white;
+            padding-left: 1.25rem;
+        }
+        .sidebar-link.active {
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), transparent);
+            border-left-color: var(--accent-green);
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+        
+        /* Badges */
+        .badge { display: inline-block; padding: 0.2em 0.6em; border-radius: 0.25rem; font-size: 0.75em; font-weight: 700; margin-right: 0.5rem; }
+        .badge-sql { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-yml { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-jinja { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
@@ -78,22 +125,20 @@
         <div class="flex items-center gap-6">
             <a href="seccion_10.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition group">
                 <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
-                <span class="font-bold tracking-wide text-sm">HUB PRINCIPAL</span>
+                <span class="font-bold tracking-wide text-sm">HUB dbt</span>
             </a>
             <div class="h-6 w-px bg-[#1f2937]"></div>
             <div>
                 <h1 class="text-white font-bold text-lg tracking-tight font-mono">
-                    DLT<span class="text-green-500">.EXPECTATIONS()</span>
+                    MODELING<span class="text-green-500">.SQL()</span>
                 </h1>
-                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Framework de Calidad de Datos</p>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Lógica de Negocio & Calidad</p>
             </div>
         </div>
         <div class="hidden lg:flex items-center gap-3">
-            <span class="text-xs text-slate-500 font-mono">NIVEL DE CALIDAD:</span>
-            <div class="flex gap-1">
-                <div class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" style="animation-delay: 0.2s"></div>
-                <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse" style="animation-delay: 0.4s"></div>
+            <div class="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded border border-slate-700">
+                <i data-lucide="database" class="w-3 h-3 text-green-500"></i>
+                <span class="text-[10px] font-mono text-slate-400">TARGET: SPARK</span>
             </div>
         </div>
     </header>
@@ -101,43 +146,49 @@
     <div class="flex flex-1 overflow-hidden">
         
         <!-- Sidebar -->
-        <aside class="w-72 bg-[#05090f] border-r border-[#1f2937] overflow-y-auto hidden lg:block z-40">
-            <div class="p-4 space-y-8">
+        <aside class="w-72 bg-[#05090f] border-r border-[#1f2937] overflow-y-auto hidden lg:block z-40 custom-scrollbar">
+            <div class="p-6 space-y-10">
                 <div>
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">1. Teoría</h3>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-3 flex items-center gap-2">
+                        <i data-lucide="box" class="w-3 h-3"></i> 1. Fundamentos
+                    </h3>
                     <nav class="flex flex-col space-y-1">
-                        <a href="#concept" class="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded transition">
-                            <i data-lucide="shield" class="w-4 h-4"></i> Calidad como Código
+                        <a href="#models" class="sidebar-link active">
+                            <span>¿Qué es un Modelo?</span>
                         </a>
-                        <a href="#levels" class="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded transition">
-                            <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Niveles de Severidad
+                        <a href="#dag" class="sidebar-link">
+                            <span>La Función ref()</span>
                         </a>
                     </nav>
                 </div>
 
                 <div>
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">2. Implementación</h3>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-3 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-3 h-3"></i> 2. Arquitectura
+                    </h3>
                     <nav class="flex flex-col space-y-1">
-                        <a href="#warn" class="flex items-center gap-2 px-3 py-2 text-yellow-500/80 hover:text-yellow-400 hover:bg-yellow-500/10 rounded transition">
-                            <i data-lucide="alert-triangle" class="w-4 h-4"></i> @expect (Warn)
+                        <a href="#config" class="sidebar-link">
+                            <span>Materializaciones</span>
                         </a>
-                        <a href="#drop" class="flex items-center gap-2 px-3 py-2 text-orange-500/80 hover:text-orange-400 hover:bg-orange-500/10 rounded transition">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i> @expect_or_drop
-                        </a>
-                        <a href="#fail" class="flex items-center gap-2 px-3 py-2 text-red-500/80 hover:text-red-400 hover:bg-red-500/10 rounded transition">
-                            <i data-lucide="x-octagon" class="w-4 h-4"></i> @expect_or_fail
+                        <a href="#medallion" class="sidebar-link">
+                            <span>Patrón Medallion</span>
                         </a>
                     </nav>
                 </div>
 
                 <div>
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">3. Patrones Pro</h3>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-3 flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-3 h-3"></i> 3. Calidad (Tests)
+                    </h3>
                     <nav class="flex flex-col space-y-1">
-                        <a href="#quarantine" class="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded transition">
-                            <i data-lucide="archive" class="w-4 h-4"></i> Cuarentena (No perder datos)
+                        <a href="#schema" class="sidebar-link">
+                            <span>schema.yml</span>
                         </a>
-                        <a href="#portable" class="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded transition">
-                            <i data-lucide="briefcase" class="w-4 h-4"></i> Reglas Portables
+                        <a href="#generic" class="sidebar-link">
+                            <span>Tests Genéricos</span>
+                        </a>
+                        <a href="#docs" class="sidebar-link">
+                            <span>Documentación</span>
                         </a>
                     </nav>
                 </div>
@@ -145,274 +196,237 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto p-8 lg:p-16 scroll-smooth">
-            <div class="max-w-5xl mx-auto pb-32">
+        <main class="flex-1 overflow-y-auto p-8 lg:p-16 scroll-smooth relative custom-scrollbar">
+            <div class="max-w-5xl mx-auto pb-40">
 
-                <!-- 1. Concepto -->
-                <section id="concept" class="mb-24">
-                    <div class="flex items-start gap-6">
-                        <div class="p-4 bg-green-500/10 rounded-2xl border border-green-500/20">
-                            <i data-lucide="shield-check" class="w-10 h-10 text-green-500"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-4xl font-black text-white mb-4">Calidad como Código</h2>
-                            <p class="text-xl text-slate-400 leading-relaxed">
-                                Tradicionalmente, la calidad de datos se verifica <em>después</em> de que el pipeline termina (y el daño ya está hecho).
-                                <br>DLT invierte esto: Defines <strong>contratos de datos</strong> (Constraints) que se ejecutan fila por fila en tiempo real.
-                            </p>
-                        </div>
+                <!-- 1. MODELOS -->
+                <section id="models" class="mb-32">
+                    <div class="flex items-center gap-4 mb-6">
+                         <div class="p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+                            <i data-lucide="file-code" class="w-8 h-8 text-green-500"></i>
+                         </div>
+                         <h1 class="text-4xl font-black text-white tracking-tight">Todo es un SELECT</h1>
                     </div>
-
-                    <div class="mt-12 glass-panel p-8">
-                        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6 text-center">Flujo de Validación</h3>
-                        <div class="mermaid flex justify-center">
-                            graph LR
-                            Row[Fila Entrante] --> Check{¿Cumple Regla?}
-                            Check -->|Sí| Pass[Dataset Final]
-                            Check -->|No| Severity{¿Severidad?}
-                            
-                            Severity -->|Warn| Log[Log + Dataset]
-                            Severity -->|Drop| Trash[Descartar Fila]
-                            Severity -->|Fail| Stop[🛑 DETENER PIPELINE]
-                            
-                            style Row fill:#1e293b,stroke:#fff
-                            style Pass fill:#064e3b,stroke:#10b981
-                            style Log fill:#713f12,stroke:#eab308
-                            style Trash fill:#7c2d12,stroke:#f97316
-                            style Stop fill:#7f1d1d,stroke:#ef4444
-                        </div>
-                    </div>
-                </section>
-
-                <!-- 2. Niveles de Severidad -->
-                <section id="levels" class="mb-24 pt-12 border-t border-gray-800">
-                    <h2 class="text-3xl font-bold text-white mb-8">El Semáforo de Calidad</h2>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        
-                        <!-- WARN -->
-                        <div id="warn" class="glass-panel severity-card border-t-yellow-500 p-6">
-                            <div class="flex justify-between items-start mb-4">
-                                <h3 class="text-xl font-bold text-white">1. Warn</h3>
-                                <span class="px-2 py-1 bg-yellow-500/10 text-yellow-500 text-xs font-mono rounded border border-yellow-500/20">@expect</span>
-                            </div>
-                            <p class="text-sm text-slate-400 mb-6 min-h-[60px]">
-                                "Permite pasar el dato sucio, pero avísame". Ideal para monitorear tendencias sin interrumpir el negocio.
-                            </p>
-                            <div class="bg-[#05090f] rounded p-3 mb-4">
-                                <code class="text-xs text-slate-500 block mb-1"># Ejemplo: Email sospechoso</code>
-                                <code class="text-xs text-yellow-400">@dlt.expect("email_valido", "email LIKE '%@%'")</code>
-                            </div>
-                            <div class="flex items-center gap-2 text-xs text-slate-500">
-                                <i data-lucide="activity" class="w-3 h-3"></i> Impacto: Solo Métricas
-                            </div>
-                        </div>
-
-                        <!-- DROP -->
-                        <div id="drop" class="glass-panel severity-card border-t-orange-500 p-6">
-                            <div class="flex justify-between items-start mb-4">
-                                <h3 class="text-xl font-bold text-white">2. Drop</h3>
-                                <span class="px-2 py-1 bg-orange-500/10 text-orange-500 text-xs font-mono rounded border border-orange-500/20">@expect_or_drop</span>
-                            </div>
-                            <p class="text-sm text-slate-400 mb-6 min-h-[60px]">
-                                "Si está sucio, tíralo". El dataset resultante queda limpio, pero pierdes volumen de datos. Estándar en capa Plata.
-                            </p>
-                            <div class="bg-[#05090f] rounded p-3 mb-4">
-                                <code class="text-xs text-slate-500 block mb-1"># Ejemplo: Precio negativo</code>
-                                <code class="text-xs text-orange-400">@dlt.expect_or_drop("precio_pos", "price > 0")</code>
-                            </div>
-                            <div class="flex items-center gap-2 text-xs text-slate-500">
-                                <i data-lucide="filter" class="w-3 h-3"></i> Impacto: Pérdida de Datos
-                            </div>
-                            
-                            <!-- Detailed Drop Explanation -->
-                            <div class="mt-4 pt-4 border-t border-orange-500/20">
-                                <h4 class="text-orange-400 font-bold text-sm mb-2 flex items-center gap-2">
-                                    <i data-lucide="alert-circle" class="w-4 h-4"></i> ¿Por qué es riesgoso?
-                                </h4>
-                                <p class="text-xs text-slate-400 mb-3">
-                                    Al usar <code>drop</code>, las filas desaparecen silenciosamente del flujo principal. Si tienes un error en la fuente que afecta al 50% de los datos (ej: cambio de formato de fecha), perderás la mitad de tu negocio sin que el pipeline falle.
-                                </p>
-                                <div class="bg-orange-900/10 border border-orange-500/10 p-3 rounded">
-                                    <h5 class="text-xs font-bold text-orange-300 mb-1">Cálculo de Impacto</h5>
-                                    <div class="flex justify-between items-center text-xs text-slate-500">
-                                        <span>Entrada:</span>
-                                        <span class="font-mono text-white">1,000,000 filas</span>
-                                    </div>
-                                    <div class="flex justify-between items-center text-xs text-slate-500">
-                                        <span>Violaciones:</span>
-                                        <span class="font-mono text-orange-400">- 50,000 filas (5%)</span>
-                                    </div>
-                                    <div class="flex justify-between items-center text-xs text-slate-500 border-t border-slate-700 mt-1 pt-1">
-                                        <span>Salida Plata:</span>
-                                        <span class="font-mono text-green-400">950,000 filas</span>
-                                    </div>
-                                </div>
-                                <div class="mt-3">
-                                    <h5 class="text-xs font-bold text-slate-300 mb-1">Visualización del Filtro</h5>
-                                    <div class="mermaid">
-                                        graph LR
-                                        Input[Datos] --> Filter{Valid?}
-                                        Filter -- No --> Drop[🗑️ Papelera]
-                                        Filter -- Yes --> Silver[Capa Plata]
-                                        style Drop fill:#7c2d12,stroke:#f97316,stroke-width:2px
-                                        style Silver fill:#064e3b,stroke:#10b981
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FAIL -->
-                        <div id="fail" class="glass-panel severity-card border-t-red-500 p-6">
-                            <div class="flex justify-between items-start mb-4">
-                                <h3 class="text-xl font-bold text-white">3. Fail</h3>
-                                <span class="px-2 py-1 bg-red-500/10 text-red-500 text-xs font-mono rounded border border-red-500/20">@expect_or_fail</span>
-                            </div>
-                            <p class="text-sm text-slate-400 mb-6 min-h-[60px]">
-                                "Tolerancia Cero". Detiene todo el pipeline. Úsalo cuando un dato malo invalida todo el proceso.
-                            </p>
-                            <div class="bg-[#05090f] rounded p-3 mb-4">
-                                <code class="text-xs text-slate-500 block mb-1"># Ejemplo: ID Nulo</code>
-                                <code class="text-xs text-red-400">@dlt.expect_or_fail("pk_not_null", "id IS NOT NULL")</code>
-                            </div>
-                            <div class="flex items-center gap-2 text-xs text-slate-500">
-                                <i data-lucide="x-circle" class="w-3 h-3"></i> Impacto: Parada de Producción
-                            </div>
-                        </div>
-
-                    </div>
-                </section>
-
-                <!-- 3. Implementación Práctica -->
-                <section class="mb-24 pt-12 border-t border-gray-800">
-                    <h2 class="text-3xl font-bold text-white mb-8">Implementación Multi-Regla</h2>
-                    <p class="text-slate-400 mb-6">
-                        Rara vez usas una sola regla. DLT permite aplicar diccionarios enteros de reglas usando <code>@dlt.expect_all...</code>.
+                    <p class="text-xl text-slate-400 leading-relaxed mb-10 max-w-3xl">
+                        En dbt, olvídate de escribir <code>CREATE TABLE IF NOT EXISTS...</code> o gestionar <code>UPDATES</code> complejos.
+                        Un modelo es simplemente un archivo <strong>.sql</strong> con una sentencia <code>SELECT</code>. dbt envuelve ese SELECT en el DDL correcto para Spark.
                     </p>
-
-                    <div class="glass-panel">
-                        <div class="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
-                            <span class="text-xs font-mono text-slate-500">quality_pipeline.py</span>
+                    
+                    <div class="glass-panel overflow-hidden mb-8">
+                        <div class="code-block-header">
+                            <span class="text-xs font-mono text-slate-400">models/clientes_vip.sql</span>
+                            <div>
+                                <span class="badge badge-sql">SQL</span>
+                                <span class="badge badge-jinja">JINJA</span>
+                            </div>
                         </div>
-                        <pre><code class="language-python">import dlt
-from pyspark.sql.functions import *
+                        <pre><code class="language-sql">/*
+    Lógica de Negocio Pura:
+    Solo define CÓMO se ven los datos resultantes.
+*/
 
-# Definimos nuestras reglas de negocio en un diccionario
-reglas_plata = {
-    "valid_trans_id": "transaction_id IS NOT NULL",
-    "valid_amount": "amount > 0 AND amount < 1000000",
-    "valid_currency": "currency IN ('USD', 'EUR', 'COP')"
-}
+with pedidos as (
+    -- No usamos FROM 'tabla_fisica', usamos ref()
+    select * from {{ ref('stg_pedidos') }}
+),
 
-@dlt.table(
-    name="silver_transactions",
-    comment="Transacciones limpias listas para analítica"
+calculo_metricas as (
+    select
+        cliente_id,
+        sum(monto) as total_gastado,
+        count(pedido_id) as n_pedidos
+    from pedidos
+    group by cliente_id
 )
-# Aplicamos todas las reglas: Si falla CUALQUIERA, la fila se descarta
-@dlt.expect_all_or_drop(reglas_plata)
-def process_silver():
-    return (
-        dlt.readStream("bronze_transactions")
-        .withColumn("processed_at", current_timestamp())
-    )</code></pre>
-                    </div>
-                </section>
 
-                <!-- 4. Patrón de Cuarentena -->
-                <section id="quarantine" class="mb-24 pt-12 border-t border-gray-800">
-                    <div class="flex items-center gap-4 mb-8">
-                        <div class="p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                            <i data-lucide="archive" class="w-6 h-6 text-purple-400"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-3xl font-bold text-white">El Patrón de Cuarentena</h2>
-                            <p class="text-sm text-slate-400">Cómo limpiar datos sin borrar evidencia.</p>
-                        </div>
+select * from calculo_metricas
+where total_gastado > 1000</code></pre>
                     </div>
 
-                    <p class="text-slate-400 mb-6">
-                        Usar <code>expect_or_drop</code> es peligroso porque borras datos que podrían ser útiles o reparables. 
-                        El patrón de Cuarentena divide el flujo: las filas buenas van a Plata, las malas van a una tabla de "Cuarentena" para auditoría.
-                    </p>
-
-                    <div class="glass-panel mb-8">
-                        <pre><code class="language-python">reglas = {"valid_score": "score >= 0 AND score <= 100"}
-
-# 1. Tabla PRINCIPAL (Solo Datos Buenos)
-@dlt.table(name="exam_scores_clean")
-@dlt.expect_all_or_drop(reglas)
-def scores_clean():
-    return dlt.readStream("bronze_scores")
-
-# 2. Tabla CUARENTENA (Solo Datos Malos)
-@dlt.table(name="exam_scores_quarantine")
-def scores_quarantine():
-    return (
-        dlt.readStream("bronze_scores")
-        # Invertimos la lógica para capturar lo malo
-        .filter("NOT (score >= 0 AND score <= 100)")
-        .withColumn("reason", lit("Invalid Score Range"))
-    )</code></pre>
-                    </div>
-                    
-                    <div class="p-4 border border-blue-500/30 bg-blue-500/5 rounded-lg flex gap-4 items-start">
-                        <i data-lucide="lightbulb" class="w-5 h-5 text-blue-400 mt-1"></i>
+                    <div class="p-4 border border-blue-500/20 bg-blue-500/5 rounded-lg flex gap-4 items-center">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-400"></i>
                         <p class="text-sm text-slate-300">
-                            <strong>Tip Pro:</strong> En la tabla de cuarentena, agrega siempre metadatos como <code>ingest_date</code> y <code>file_source</code> para ayudar al equipo de origen a corregir el error.
+                            Cuando ejecutas <code>dbt run</code>, dbt compila este archivo en Spark SQL:
+                            <br><code class="text-blue-300 font-mono text-xs">CREATE TABLE analytics.clientes_vip AS SELECT ...</code>
                         </p>
                     </div>
                 </section>
 
-                <!-- 5. Reglas Portables -->
-                <section id="portable" class="mb-24 pt-12 border-t border-gray-800">
-                    <h2 class="text-3xl font-bold text-white mb-6">Reglas Portables & Reusables</h2>
-                    <p class="text-slate-400 mb-6">
-                        No escribas las mismas reglas en 10 pipelines diferentes. Define una librería de reglas y expórtalas.
+                <!-- 2. EL DAG (REF) -->
+                <section id="dag" class="mb-32 pt-16 border-t border-gray-800">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="step-number">01</span>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">La Función Mágica: ref()</h2>
+                            <p class="text-sm text-slate-500 font-mono mt-1">DEPENDENCY GRAPH</p>
+                        </div>
+                    </div>
+
+                    <p class="text-slate-400 mb-8 leading-relaxed">
+                        La regla de oro en dbt: <strong>Nunca escribas el nombre físico de una tabla</strong> (ej: `analytics.tabla_a`).
+                        Siempre usa <code>{{ ref('nombre_modelo') }}</code>. Esto permite a dbt construir el Árbol de Dependencias (DAG) y ejecutar los modelos en el orden correcto.
                     </p>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="glass-panel">
-                            <div class="px-4 py-2 bg-[#161b22] border-b border-[#30363d] text-xs font-mono text-slate-500">_rules.py</div>
-                            <pre><code class="language-python"># Archivo compartido
-RULES_CLIENTE = {
-    "id": "id IS NOT NULL",
-    "email": "email LIKE '%@%'"
-}
-
-RULES_FINANCIERAS = {
-    "monto": "amount > 0",
-    "moneda": "len(currency) == 3"
-}</code></pre>
+                    <div class="glass-panel p-8 mb-10 bg-black/20">
+                        <div class="mermaid flex justify-center">
+                            graph LR
+                            A[stg_pedidos] -->|ref| B[int_ventas_diarias]
+                            A -->|ref| C[int_clientes_metricas]
+                            B -->|ref| D[fact_ventas_mensuales]
+                            C -->|ref| E[dim_clientes_vip]
+                            
+                            style A fill:#78350f,stroke:#fff
+                            style B fill:#1e3a8a,stroke:#fff
+                            style C fill:#1e3a8a,stroke:#fff
+                            style D fill:#14532d,stroke:#fff
+                            style E fill:#14532d,stroke:#fff
                         </div>
-                        <div class="glass-panel">
-                            <div class="px-4 py-2 bg-[#161b22] border-b border-[#30363d] text-xs font-mono text-slate-500">pipeline.py</div>
-                            <pre><code class="language-python">import dlt
-from _rules import RULES_CLIENTE
-
-@dlt.table
-@dlt.expect_all(RULES_CLIENTE)
-def clientes():
-    return ...</code></pre>
+                        <div class="mt-4 flex justify-center gap-6 text-xs font-mono">
+                            <span class="flex items-center gap-2"><div class="w-3 h-3 bg-orange-900 rounded"></div> BRONZE</span>
+                            <span class="flex items-center gap-2"><div class="w-3 h-3 bg-blue-900 rounded"></div> SILVER</span>
+                            <span class="flex items-center gap-2"><div class="w-3 h-3 bg-green-900 rounded"></div> GOLD</span>
                         </div>
                     </div>
                 </section>
 
-                <!-- Navigation Footer -->
+                <!-- 3. MATERIALIZACIONES -->
+                <section id="config" class="mb-32 pt-16 border-t border-gray-800">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="step-number">02</span>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">Configuración y Materialización</h2>
+                            <p class="text-sm text-slate-500 font-mono mt-1">View vs Table vs Incremental</p>
+                        </div>
+                    </div>
+
+                    <p class="text-slate-400 mb-8">
+                        Puedes decirle a dbt cómo guardar el resultado en Spark usando un bloque de configuración Jinja al inicio del archivo.
+                    </p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- View -->
+                        <div class="glass-panel p-5 hover:border-blue-500 transition group">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i data-lucide="eye" class="text-blue-500 w-5 h-5"></i>
+                                <strong class="text-white">View</strong>
+                            </div>
+                            <code class="text-xs text-slate-500 block mb-2">{{ config(materialized='view') }}</code>
+                            <p class="text-xs text-slate-400">
+                                Rápido. No ocupa espacio. Se recalcula cada vez que se consulta. Ideal para capas intermedias o Bronze.
+                            </p>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="glass-panel p-5 hover:border-green-500 transition group">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i data-lucide="table" class="text-green-500 w-5 h-5"></i>
+                                <strong class="text-white">Table</strong>
+                            </div>
+                            <code class="text-xs text-slate-500 block mb-2">{{ config(materialized='table') }}</code>
+                            <p class="text-xs text-slate-400">
+                                Dbt hace un DROP + CREATE. Los datos se guardan en Parquet/Delta. Rápido de leer, lento de construir. Ideal para dimensiones pequeñas.
+                            </p>
+                        </div>
+
+                        <!-- Incremental -->
+                        <div class="glass-panel p-5 hover:border-purple-500 transition group">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i data-lucide="refresh-cw" class="text-purple-500 w-5 h-5"></i>
+                                <strong class="text-white">Incremental</strong>
+                            </div>
+                            <code class="text-xs text-slate-500 block mb-2">{{ config(materialized='incremental') }}</code>
+                            <p class="text-xs text-slate-400">
+                                Solo procesa los datos nuevos. Vital para Big Data en Spark. Dbt hace un MERGE inteligente.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. CALIDAD Y TESTS -->
+                <section id="schema" class="mb-32 pt-16 border-t border-gray-800">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="step-number">03</span>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">Calidad como Código</h2>
+                            <p class="text-sm text-slate-500 font-mono mt-1">SCHEMA.YML & TESTS</p>
+                        </div>
+                    </div>
+
+                    <p class="text-slate-400 mb-8 leading-relaxed">
+                        Aquí reemplazamos las "Expectations" de DLT. En dbt, definimos las reglas de calidad en un archivo YAML junto a la documentación. Si un test falla, dbt alerta en la consola.
+                    </p>
+
+                    <div class="glass-panel overflow-hidden mb-10">
+                        <div class="code-block-header">
+                            <span class="text-xs font-mono text-slate-400">models/schema.yml</span>
+                            <span class="code-lang-badge">YAML</span>
+                        </div>
+                        <pre><code class="language-yaml">version: 2
+
+models:
+  - name: clientes_vip
+    description: "Tabla derivada que contiene solo clientes con gasto > 1000"
+    columns:
+      - name: cliente_id
+        description: "Clave primaria del cliente"
+        tests:
+          - unique      # Test Genérico 1: No puede haber duplicados
+          - not_null    # Test Genérico 2: No puede ser nulo
+
+      - name: total_gastado
+        tests:
+          - accepted_values: # Test Genérico 3: Validar valores permitidos (ejemplo)
+              values: [0, 100, 200]
+              quote: false
+              severity: warn  # Solo advertir, no fallar el pipeline</code></pre>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div id="generic" class="p-6 bg-slate-900/50 rounded-xl border border-slate-800">
+                            <h4 class="text-white font-bold mb-4 flex items-center gap-2">
+                                <i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i> Tests Genéricos
+                            </h4>
+                            <p class="text-sm text-slate-400 mb-4">
+                                Vienen incluidos "de caja".
+                            </p>
+                            <ul class="space-y-2 text-xs text-slate-300 font-mono">
+                                <li class="flex gap-2"><span>•</span> unique</li>
+                                <li class="flex gap-2"><span>•</span> not_null</li>
+                                <li class="flex gap-2"><span>•</span> accepted_values</li>
+                                <li class="flex gap-2"><span>•</span> relationships (integridad referencial FK)</li>
+                            </ul>
+                        </div>
+                        <div id="docs" class="p-6 bg-slate-900/50 rounded-xl border border-slate-800">
+                            <h4 class="text-white font-bold mb-4 flex items-center gap-2">
+                                <i data-lucide="book-open" class="w-4 h-4 text-blue-500"></i> Documentación
+                            </h4>
+                            <p class="text-sm text-slate-400 mb-4">
+                                El mismo archivo <code>schema.yml</code> alimenta un sitio web de documentación automático.
+                            </p>
+                            <div class="bg-black/40 p-3 rounded border border-slate-700">
+                                <code class="text-xs text-green-400">$ dbt docs generate && dbt docs serve</code>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FINAL NAVIGATION -->
                 <section class="py-16 border-t border-gray-800 flex justify-between items-center">
-                    <a href="seccion10_1.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition">
-                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    <a href="seccion10_1.html" class="flex items-center gap-3 text-slate-400 hover:text-white transition group px-4 py-3 rounded-lg hover:bg-white/5">
+                        <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
                         <div class="text-right">
-                            <div class="text-xs text-slate-500 uppercase">Anterior</div>
-                            <div class="font-bold">Sintaxis Básica</div>
+                            <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Anterior</div>
+                            <div class="font-bold">Setup & Config</div>
                         </div>
                     </a>
                     
-                    <a href="secion10_3.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition">
+                    <a href="secion10_3.html" class="flex items-center gap-3 px-6 py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition shadow-[0_4px_20px_rgba(16,185,129,0.3)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.5)] transform hover:-translate-y-1">
                         <div class="text-left">
-                            <div class="text-xs text-slate-500 uppercase">Siguiente</div>
-                            <div class="font-bold">Observabilidad & Ops</div>
+                            <div class="text-[10px] text-green-100 uppercase font-bold tracking-wider">Siguiente Paso</div>
+                            <div class="font-bold text-lg">Documentación & Ops</div>
                         </div>
-                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        <i data-lucide="arrow-right" class="w-6 h-6"></i>
                     </a>
                 </section>
 
@@ -420,14 +434,17 @@ def clientes():
         </main>
     </div>
 
-    <!-- Init Scripts -->
+    <!-- Scripts -->
     <script>
         lucide.createIcons();
         hljs.highlightAll();
+        
         mermaid.initialize({ 
             startOnLoad: true, 
             theme: 'dark',
-            fontFamily: 'JetBrains Mono'
+            securityLevel: 'loose',
+            fontFamily: 'JetBrains Mono',
+            flowchart: { curve: 'basis' }
         });
     </script>
 </body>

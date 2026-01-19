@@ -3,34 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capítulo 10.1: Masterclass de Sintaxis DLT | Data Strategy</title>
+    <title>Capítulo 10.1: Setup dbt con Spark | Data Strategy</title>
     
-    <!-- Core Libraries -->
+    <!-- Librerías Core -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     
-    <!-- Typography -->
+    <!-- Tipografía Técnica -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
+            --dbt-orange: #FF694B;
             --code-bg: #0d1117;
-            --code-border: #30363d;
-            --accent-primary: #3b82f6; /* Blue 500 */
-            --accent-secondary: #eab308; /* Yellow 500 */
-            --accent-tertiary: #10b981; /* Emerald 500 */
-            --accent-danger: #ef4444; /* Red 500 */
+            --border-color: #30363d;
             --bg-deep: #020408;
             --text-main: #cbd5e1;
-            --text-bright: #f1f5f9;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
         }
         
         body { 
@@ -38,9 +36,9 @@
             background-color: var(--bg-deep); 
             color: var(--text-main);
             background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), 
-                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 50px 50px;
+                linear-gradient(rgba(255, 105, 75, 0.02) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(255, 105, 75, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
         
         .font-mono { font-family: 'JetBrains Mono', monospace; }
@@ -49,49 +47,47 @@
         .glass-panel {
             background: rgba(13, 17, 23, 0.85);
             backdrop-filter: blur(12px);
-            border: 1px solid var(--code-border);
+            border: 1px solid var(--border-color);
             border-radius: 0.75rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover {
+            border-color: rgba(255, 105, 75, 0.3);
+            box-shadow: 0 0 20px rgba(255, 105, 75, 0.1);
         }
 
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 1rem;
-        }
-        
-        .section-number {
+        .step-number {
             font-family: 'JetBrains Mono', monospace;
             font-size: 1.5rem;
             font-weight: 800;
-            color: var(--accent-secondary);
-            opacity: 0.8;
+            color: var(--dbt-orange);
+            opacity: 0.9;
+            text-shadow: 0 0 10px rgba(255, 105, 75, 0.3);
         }
 
-        .keyword-badge {
-            display: inline-block;
-            padding: 0.2rem 0.5rem;
-            border-radius: 0.25rem;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            color: #60a5fa;
+        .code-block-header {
+            padding: 0.5rem 1rem;
+            background: #161b22;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .code-lang-badge {
+            font-size: 0.7rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            text-transform: uppercase;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
         }
 
         /* Syntax Highlighting Customization */
-        .hljs {
-            background: transparent !important;
-            padding: 0 !important;
-        }
-        pre {
-            margin: 0;
-            padding: 1.5rem;
-            overflow-x: auto;
-        }
+        .hljs { background: transparent !important; padding: 0 !important; }
+        pre { margin: 0; padding: 1.5rem; overflow-x: auto; }
 
         /* Sidebar Navigation */
         .sidebar-link {
@@ -106,466 +102,536 @@
         }
         .sidebar-link:hover {
             background: rgba(255,255,255,0.03);
-            color: var(--text-bright);
+            color: white;
+            padding-left: 1.25rem;
         }
         .sidebar-link.active {
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), transparent);
-            border-left-color: var(--accent-primary);
-            color: var(--accent-primary);
+            background: linear-gradient(90deg, rgba(255, 105, 75, 0.1), transparent);
+            border-left-color: var(--dbt-orange);
+            color: var(--dbt-orange);
             font-weight: 600;
         }
-
-        /* Diagrams */
-        .mermaid-container {
-            display: flex;
-            justify-content: center;
-            padding: 2rem;
-            background: rgba(0,0,0,0.2);
-            border-radius: 0.5rem;
+        
+        /* Tooltip style note */
+        .note-box {
+            border-left: 4px solid;
+            padding: 1rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin-top: 1rem;
         }
+        .note-info { border-color: var(--accent-blue); background: rgba(59, 130, 246, 0.1); }
+        .note-warn { border-color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+        .note-success { border-color: var(--accent-green); background: rgba(16, 185, 129, 0.1); }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-deep); }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- Top Navigation -->
+    <!-- Header -->
     <header class="h-16 bg-[#010203]/90 backdrop-blur border-b border-[#1f2937] flex items-center justify-between px-6 z-50 flex-shrink-0">
         <div class="flex items-center gap-6">
             <a href="seccion_10.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition group">
                 <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
-                <span class="font-bold tracking-wide text-sm">HUB PRINCIPAL</span>
+                <span class="font-bold tracking-wide text-sm">HUB dbt</span>
             </a>
             <div class="h-6 w-px bg-[#1f2937]"></div>
             <div>
                 <h1 class="text-white font-bold text-lg tracking-tight font-mono">
-                    DLT<span class="text-blue-500">.REFERENCE</span>(v=3.5)
+                    SETUP<span class="text-[var(--dbt-orange)]">.CONFIG()</span>
                 </h1>
-                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Documentación Técnica Completa</p>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Instalación y Conexión</p>
             </div>
         </div>
-        <div class="flex items-center gap-4">
-            <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs text-yellow-500 font-mono">
-                <i data-lucide="book-open" class="w-3 h-3"></i> API REFERENCE
-            </div>
-            <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded text-xs text-blue-500 font-mono">
-                <i data-lucide="code" class="w-3 h-3"></i> PYSPARK
+        <div class="hidden lg:flex items-center gap-3">
+            <div class="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded border border-slate-700">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-[10px] font-mono text-slate-400">ENV: DOCKER LOCAL</span>
             </div>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
+        
         <!-- Sidebar -->
-        <aside class="w-72 bg-[#05090f] border-r border-[#1f2937] overflow-y-auto hidden lg:block z-40">
-            <div class="p-4 space-y-8">
-                
+        <aside class="w-72 bg-[#05090f] border-r border-[#1f2937] overflow-y-auto hidden lg:block z-40 custom-scrollbar">
+            <div class="p-6 space-y-10">
                 <div>
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">1. Fundamentos</h3>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-3 flex items-center gap-2">
+                        <i data-lucide="monitor" class="w-3 h-3"></i> 1. Preparación
+                    </h3>
                     <nav class="flex flex-col space-y-1">
                         <a href="#intro" class="sidebar-link active">
-                            <i data-lucide="hash" class="w-4 h-4"></i> Introducción
+                            <span>¿Por qué este Stack?</span>
                         </a>
-                        <a href="#anatomy" class="sidebar-link">
-                            <i data-lucide="box" class="w-4 h-4"></i> El Decorador @dlt
-                        </a>
-                        <a href="#views" class="sidebar-link">
-                            <i data-lucide="eye" class="w-4 h-4"></i> Tablas vs Vistas
+                        <a href="#prereq" class="sidebar-link">
+                            <span>Prerrequisitos Docker</span>
                         </a>
                     </nav>
                 </div>
 
                 <div>
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">2. Ingesta (Bronce)</h3>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-3 flex items-center gap-2">
+                        <i data-lucide="download-cloud" class="w-3 h-3"></i> 2. Instalación
+                    </h3>
                     <nav class="flex flex-col space-y-1">
-                        <a href="#autoloader" class="sidebar-link">
-                            <i data-lucide="cloud-lightning" class="w-4 h-4"></i> Auto Loader
+                        <a href="#install" class="sidebar-link">
+                            <span>Instalar dbt-spark</span>
                         </a>
-                        <a href="#formats" class="sidebar-link">
-                            <i data-lucide="file-text" class="w-4 h-4"></i> JSON, CSV, Parquet
+                        <a href="#init" class="sidebar-link">
+                            <span>dbt init</span>
                         </a>
                     </nav>
                 </div>
 
                 <div>
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">3. Calidad (Plata)</h3>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-3 flex items-center gap-2">
+                        <i data-lucide="settings-2" class="w-3 h-3"></i> 3. Configuración
+                    </h3>
                     <nav class="flex flex-col space-y-1">
-                        <a href="#expectations" class="sidebar-link">
-                            <i data-lucide="shield-check" class="w-4 h-4"></i> Expectativas
+                        <a href="#profiles" class="sidebar-link">
+                            <span>profiles.yml</span>
                         </a>
-                        <a href="#transformations" class="sidebar-link">
-                            <i data-lucide="shuffle" class="w-4 h-4"></i> Transformaciones
+                        <a href="#project" class="sidebar-link">
+                            <span>dbt_project.yml</span>
                         </a>
                     </nav>
                 </div>
 
                 <div>
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">4. Avanzado (Oro)</h3>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-3 flex items-center gap-2">
+                        <i data-lucide="play" class="w-3 h-3"></i> 4. Ejecución
+                    </h3>
                     <nav class="flex flex-col space-y-1">
-                        <a href="#cdc" class="sidebar-link">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> CDC (SCD Type 1/2)
+                        <a href="#debug" class="sidebar-link">
+                            <span>dbt debug</span>
                         </a>
-                        <a href="#monitoring" class="sidebar-link">
-                            <i data-lucide="activity" class="w-4 h-4"></i> Monitoreo & Logs
+                        <a href="#run" class="sidebar-link">
+                            <span>Primer Run</span>
                         </a>
                     </nav>
                 </div>
-
             </div>
         </aside>
 
-        <!-- Content -->
-        <main class="flex-1 overflow-y-auto p-8 lg:p-16 scroll-smooth relative">
-            <div class="max-w-5xl mx-auto pb-32">
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-8 lg:p-16 scroll-smooth relative custom-scrollbar">
+            <div class="max-w-5xl mx-auto pb-40">
 
                 <!-- 1. INTRODUCCIÓN -->
-                <section id="intro" class="mb-24">
-                    <h1 class="text-5xl font-black text-white mb-6 tracking-tight">Guía de Sintaxis DLT</h1>
-                    <p class="text-xl text-slate-400 leading-relaxed mb-8">
-                        Delta Live Tables (DLT) no es un nuevo lenguaje, es un <strong>framework declarativo</strong> construido sobre PySpark y SQL. 
-                        En lugar de definir una serie de pasos imperativos ("primero haz esto, luego aquello"), defines el <strong>estado final</strong> de tus datos y DLT construye el grafo de ejecución (DAG).
+                <section id="intro" class="mb-32">
+                    <div class="flex items-center gap-4 mb-6">
+                         <div class="p-3 bg-[var(--dbt-orange)]/10 rounded-xl border border-[var(--dbt-orange)]/20">
+                            <i data-lucide="layers" class="w-8 h-8 text-[var(--dbt-orange)]"></i>
+                         </div>
+                         <h1 class="text-4xl font-black text-white tracking-tight">El Stack Moderno Local</h1>
+                    </div>
+                    
+                    <p class="text-xl text-slate-400 leading-relaxed mb-10 max-w-3xl">
+                        Vamos a construir una infraestructura de datos profesional en tu máquina local. 
+                        Usaremos <strong>Spark</strong> como motor de cómputo distribuido (que ya posees en tu entorno Docker) y <strong>dbt</strong> como el "cerebro" que orquesta, compila y testea las transformaciones SQL.
                     </p>
                     
-                    <div class="glass-panel p-6 border-l-4 border-blue-500 mb-8">
-                        <h4 class="text-blue-400 font-bold mb-2 flex items-center gap-2">
-                            <i data-lucide="info" class="w-5 h-5"></i> Concepto Clave: El Grafo
+                    <div class="glass-panel p-8 border-l-4 border-[var(--dbt-orange)] mb-10">
+                        <h4 class="text-[var(--dbt-orange)] font-bold mb-6 flex items-center gap-2 text-lg">
+                            <i data-lucide="git-merge" class="w-5 h-5"></i> Flujo de Arquitectura
                         </h4>
-                        <p class="text-sm text-slate-300">
-                            Cuando ejecutas un pipeline DLT, el código no se ejecuta inmediatamente. Primero, DLT analiza todas las funciones decoradas con <code>@dlt.table</code> para entender quién lee de quién. Luego, orquesta la ejecución paralela óptima.
+                        <div class="mermaid flex justify-center bg-black/20 p-6 rounded-lg">
+                            graph LR
+                            User[Ingeniero] -->|Escribe SQL| dbt[dbt Core]
+                            dbt -->|Compila Jinja| Compiled[SQL Puro]
+                            Compiled -->|Envía Query| Spark[Spark Driver]
+                            Spark -->|Lee/Escribe| Delta[Delta Lake Disco]
+                            Spark -->|Retorna| Results[Status OK]
+                            
+                            style dbt fill:#FF694B,stroke:#fff,color:#fff,stroke-width:2px
+                            style Spark fill:#E25A1C,stroke:#fff,color:#fff,stroke-width:2px
+                            style Delta fill:#00A9E0,stroke:#fff,color:#fff
+                            style Compiled fill:#333,stroke:#666,color:#ccc,stroke-dasharray: 5 5
+                        </div>
+                        <p class="text-sm text-slate-400 mt-4 text-center italic">dbt no procesa datos, dbt gestiona la lógica. Spark hace el trabajo pesado.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-panel p-6">
+                            <h5 class="text-white font-bold mb-2 flex items-center gap-2">
+                                <i data-lucide="cpu" class="w-4 h-4 text-blue-400"></i> Spark (El Músculo)
+                            </h5>
+                            <p class="text-sm text-slate-400">Ejecuta las queries masivas. Escala horizontalmente. Lee formatos complejos (Parquet, Delta).</p>
+                        </div>
+                        <div class="glass-panel p-6">
+                            <h5 class="text-white font-bold mb-2 flex items-center gap-2">
+                                <i data-lucide="brain-circuit" class="w-4 h-4 text-[var(--dbt-orange)]"></i> dbt (El Cerebro)
+                            </h5>
+                            <p class="text-sm text-slate-400">Gestiona dependencias. Aplica tests de calidad. Documenta el linaje. Versiona la lógica.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. PRERREQUISITOS -->
+                <section id="prereq" class="mb-32 pt-16 border-t border-gray-800">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="step-number">01</span>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">Preparando el Entorno Docker</h2>
+                            <p class="text-sm text-slate-500 font-mono mt-1">DEPENDENCIAS DE SISTEMA</p>
+                        </div>
+                    </div>
+
+                    <p class="text-slate-400 mb-8 leading-relaxed">
+                        Antes de instalar dbt, necesitamos preparar el terreno. El adaptador <code>dbt-spark</code> utiliza una librería llamada <code>PyHive</code> o conectores Thrift que requieren compilación de C++ y librerías SASL.
+                    </p>
+
+                    <div class="note-box note-info mb-8">
+                        <strong class="text-blue-400 text-sm block mb-1 flex items-center gap-2">
+                            <i data-lucide="terminal" class="w-4 h-4"></i> Contexto de Ejecución
+                        </strong>
+                        <p class="text-xs text-slate-300">
+                            Estos comandos deben ejecutarse <strong>DENTRO</strong> de tu contenedor Docker (donde corre Jupyter/Spark), no en tu máquina host.
                         </p>
                     </div>
 
-                    <div class="mermaid-container">
-                        <div class="mermaid">
-                            graph LR
-                            A[Ingesta S3] -->|Auto Loader| B[Tabla Bronze]
-                            B -->|Limpieza| C[Tabla Silver]
-                            C -->|Agregación| D[Tabla Gold Ventas]
-                            C -->|Agregación| E[Tabla Gold Inventario]
-                            
-                            style A fill:#1e293b,stroke:#fff,color:#fff
-                            style B fill:#78350f,stroke:#fff,color:#fff
-                            style C fill:#475569,stroke:#fff,color:#fff
-                            style D fill:#854d0e,stroke:#fff,color:#fff
-                            style E fill:#854d0e,stroke:#fff,color:#fff
+                    <div class="glass-panel overflow-hidden mb-8">
+                        <div class="code-block-header">
+                            <span class="text-xs font-mono text-slate-400">Terminal (Docker)</span>
+                            <span class="code-lang-badge">BASH</span>
                         </div>
+                        <pre><code class="language-bash"># 1. Actualizar la lista de paquetes del sistema operativo (Debian/Ubuntu)
+apt-get update
+
+# 2. Instalar dependencias críticas para compilar conectores SASL
+# - python3-dev: Headers de Python para compilar extensiones C
+# - libsasl2-dev: Librería para autenticación SASL (usada por Thrift)
+# - gcc: Compilador C necesario para pyhive/sasl
+apt-get install -y python3-dev libsasl2-dev libsasl2-modules gcc
+
+# 3. Verificar versión de Python (Idealmente 3.8 o superior)
+python3 --version</code></pre>
+                    </div>
+
+                     <div class="note-box note-warn">
+                        <strong class="text-yellow-500 text-sm block mb-1 flex items-center gap-2">
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i> Solución de Problemas
+                        </strong>
+                        <p class="text-xs text-slate-300">
+                            Si obtienes errores de permisos (EACCES), asegúrate de estar ejecutando como usuario <code>root</code> dentro del contenedor o usa <code>sudo</code> si está disponible. En muchas imágenes de Jupyter, puedes cambiar a root con <code>USER root</code> en el Dockerfile o ejecutando <code>docker exec -u 0 -it nombre_contenedor bash</code>.
+                        </p>
                     </div>
                 </section>
 
-                <!-- 2. ANATOMÍA BÁSICA -->
-                <section id="anatomy" class="mb-24 pt-12 border-t border-gray-800">
-                    <div class="section-header">
-                        <span class="section-number">01</span>
-                        <h2 class="text-3xl font-bold text-white">Anatomía del Decorador</h2>
+                <!-- 3. INSTALACIÓN -->
+                <section id="install" class="mb-32 pt-16 border-t border-gray-800">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="step-number">02</span>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">Instalando dbt-spark</h2>
+                            <p class="text-sm text-slate-500 font-mono mt-1">PIP INSTALL & INITIALIZATION</p>
+                        </div>
                     </div>
 
-                    <p class="text-slate-400 mb-6">
-                        Todo en DLT comienza importando la librería <code>dlt</code>. La unidad fundamental es una función de Python decorada que retorna un DataFrame de Spark (o Koalas).
+                    <p class="text-slate-400 mb-8 leading-relaxed">
+                        dbt es modular. No instalamos "dbt" a secas, instalamos el adaptador específico para nuestra base de datos. Al instalar <code>dbt-spark</code>, pip resolverá e instalará automáticamente el núcleo <code>dbt-core</code>.
                     </p>
 
-                    <div class="glass-panel mb-8">
-                        <div class="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
-                            <span class="text-xs font-mono text-slate-500">basic_structure.py</span>
-                            <div class="flex gap-1.5">
-                                <span class="w-3 h-3 rounded-full bg-red-500/50"></span>
-                                <span class="w-3 h-3 rounded-full bg-yellow-500/50"></span>
-                                <span class="w-3 h-3 rounded-full bg-green-500/50"></span>
+                    <div class="glass-panel overflow-hidden mb-10">
+                        <div class="code-block-header">
+                            <span class="text-xs font-mono text-slate-400">Terminal</span>
+                            <span class="code-lang-badge">BASH</span>
+                        </div>
+                        <pre><code class="language-bash"># Instalar el adaptador con soporte para PyHive (Thrift)
+pip install "dbt-spark[PyHive]"
+
+# Verificar que la instalación fue exitosa
+dbt --version
+
+# Deberías ver algo como:
+# Core:       1.x.x
+# Spark:      1.x.x</code></pre>
+                    </div>
+
+                    <h3 id="init" class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                        <span class="p-2 bg-slate-800 rounded-lg border border-slate-700"><i data-lucide="folder-plus" class="w-5 h-5 text-green-400"></i></span>
+                        Iniciando el Proyecto
+                    </h3>
+                    
+                    <p class="text-slate-400 mb-6">
+                        El comando <code>dbt init</code> es un asistente interactivo que crea la estructura de carpetas necesaria. Vamos a crear un proyecto llamado <code>data_lakehouse</code>.
+                    </p>
+
+                    <div class="glass-panel overflow-hidden">
+                        <div class="code-block-header">
+                            <span class="text-xs font-mono text-slate-400">Terminal</span>
+                            <span class="code-lang-badge">INTERACTIVE</span>
+                        </div>
+                        <pre><code class="language-bash"># Navega a tu carpeta de trabajo persistente (importante para no perder cambios al reiniciar docker)
+cd /home/jovyan/work
+
+# Ejecuta el asistente
+dbt init data_lakehouse
+
+# --- RESPUESTAS AL ASISTENTE ---
+# 1. Which database would you like to use?
+#    [1] spark  <-- Escribe el número correspondiente a spark
+
+# 2. host (thrift server host):
+#    spark-master  <-- O 'localhost' si estás dentro del mismo contenedor, pero usualmente es el nombre del servicio en docker-compose
+
+# 3. port [10000]:
+#    10000  <-- Puerto estándar de Thrift
+
+# 4. method [thrift]:
+#    thrift
+
+# 5. schema (default schema):
+#    analytics  <-- Esto creará una base de datos 'analytics' en Spark
+
+# 6. threads [1]:
+#    4</code></pre>
+                    </div>
+                </section>
+
+                <!-- 4. CONFIGURACIÓN DE PERFILES -->
+                <section id="profiles" class="mb-32 pt-16 border-t border-gray-800">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="step-number">03</span>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">Configuración de Conexión</h2>
+                            <p class="text-sm text-slate-500 font-mono mt-1">PROFILES.YML</p>
+                        </div>
+                    </div>
+
+                    <p class="text-slate-400 mb-8 leading-relaxed">
+                        dbt separa la lógica del código (en tu proyecto) de las credenciales de conexión (en <code>profiles.yml</code>). Esto es por seguridad. Por defecto, busca este archivo en <code>~/.dbt/</code>.
+                    </p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="p-6 bg-slate-900/50 rounded-xl border border-slate-800">
+                            <h4 class="text-white font-bold mb-4">Método A: Thrift (Recomendado)</h4>
+                            <p class="text-sm text-slate-400 mb-4">
+                                Se conecta al Spark Thrift Server via JDBC/ODBC. Es más estable y permite concurrencia real. Requiere que el servicio Thrift esté activo en el puerto 10000.
+                            </p>
+                            <div class="flex items-center gap-2 text-xs text-green-400 font-mono">
+                                <i data-lucide="check" class="w-3 h-3"></i> Producción Ready
                             </div>
                         </div>
-                        <pre><code class="language-python">import dlt
-from pyspark.sql.functions import *
-
-# 1. El Decorador: Define que esto es una entidad del pipeline
-@dlt.table(
-    name="raw_customers",                  # Nombre de la tabla destino en Delta Lake
-    comment="Tabla cruda de clientes",     # Documentación visible en Data Catalog
-    table_properties={                     # Propiedades TBLPROPERTIES de Delta
-        "quality": "bronze",
-        "pipelines.autoOptimize.managed": "true"
-    },
-    partition_cols=["country_code"],       # Particionamiento físico en disco
-    path="/mnt/lakehouse/bronze/customers" # (Opcional) Ruta física explícita
-)
-def funcion_ingesta_clientes():
-    # 2. El Cuerpo: Lógica de transformación Spark estándar
-    # Debe retornar un DataFrame
-    return (
-        spark.readStream.format("cloudFiles")
-        .option("cloudFiles.format", "json")
-        .load("s3://my-bucket/landing/customers/")
-    )</code></pre>
-                    </div>
-
-                    <h3 class="text-xl font-bold text-white mb-4 mt-8">Parámetros Críticos</h3>
-                    <ul class="space-y-4">
-                        <li class="bg-[#0d1117] p-4 rounded border border-gray-800">
-                            <code class="text-yellow-400 font-bold">name</code>
-                            <p class="text-sm text-slate-400 mt-1">Si se omite, DLT usa el nombre de la función (<code>funcion_ingesta_clientes</code>) como nombre de la tabla. Es buena práctica definirlo explícitamente para desacoplar el código del nombre físico.</p>
-                        </li>
-                        <li class="bg-[#0d1117] p-4 rounded border border-gray-800">
-                            <code class="text-blue-400 font-bold">comment</code>
-                            <p class="text-sm text-slate-400 mt-1">Vital para el Gobierno de Datos. Unity Catalog muestra este texto a los analistas de negocio.</p>
-                        </li>
-                        <li class="bg-[#0d1117] p-4 rounded border border-gray-800">
-                            <code class="text-green-400 font-bold">temporary</code>
-                            <p class="text-sm text-slate-400 mt-1">Si usas <code>@dlt.table(temporary=True)</code>, la tabla no se guarda en el metastore ni en S3. Solo vive durante la ejecución del pipeline para cálculos intermedios.</p>
-                        </li>
-                    </ul>
-                </section>
-
-                <!-- 3. TABLAS VS VISTAS -->
-                <section id="views" class="mb-24 pt-12 border-t border-gray-800">
-                    <div class="section-header">
-                        <span class="section-number">02</span>
-                        <h2 class="text-3xl font-bold text-white">Tablas vs Vistas</h2>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <div class="glass-panel p-6 border-t-4 border-yellow-500">
-                            <h3 class="text-xl font-bold text-white mb-2">@dlt.table</h3>
-                            <p class="text-sm text-slate-400 mb-4">Materializa los datos físicamente (archivos Parquet + Delta Log). Es persistente y tiene historial.</p>
-                            <ul class="list-disc list-inside text-xs text-slate-500 space-y-1">
-                                <li>Ingesta (Bronce)</li>
-                                <li>Tablas finales (Plata/Oro)</li>
-                                <li>Cuando el cómputo es costoso</li>
-                            </ul>
-                        </div>
-                        <div class="glass-panel p-6 border-t-4 border-purple-500">
-                            <h3 class="text-xl font-bold text-white mb-2">@dlt.view</h3>
-                            <p class="text-sm text-slate-400 mb-4">Solo guarda la lógica (la consulta SQL). Se recalcula cada vez que se llama. No ocupa espacio en disco.</p>
-                            <ul class="list-disc list-inside text-xs text-slate-500 space-y-1">
-                                <li>Lógica intermedia compleja</li>
-                                <li>Filtros temporales de seguridad</li>
-                                <li>Validaciones antes de escribir</li>
-                            </ul>
+                        <div class="p-6 bg-slate-900/50 rounded-xl border border-slate-800">
+                            <h4 class="text-white font-bold mb-4">Método B: Session</h4>
+                            <p class="text-sm text-slate-400 mb-4">
+                                Levanta una sesión de PySpark localmente cada vez que corres dbt. Es más lento de iniciar pero no requiere configurar servidor.
+                            </p>
+                            <div class="flex items-center gap-2 text-xs text-yellow-400 font-mono">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> Solo Desarrollo
+                            </div>
                         </div>
                     </div>
 
-                    <pre><code class="language-python"># Ejemplo de Vista para lógica intermedia
-@dlt.view
-def clientes_validos_temp():
-    return dlt.read("raw_customers").filter(col("id").isNotNull())
-
-# La tabla final lee de la vista
-@dlt.table
-def customers_silver():
-    return dlt.read("clientes_validos_temp").select("id", "name", "email")</code></pre>
-                </section>
-
-                <!-- 4. INGESTA: AUTO LOADER -->
-                <section id="autoloader" class="mb-24 pt-12 border-t border-gray-800">
-                    <div class="section-header">
-                        <span class="section-number">03</span>
-                        <h2 class="text-3xl font-bold text-white">Ingesta Robusta (Auto Loader)</h2>
+                    <div class="glass-panel overflow-hidden mb-8">
+                        <div class="code-block-header">
+                            <span class="text-xs font-mono text-slate-400">~/.dbt/profiles.yml</span>
+                            <span class="code-lang-badge">YAML</span>
+                        </div>
+                        <pre><code class="language-yaml">data_lakehouse:
+  target: dev
+  outputs:
+    dev:
+      type: spark
+      method: thrift          # Usa 'session' si falla thrift
+      schema: analytics       # Base de datos destino (Hive/Delta)
+      host: spark-master      # DNS del contenedor Spark (o localhost)
+      port: 10000             # Puerto del Thrift Server
+      user: dbt_user          # Usuario genérico
+      threads: 4              # Hilos paralelos para ejecutar modelos
+      connect_retries: 3
+      connect_timeout: 60</code></pre>
                     </div>
 
-                    <p class="text-slate-400 mb-6">
-                        La función <code>spark.readStream.format("cloudFiles")</code> es la navaja suiza de la ingesta en Databricks. DLT la integra nativamente para procesar millones de archivos de forma incremental.
+                    <div class="note-box note-success">
+                        <strong class="text-green-500 text-sm block mb-1 flex items-center gap-2">
+                            <i data-lucide="lightbulb" class="w-4 h-4"></i> Tip Pro
+                        </strong>
+                        <p class="text-xs text-slate-300">
+                            Si quieres tener el <code>profiles.yml</code> dentro de la carpeta de tu proyecto (para que sea fácil de compartir en el Lab), puedes moverlo y ejecutar dbt con el flag: <code>dbt run --profiles-dir .</code>
+                        </p>
+                    </div>
+                </section>
+
+                <!-- 5. ESTRUCTURA DEL PROYECTO -->
+                <section id="project" class="mb-32 pt-16 border-t border-gray-800">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="step-number">04</span>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">Anatomía del Proyecto</h2>
+                            <p class="text-sm text-slate-500 font-mono mt-1">DIRECTORIOS CLAVE</p>
+                        </div>
+                    </div>
+
+                    <p class="text-slate-400 mb-8">
+                        Un proyecto dbt no es solo archivos SQL sueltos. Es una aplicación estructurada.
                     </p>
 
-                    <div class="glass-panel mb-8">
-                        <div class="px-4 py-2 bg-[#161b22] border-b border-[#30363d] text-xs font-mono text-slate-500">ingest_patterns.py</div>
-                        <pre><code class="language-python">@dlt.table(
-    name="bronze_iot_sensors",
-    comment="Ingesta incremental de sensores IoT"
-)
-def ingest_iot():
-    return (
-        spark.readStream.format("cloudFiles")
-        # --- Configuración del Formato ---
-        .option("cloudFiles.format", "json")
-        
-        # --- Evolución de Esquema (Schema Rescue) ---
-        # Si llega una columna nueva, no falles. Guárdala en _rescued_data
-        .option("cloudFiles.inferColumnTypes", "true")
-        .option("cloudFiles.schemaEvolutionMode", "rescue")
-        
-        # --- Optimización de Listado ---
-        # Usa notificaciones de eventos (SQS/SNS) en lugar de listar directorios
-        .option("cloudFiles.useNotifications", "true")
-        
-        .load("s3://enterprise-data/iot-landing/")
-    )</code></pre>
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Models -->
+                        <div class="glass-panel p-5 hover:border-[var(--dbt-orange)] transition group">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-[var(--dbt-orange)]/10 rounded-lg group-hover:bg-[var(--dbt-orange)]/20 transition">
+                                    <i data-lucide="folder" class="text-[var(--dbt-orange)] w-5 h-5"></i>
+                                </div>
+                                <strong class="text-white">models/</strong>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                El corazón del proyecto. Aquí van tus archivos <code>.sql</code>.
+                                <br><span class="text-slate-500">• staging/:</span> Limpieza inicial (Bronce).
+                                <br><span class="text-slate-500">• marts/:</span> Tablas de negocio (Plata/Oro).
+                            </p>
+                        </div>
 
-                    <div class="flex gap-4 p-4 bg-blue-900/10 border border-blue-900/30 rounded-lg">
-                        <i data-lucide="life-buoy" class="w-6 h-6 text-blue-500 flex-shrink-0"></i>
-                        <div>
-                            <h4 class="font-bold text-blue-400 text-sm">Schema Rescue</h4>
-                            <p class="text-xs text-slate-400 mt-1">
-                                La opción <code>schemaEvolutionMode="rescue"</code> es mágica. Si un archivo JSON trae un campo inesperado (ej: <code>"temperatura": "error"</code> en vez de float), Auto Loader NO rompe el pipeline. Mueve ese dato a una columna especial llamada <code>_rescued_data</code> para que lo analices luego, pero el resto de la fila pasa limpia.
+                        <!-- Seeds -->
+                        <div class="glass-panel p-5 hover:border-green-500 transition group">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition">
+                                    <i data-lucide="file-spreadsheet" class="text-green-500 w-5 h-5"></i>
+                                </div>
+                                <strong class="text-white">seeds/</strong>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Archivos CSV estáticos (ej: códigos de países, categorías fijas) que dbt carga a Spark automáticamente. Es como un "INSERT INTO" masivo gestionado.
+                            </p>
+                        </div>
+
+                        <!-- Tests -->
+                        <div class="glass-panel p-5 hover:border-blue-500 transition group">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition">
+                                    <i data-lucide="check-square" class="text-blue-500 w-5 h-5"></i>
+                                </div>
+                                <strong class="text-white">tests/</strong>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                Tests singulares (SQL queries que deben retornar 0 filas). Si retornan filas, el test falla. Ideal para reglas de negocio complejas.
+                            </p>
+                        </div>
+
+                        <!-- dbt_project.yml -->
+                        <div class="glass-panel p-5 hover:border-purple-500 transition group">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition">
+                                    <i data-lucide="settings" class="text-purple-500 w-5 h-5"></i>
+                                </div>
+                                <strong class="text-white">dbt_project.yml</strong>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                El archivo de configuración maestro. Define variables globales, rutas, y cómo se materializan los modelos por defecto (tabla o vista).
                             </p>
                         </div>
                     </div>
                 </section>
 
-                <!-- 5. EXPECTATIVAS DE CALIDAD -->
-                <section id="expectations" class="mb-24 pt-12 border-t border-gray-800">
-                    <div class="section-header">
-                        <span class="section-number">04</span>
-                        <h2 class="text-3xl font-bold text-white">Calidad de Datos (Expectations)</h2>
-                    </div>
-
-                    <p class="text-slate-400 mb-6">
-                        DLT permite definir "Unit Tests" para tus datos en tiempo de ejecución. Puedes advertir, descartar filas o detener el pipeline.
-                    </p>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                        <!-- Warn -->
-                        <div class="glass-panel p-5 border-t-4 border-yellow-500">
-                            <code class="text-yellow-500 font-bold text-xs block mb-2">@dlt.expect</code>
-                            <h4 class="text-white font-bold mb-2">Advertir</h4>
-                            <p class="text-xs text-slate-400">Registra el error en los logs pero deja pasar el dato. Útil para monitorear degradación sin parar producción.</p>
-                        </div>
-                        <!-- Drop -->
-                        <div class="glass-panel p-5 border-t-4 border-orange-500">
-                            <code class="text-orange-500 font-bold text-xs block mb-2">@dlt.expect_or_drop</code>
-                            <h4 class="text-white font-bold mb-2">Descartar</h4>
-                            <p class="text-xs text-slate-400">Elimina la fila que viola la regla. El pipeline continúa con los datos limpios. Es el estándar para la Capa Plata.</p>
-                        </div>
-                        <!-- Fail -->
-                        <div class="glass-panel p-5 border-t-4 border-red-500">
-                            <code class="text-red-500 font-bold text-xs block mb-2">@dlt.expect_or_fail</code>
-                            <h4 class="text-white font-bold mb-2">Fallar</h4>
-                            <p class="text-xs text-slate-400">Detiene el pipeline inmediatamente. Úsalo para errores críticos que invalidan todo el dataset.</p>
-                        </div>
-                    </div>
-
-                    <div class="glass-panel">
-                        <pre><code class="language-python"># Definir reglas complejas en un diccionario
-reglas_validacion = {
-    "valid_id": "customer_id IS NOT NULL",
-    "valid_email": "email RLIKE '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'",
-    "positive_amount": "amount > 0"
-}
-
-@dlt.table(
-    name="silver_orders",
-    comment="Ordenes validadas y limpias"
-)
-@dlt.expect_all_or_drop(reglas_validacion)  # Aplica todas las reglas, descarta si falla alguna
-def silver_orders():
-    return (
-        dlt.readStream("bronze_orders")
-        .withColumn("amount", col("amount").cast("double"))
-    )</code></pre>
-                    </div>
-                </section>
-
-                <!-- 6. CDC (CHANGE DATA CAPTURE) -->
-                <section id="cdc" class="mb-24 pt-12 border-t border-gray-800">
-                    <div class="section-header">
-                        <span class="section-number">05</span>
-                        <h2 class="text-3xl font-bold text-white">CDC: Apply Changes</h2>
-                    </div>
-
-                    <p class="text-slate-400 mb-6">
-                        Manejar actualizaciones (Updates) y borrados (Deletes) en Big Data es difícil. DLT simplifica esto con <code>dlt.apply_changes</code>, implementando automáticamente lógica SCD Tipo 1 o Tipo 2.
-                    </p>
-
-                    <div class="glass-panel mb-8">
-                        <div class="px-4 py-2 bg-[#161b22] border-b border-[#30363d] text-xs font-mono text-slate-500">cdc_logic.py</div>
-                        <pre><code class="language-python"># 1. Primero creamos la tabla destino vacía (o leemos la existente)
-dlt.create_streaming_table("dim_customers_silver")
-
-# 2. Aplicamos la lógica de Merge (CDC)
-dlt.apply_changes(
-    target = "dim_customers_silver",      # Tabla destino
-    source = "bronze_customers_cdc",      # Stream de cambios (Inserts/Updates/Deletes)
-    keys = ["customer_id"],               # Clave primaria para identificar filas únicas
-    sequence_by = col("timestamp"),       # Campo para ordenar (gana el más reciente)
-    
-    # Manejo de Borrados
-    ignore_null_updates = True,           # Si una columna viene null, conserva el valor previo
-    apply_as_deletes = expr("operation = 'DELETE'"), # Condición para borrar físicamente
-    
-    # Tipo de SCD (Slowly Changing Dimension)
-    # stored_as_scd_type = 1              # Sobrescribe (Update in place)
-    stored_as_scd_type = 2                # Histórico (Crea filas nuevas con fecha inicio/fin)
-)</code></pre>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 6. DEBUG Y EJECUCIÓN -->
+                <section id="debug" class="mb-32 pt-16 border-t border-gray-800">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="step-number">05</span>
                         <div>
-                            <h4 class="text-white font-bold mb-2">SCD Tipo 1 (Upsert)</h4>
-                            <p class="text-sm text-slate-400">
-                                Mantiene solo el estado actual. Si el cliente cambia de dirección, se pierde la dirección anterior.
-                                <br><span class="text-xs text-blue-400">Uso: Corrección de errores, tablas de estado actual.</span>
-                            </p>
-                        </div>
-                        <div>
-                            <h4 class="text-white font-bold mb-2">SCD Tipo 2 (Histórico)</h4>
-                            <p class="text-sm text-slate-400">
-                                DLT añade columnas <code>__START_AT</code> y <code>__END_AT</code>. Cada cambio crea una nueva versión de la fila.
-                                <br><span class="text-xs text-blue-400">Uso: Auditoría, reconstrucción histórica de hechos.</span>
-                            </p>
+                            <h2 class="text-3xl font-bold text-white">Ejecución y Verificación</h2>
+                            <p class="text-sm text-slate-500 font-mono mt-1">HELLO WORLD</p>
                         </div>
                     </div>
-                </section>
 
-                <!-- 7. DEBUGGING & LOGGING -->
-                <section id="monitoring" class="mb-24 pt-12 border-t border-gray-800">
-                    <div class="section-header">
-                        <span class="section-number">06</span>
-                        <h2 class="text-3xl font-bold text-white">Debugging en Producción</h2>
-                    </div>
-
-                    <p class="text-slate-400 mb-6">
-                        En DLT, no puedes usar <code>print()</code> para ver datos, porque el código corre en el driver durante la planificación.
+                    <p class="text-slate-400 mb-8">
+                        Vamos a probar la conexión end-to-end. Si esto funciona, tienes un Data Lakehouse local funcional.
                     </p>
+
+                    <div class="glass-panel overflow-hidden mb-10">
+                        <div class="code-block-header">
+                            <span class="text-xs font-mono text-slate-400">Terminal</span>
+                            <span class="code-lang-badge">BASH</span>
+                        </div>
+                        <pre><code class="language-bash"># 1. Test de Conectividad
+dbt debug
+
+# Deberías ver:
+# Found dbt_project.yml
+# ...
+# Connection:
+#   host: spark-master
+#   port: 10000
+#   ...
+#   Connection test: [OK connection ok]</code></pre>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-white mb-6">Creando tu Primer Modelo</h3>
                     
-                    <h3 class="text-xl font-bold text-white mb-4">Patrones de Debugging</h3>
-                    
-                    <ul class="space-y-6">
-                        <li class="bg-[#0d1117] p-4 rounded border border-gray-800">
-                            <strong class="text-blue-400 block mb-2">1. Usar Pipeline Events Log</strong>
-                            <p class="text-sm text-slate-400 mb-2">DLT escribe un log de eventos detallado en el Storage. Puedes consultarlo con SQL:</p>
-                            <pre><code class="language-sql text-xs">SELECT * FROM delta.`/mnt/pipeline_path/system/events`
-WHERE event_type = 'flow_progress'</code></pre>
-                        </li>
-                        
-                        <li class="bg-[#0d1117] p-4 rounded border border-gray-800">
-                            <strong class="text-blue-400 block mb-2">2. Modo Desarrollo (Development Mode)</strong>
-                            <p class="text-sm text-slate-400">
-                                Al activar "Development Mode" en la UI del Pipeline:
-                            </p>
-                            <ul class="list-disc list-inside text-xs text-slate-500 mt-2">
-                                <li>Reutiliza el cluster (no tarda 5 min en arrancar cada vez).</li>
-                                <li>Desactiva reintentos automáticos (falla rápido para que veas el error).</li>
-                            </ul>
-                        </li>
-                    </ul>
+                    <div class="glass-panel overflow-hidden mb-8">
+                        <div class="code-block-header">
+                            <span class="text-xs font-mono text-slate-400">models/example/hola_spark.sql</span>
+                            <span class="code-lang-badge">SQL</span>
+                        </div>
+                        <pre><code class="language-sql">/*
+    Este es un modelo de ejemplo.
+    dbt lo compilará en una sentencia:
+    CREATE OR REPLACE TABLE analytics.hola_spark AS ...
+*/
+
+{{ config(materialized='table') }}
+
+select 
+    1 as id, 
+    'Sistema Configurado Correctamente' as mensaje,
+    current_timestamp() as fecha_prueba</code></pre>
+                    </div>
+
+                    <div id="run" class="glass-panel overflow-hidden">
+                        <div class="code-block-header">
+                            <span class="text-xs font-mono text-slate-400">Terminal</span>
+                            <span class="code-lang-badge">BASH</span>
+                        </div>
+                        <pre><code class="language-bash"># 2. Compilar y Ejecutar (Materializar tablas en Spark)
+dbt run
+
+# 3. Validar resultados (Opcional - dbt test)
+dbt test
+
+# 4. Verificar visualmente (Abre un Notebook PySpark y ejecuta):
+# spark.sql("SELECT * FROM analytics.hola_spark").show()</code></pre>
+                    </div>
                 </section>
 
-                <!-- FINAL CTA -->
-                <section class="py-16 border-t border-gray-800 text-center">
-                    <h2 class="text-3xl font-bold text-white mb-6">¿Listo para Implementar?</h2>
-                    <div class="flex justify-center gap-4">
-                        <a href="seccion10_2.html" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded transition">
-                            Ir a Calidad de Datos (Lab)
-                        </a>
-                        <a href="index.html" class="px-6 py-3 border border-gray-600 hover:border-gray-400 text-slate-300 font-bold rounded transition">
-                            Volver al Inicio
-                        </a>
-                    </div>
+                <!-- FINAL NAVIGATION -->
+                <section class="py-16 border-t border-gray-800 flex justify-between items-center">
+                    <a href="seccion_10.html" class="flex items-center gap-3 text-slate-400 hover:text-white transition group px-4 py-3 rounded-lg hover:bg-white/5">
+                        <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+                        <div class="text-right">
+                            <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Anterior</div>
+                            <div class="font-bold">Hub Principal</div>
+                        </div>
+                    </a>
+                    
+                    <a href="secion10_2.html" class="flex items-center gap-3 px-6 py-4 bg-[var(--dbt-orange)] hover:bg-[#e0563b] text-white font-bold rounded-xl transition shadow-[0_4px_20px_rgba(255,105,75,0.3)] hover:shadow-[0_6px_25px_rgba(255,105,75,0.5)] transform hover:-translate-y-1">
+                        <div class="text-left">
+                            <div class="text-[10px] text-orange-100 uppercase font-bold tracking-wider">Siguiente Paso</div>
+                            <div class="font-bold text-lg">Modelado SQL</div>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                    </a>
                 </section>
 
             </div>
         </main>
     </div>
 
-    <!-- Init Scripts -->
+    <!-- Scripts -->
     <script>
         lucide.createIcons();
         hljs.highlightAll();
+        
+        // Mermaid Configuration (Critical Fix: Security Level)
         mermaid.initialize({ 
             startOnLoad: true, 
             theme: 'dark',
+            securityLevel: 'loose', // Permite HTML en nodos si es necesario
             fontFamily: 'JetBrains Mono',
-            flowchart: { curve: 'monotoneX' }
+            flowchart: { 
+                curve: 'basis', // Curvas suaves
+                useMaxWidth: true
+            }
         });
     </script>
 </body>

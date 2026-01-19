@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capítulo 10: Delta Live Tables (DLT) | Data Strategy</title>
+    <title>Capítulo 10: Ingeniería Analítica con dbt | Data Strategy</title>
     
     <!-- Librerías Core -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,8 +17,8 @@
     
     <style>
         :root {
-            --dlt-gold: #FFB000;
-            --acid-green: #00FF9D;
+            --dbt-orange: #FF694B; /* Color Oficial dbt */
+            --spark-orange: #E25A1C;
             --bg-deep: #050505;
             --glass-border: rgba(255, 255, 255, 0.08);
         }
@@ -27,7 +27,7 @@
             font-family: 'Montserrat', sans-serif; 
             background-color: var(--bg-deep); 
             color: #e2e8f0; 
-            background-image: radial-gradient(circle at 50% 50%, rgba(255, 176, 0, 0.05) 0%, transparent 50%);
+            background-image: radial-gradient(circle at 50% 50%, rgba(255, 105, 75, 0.05) 0%, transparent 50%);
         }
         
         .font-tech { font-family: 'JetBrains Mono', monospace; }
@@ -40,18 +40,9 @@
             transition: all 0.3s ease;
         }
         .glass-card:hover {
-            border-color: var(--dlt-gold);
+            border-color: var(--dbt-orange);
             transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(255, 176, 0, 0.1);
-        }
-
-        /* Animación de Flujo */
-        .pipeline-flow {
-            stroke-dasharray: 10;
-            animation: dash 3s linear infinite;
-        }
-        @keyframes dash {
-            to { stroke-dashoffset: -100; }
+            box-shadow: 0 0 20px rgba(255, 105, 75, 0.1);
         }
     </style>
 </head>
@@ -66,13 +57,13 @@
             </a>
             <div class="h-8 w-px bg-slate-800"></div>
             <div>
-                <h1 class="font-tech font-bold text-white tracking-widest text-xl">SECCIÓN 10<span class="text-[var(--dlt-gold)]">.DLT()</span></h1>
-                <p class="text-xs text-slate-500 font-mono">PIPELINES DECLARATIVOS & ACID</p>
+                <h1 class="font-tech font-bold text-white tracking-widest text-xl">SECCIÓN 10<span class="text-[var(--dbt-orange)]">.dbt()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">ANALYTICS ENGINEERING & PIPELINES</p>
             </div>
         </div>
-        <div class="flex items-center gap-3 px-4 py-2 bg-yellow-900/10 text-yellow-500 rounded-full text-xs font-mono border border-yellow-500/20">
-            <i data-lucide="activity" class="w-4 h-4"></i>
-            ESTADO: LIVE PIPELINE
+        <div class="flex items-center gap-3 px-4 py-2 bg-orange-900/10 text-[var(--dbt-orange)] rounded-full text-xs font-mono border border-orange-500/20">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            ADAPTER: SPARK
         </div>
     </header>
 
@@ -80,168 +71,154 @@
 
         <!-- Intro Hero -->
         <section class="text-center space-y-6">
-            <div class="inline-flex items-center justify-center p-4 rounded-full bg-yellow-500/10 border border-yellow-500/20 mb-4">
-                <i data-lucide="workflow" class="w-10 h-10 text-[var(--dlt-gold)]"></i>
+            <div class="inline-flex items-center justify-center p-4 rounded-full bg-orange-500/10 border border-orange-500/20 mb-4">
+                <!-- Icono dbt (simulado) -->
+                <svg class="w-10 h-10 text-[var(--dbt-orange)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
             </div>
-            <h2 class="text-5xl font-black text-white tracking-tight">Delta Live Tables (DLT)</h2>
+            <h2 class="text-5xl font-black text-white tracking-tight">Ingeniería Analítica con dbt</h2>
             <p class="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
-                Olvida escribir tareas, dependencias y <code>checkpoints</code> manualmente.
-                <br>DLT cambia el paradigma de <strong>Imperativo</strong> ("haz esto, luego esto") a <strong>Declarativo</strong> ("quiero esta tabla, calculada así").
+                Transforma tu Data Lake en un producto gobernado. 
+                <br>Usaremos <strong>dbt (data build tool)</strong> para compilar SQL modular en trabajos de Spark optimizados, aplicando calidad y linaje automáticamente.
             </p>
         </section>
 
-        <!-- Bloque 1: ¿Por qué DLT? -->
+        <!-- Bloque 1: El Paradigma dbt -->
         <section class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div class="space-y-6">
                 <h3 class="text-3xl font-bold text-white flex items-center gap-3">
-                    <span class="text-[var(--dlt-gold)]">01.</span> ¿Por qué usarlo?
+                    <span class="text-[var(--dbt-orange)]">01.</span> ¿Qué es dbt?
                 </h3>
                 <p class="text-slate-400 leading-relaxed">
-                    La ingeniería de datos tradicional es frágil. Si falla el paso 3 de 10, ¿cómo reinicias? ¿Cómo garantizas la calidad?
-                    DLT automatiza la fontanería:
+                    dbt es el estándar moderno para transformación de datos. Permite a los analistas e ingenieros trabajar como ingenieros de software.
+                    Se conecta a Spark (via Thrift Server o Databricks) y ejecuta las transformaciones allí.
                 </p>
                 <ul class="space-y-4">
                     <li class="flex items-start gap-4 p-4 glass-card rounded-xl">
-                        <i data-lucide="git-merge" class="w-6 h-6 text-blue-400 mt-1"></i>
+                        <i data-lucide="code" class="w-6 h-6 text-blue-400 mt-1"></i>
                         <div>
-                            <strong class="text-white">DAG Automático</strong>
-                            <p class="text-sm text-slate-500">Spark infiere las dependencias. Si la tabla B lee de la A, DLT ejecuta A primero. Sin Airflow.</p>
+                            <strong class="text-white">SQL + Jinja</strong>
+                            <p class="text-sm text-slate-500">Escribe lógica de negocio en SQL (`SELECT...`). Usa Jinja (`{{ ref() }}`) para manejar dependencias y variables.</p>
                         </div>
                     </li>
                     <li class="flex items-start gap-4 p-4 glass-card rounded-xl">
-                        <i data-lucide="shield-check" class="w-6 h-6 text-green-400 mt-1"></i>
+                        <i data-lucide="git-branch" class="w-6 h-6 text-green-400 mt-1"></i>
                         <div>
-                            <strong class="text-white">Expectations (Calidad)</strong>
-                            <p class="text-sm text-slate-500">Define reglas como <code>CONSTRAINT valid_id EXPECT (id IS NOT NULL)</code>. DLT monitorea y alerta si se rompen.</p>
+                            <strong class="text-white">DAG Automático</strong>
+                            <p class="text-sm text-slate-500">dbt analiza tus referencias `ref('tabla_bronce')` y decide el orden de ejecución correcto.</p>
                         </div>
                     </li>
                 </ul>
             </div>
             <div class="glass-card p-8 rounded-2xl relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent"></div>
-                <pre class="font-tech text-sm relative z-10"><code class="language-python text-slate-300">
-<span class="text-pink-400">@dlt.table</span>(
-    comment=<span class="text-green-300">"Datos limpios de ventas"</span>
-)
-<span class="text-pink-400">@dlt.expect_or_drop</span>(<span class="text-green-300">"valid_monto"</span>, <span class="text-green-300">"monto > 0"</span>)
-<span class="text-blue-400">def</span> <span class="text-yellow-300">ventas_silver</span>():
-    <span class="text-blue-400">return</span> (
-        dlt.read(<span class="text-green-300">"ventas_bronze"</span>)
-        .filter(...)
-    )
+                <div class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent"></div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-500 font-mono">models/silver/ventas_silver.sql</span>
+                </div>
+                <pre class="font-tech text-sm relative z-10"><code class="language-sql text-slate-300">
+<span class="text-slate-500">-- Configuración del materializado</span>
+{{ config(materialized='table') }}
+
+<span class="text-blue-400">SELECT</span>
+    order_id,
+    <span class="text-blue-400">cast</span>(amount <span class="text-blue-400">as</span> double) <span class="text-blue-400">as</span> total,
+    customer_id
+<span class="text-blue-400">FROM</span>
+    {{ ref(<span class="text-green-300">'ventas_bronze'</span>) }} <span class="text-slate-500">-- Dependencia</span>
+<span class="text-blue-400">WHERE</span>
+    amount > 0
                 </code></pre>
-                <div class="mt-4 text-center text-xs text-slate-500 font-mono">Código Declarativo: Defines el "Qué", no el "Cómo".</div>
+                <div class="mt-4 text-center text-xs text-slate-500 font-mono">dbt compila esto en código Spark nativo.</div>
             </div>
         </section>
 
-        <!-- Bloque 2: ACID -->
+        <!-- Bloque 2: Calidad y Tests -->
         <section class="border-t border-slate-800 pt-16">
             <h3 class="text-3xl font-bold text-white mb-12 text-center">
-                <span class="text-[var(--acid-green)]">02.</span> Garantía ACID en el Lakehouse
+                <span class="text-green-400">02.</span> Calidad de Datos (Tests)
             </h3>
             
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="glass-card p-6 rounded-xl border-t-4 border-green-500">
-                    <div class="h-12 w-12 bg-green-900/20 rounded-lg flex items-center justify-center mb-4">
-                        <span class="font-black text-green-500 text-xl">A</span>
-                    </div>
-                    <h4 class="text-lg font-bold text-white mb-2">Atomicidad</h4>
-                    <p class="text-sm text-slate-400">O todo se escribe o nada se escribe. Si el pipeline falla al 99%, no quedan archivos corruptos o parciales visibles.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-card p-6 rounded-xl border-t-4 border-blue-500">
+                    <h4 class="text-lg font-bold text-white mb-2">Unique</h4>
+                    <p class="text-sm text-slate-400">Garantiza que no hay duplicados en tu clave primaria.</p>
+                    <code class="block mt-3 text-xs bg-slate-900 p-2 rounded text-blue-300">- unique:column: id</code>
                 </div>
                 
-                <div class="glass-card p-6 rounded-xl border-t-4 border-blue-500">
-                    <div class="h-12 w-12 bg-blue-900/20 rounded-lg flex items-center justify-center mb-4">
-                        <span class="font-black text-blue-500 text-xl">C</span>
-                    </div>
-                    <h4 class="text-lg font-bold text-white mb-2">Consistencia</h4>
-                    <p class="text-sm text-slate-400">Cada lectura ve una instantánea válida de los datos. DLT gestiona el <code>_delta_log</code> para asegurar serializabilidad.</p>
-                </div>
-
                 <div class="glass-card p-6 rounded-xl border-t-4 border-purple-500">
-                    <div class="h-12 w-12 bg-purple-900/20 rounded-lg flex items-center justify-center mb-4">
-                        <span class="font-black text-purple-500 text-xl">I</span>
-                    </div>
-                    <h4 class="text-lg font-bold text-white mb-2">Aislamiento</h4>
-                    <p class="text-sm text-slate-400">Un usuario leyendo la tabla NO se bloquea mientras DLT está escribiendo nuevos datos. Lecturas y escrituras son concurrentes.</p>
+                    <h4 class="text-lg font-bold text-white mb-2">Not Null</h4>
+                    <p class="text-sm text-slate-400">Asegura que campos críticos (IDs, fechas) siempre tengan valor.</p>
+                    <code class="block mt-3 text-xs bg-slate-900 p-2 rounded text-purple-300">- not_null:column: email</code>
                 </div>
 
-                <div class="glass-card p-6 rounded-xl border-t-4 border-orange-500">
-                    <div class="h-12 w-12 bg-orange-900/20 rounded-lg flex items-center justify-center mb-4">
-                        <span class="font-black text-orange-500 text-xl">D</span>
-                    </div>
-                    <h4 class="text-lg font-bold text-white mb-2">Durabilidad</h4>
-                    <p class="text-sm text-slate-400">Una vez que DLT confirma el commit en el log, los datos están seguros en el almacenamiento (S3/ADLS/HDD), sobreviviendo a fallos del sistema.</p>
+                <div class="glass-card p-6 rounded-xl border-t-4 border-yellow-500">
+                    <h4 class="text-lg font-bold text-white mb-2">Accepted Values</h4>
+                    <p class="text-sm text-slate-400">Valida que una categoría solo tenga valores permitidos.</p>
+                    <code class="block mt-3 text-xs bg-slate-900 p-2 rounded text-yellow-300">values: ['activo', 'baja']</code>
                 </div>
             </div>
         </section>
 
-        <!-- Bloque 3: Implementation Considerations -->
+        <!-- Bloque 3: Arquitectura Medallion en dbt -->
         <section class="border-t border-slate-800 pt-16">
-            <div class="flex flex-col md:flex-row gap-12 items-start">
+            <div class="flex flex-col md:flex-row gap-12 items-center">
                 <div class="md:w-1/3">
                     <h3 class="text-3xl font-bold text-white mb-4">
-                        <span class="text-red-500">03.</span> Consideraciones Críticas
+                        <span class="text-red-500">03.</span> El Proyecto
                     </h3>
-                    <p class="text-slate-400 text-sm">Antes de desplegar a producción, ten en cuenta estos factores de arquitectura.</p>
+                    <p class="text-slate-400 text-sm">
+                        Estructuraremos nuestro proyecto dbt siguiendo las capas de refinamiento de datos.
+                    </p>
                 </div>
-                <div class="md:w-2/3 grid gap-6">
-                    <div class="flex gap-4">
-                        <i data-lucide="zap" class="w-6 h-6 text-yellow-500 flex-shrink-0"></i>
-                        <div>
-                            <h5 class="font-bold text-white">Streaming vs Batch</h5>
-                            <p class="text-sm text-slate-400">DLT abstrae esto, pero debes decidir. Usar <code>spark.readStream</code> permite latencia casi real, pero requiere que el origen soporte streaming. DLT maneja el estado automáticamente.</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <i data-lucide="database" class="w-6 h-6 text-blue-500 flex-shrink-0"></i>
-                        <div>
-                            <h5 class="font-bold text-white">Evolución de Esquemas</h5>
-                            <p class="text-sm text-slate-400">¿Qué pasa si llega una columna nueva? DLT puede evolucionar el esquema automáticamente si configuras las propiedades correctas, o fallar para proteger el downstream.</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <i data-lucide="server" class="w-6 h-6 text-green-500 flex-shrink-0"></i>
-                        <div>
-                            <h5 class="font-bold text-white">Costo Computacional (DBU)</h5>
-                            <p class="text-sm text-slate-400">DLT "Continuous" mantiene el cluster encendido 24/7. Para cargas batch diarias, usa el modo "Triggered" para ahorrar costos masivos.</p>
-                        </div>
+                <div class="md:w-2/3">
+                    <div class="mermaid bg-slate-900/50 p-6 rounded-xl">
+                        graph LR
+                        Src[Fuente CSV] -->|Seeds| B[Bronze (Raw)]
+                        B -->|Clean| S[Silver (Limpio)]
+                        S -->|Aggregate| G[Gold (KPIs)]
+                        
+                        style Src fill:#1e293b,stroke:#fff
+                        style B fill:#78350f,stroke:#fff
+                        style S fill:#475569,stroke:#fff
+                        style G fill:#854d0e,stroke:#fff
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Navigation Footer (Mockup de los 3 archivos complementarios) -->
+        <!-- Navigation Footer -->
         <footer class="mt-20 border-t border-slate-800 pt-10">
-            <h4 class="text-center text-xs font-bold text-slate-500 uppercase tracking-widest mb-8">Archivos Complementarios del Módulo</h4>
+            <h4 class="text-center text-xs font-bold text-slate-500 uppercase tracking-widest mb-8">Archivos del Módulo</h4>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Card 1 -->
-                <a href="seccion10_1.html" class="group p-6 bg-slate-900 border border-slate-800 rounded-xl hover:border-yellow-500/50 cursor-pointer transition block">
+                <a href="seccion10_1.html" class="group p-6 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--dbt-orange)] cursor-pointer transition block">
                     <div class="flex justify-between items-start mb-4">
-                        <i data-lucide="code" class="w-6 h-6 text-slate-600 group-hover:text-yellow-500 transition"></i>
-                        <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400">Código</span>
+                        <i data-lucide="box" class="w-6 h-6 text-slate-600 group-hover:text-[var(--dbt-orange)] transition"></i>
+                        <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400">Setup</span>
                     </div>
-                    <h5 class="font-bold text-white mb-2">1. Declaración de Pipelines</h5>
-                    <p class="text-xs text-slate-500">Sintaxis Python para definir tablas Bronce, Plata y Oro en un solo script.</p>
+                    <h5 class="font-bold text-white mb-2">1. Instalación y Perfiles</h5>
+                    <p class="text-xs text-slate-500">Configurar `dbt-spark` para conectar con nuestro contenedor Docker.</p>
                 </a>
                 
                 <!-- Card 2 -->
                 <a href="secion10_2.html" class="group p-6 bg-slate-900 border border-slate-800 rounded-xl hover:border-green-500/50 cursor-pointer transition block">
                     <div class="flex justify-between items-start mb-4">
-                        <i data-lucide="check-circle" class="w-6 h-6 text-slate-600 group-hover:text-green-500 transition"></i>
-                        <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400">Calidad</span>
+                        <i data-lucide="file-code" class="w-6 h-6 text-slate-600 group-hover:text-green-500 transition"></i>
+                        <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400">Modelado</span>
                     </div>
-                    <h5 class="font-bold text-white mb-2">2. Data Quality & Expectations</h5>
-                    <p class="text-xs text-slate-500">Implementación de reglas de negocio: <code>expect</code>, <code>expect_or_drop</code>, <code>expect_or_fail</code>.</p>
+                    <h5 class="font-bold text-white mb-2">2. Modelos y Linaje</h5>
+                    <p class="text-xs text-slate-500">Crear modelos Bronce/Plata/Oro usando SQL y referencias Jinja.</p>
                 </a>
 
                 <!-- Card 3 -->
                 <a href="secion10_3.html" class="group p-6 bg-slate-900 border border-slate-800 rounded-xl hover:border-blue-500/50 cursor-pointer transition block">
                     <div class="flex justify-between items-start mb-4">
-                        <i data-lucide="eye" class="w-6 h-6 text-slate-600 group-hover:text-blue-500 transition"></i>
-                        <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400">Ops</span>
+                        <i data-lucide="check-square" class="w-6 h-6 text-slate-600 group-hover:text-blue-500 transition"></i>
+                        <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400">Docs</span>
                     </div>
-                    <h5 class="font-bold text-white mb-2">3. Observabilidad</h5>
-                    <p class="text-xs text-slate-500">Cómo leer los logs de eventos de DLT para debuguear y optimizar el flujo.</p>
+                    <h5 class="font-bold text-white mb-2">3. Tests y Documentación</h5>
+                    <p class="text-xs text-slate-500">Generar sitio de documentación automático y ejecutar pruebas de calidad.</p>
                 </a>
             </div>
         </footer>
@@ -250,6 +227,7 @@
 
     <script>
         lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
     </script>
 </body>
 </html>
