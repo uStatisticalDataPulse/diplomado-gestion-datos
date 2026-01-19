@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 10.3: Observabilidad y Ops DLT | Data Strategy</title>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-deep: #020408;
+            --code-bg: #0d1117;
+            --code-border: #30363d;
+            --text-main: #cbd5e1;
+            
+            /* Ops Colors */
+            --ops-blue: #3b82f6;   /* Blue 500 */
+            --ops-cyan: #06b6d4;   /* Cyan 500 */
+            --ops-purple: #8b5cf6; /* Violet 500 */
+            --ops-pink: #ec4899;   /* Pink 500 */
+        }
+        
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: var(--bg-deep); 
+            color: var(--text-main);
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.02) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(59, 130, 246, 0.02) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* UI Components */
+        .glass-panel {
+            background: rgba(13, 17, 23, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--code-border);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .metric-card {
+            background: rgba(13, 17, 23, 0.6);
+            border: 1px solid var(--code-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        /* Syntax Highlighting */
+        .hljs { background: transparent !important; padding: 0 !important; }
+        pre { margin: 0; padding: 1.5rem; overflow-x: auto; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- Header -->
+    <header class="h-16 bg-[#010203]/90 backdrop-blur border-b border-[#1f2937] flex items-center justify-between px-6 z-50 flex-shrink-0">
+        <div class="flex items-center gap-6">
+            <a href="seccion_10.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition group">
+                <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+                <span class="font-bold tracking-wide text-sm">HUB PRINCIPAL</span>
+            </a>
+            <div class="h-6 w-px bg-[#1f2937]"></div>
+            <div>
+                <h1 class="text-white font-bold text-lg tracking-tight font-mono">
+                    DLT<span class="text-blue-500">.OBSERVABILITY()</span>
+                </h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Monitoreo y Operaciones</p>
+            </div>
+        </div>
+        <div class="hidden lg:flex items-center gap-3">
+            <div class="flex items-center gap-2 px-3 py-1 bg-green-500/10 text-green-500 rounded text-xs font-mono border border-green-500/20">
+                <i data-lucide="activity" class="w-3 h-3"></i> SYSTEM HEALTHY
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-72 bg-[#05090f] border-r border-[#1f2937] overflow-y-auto hidden lg:block z-40">
+            <div class="p-4 space-y-8">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">1. Event Log</h3>
+                    <nav class="flex flex-col space-y-1">
+                        <a href="#event-log" class="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded transition">
+                            <i data-lucide="file-text" class="w-4 h-4"></i> Estructura del Log
+                        </a>
+                        <a href="#querying" class="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded transition">
+                            <i data-lucide="search" class="w-4 h-4"></i> Consultas SQL
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">2. Métricas</h3>
+                    <nav class="flex flex-col space-y-1">
+                        <a href="#data-quality" class="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded transition">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i> Calidad del Dato
+                        </a>
+                        <a href="#performance" class="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded transition">
+                            <i data-lucide="zap" class="w-4 h-4"></i> Rendimiento
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">3. Operaciones</h3>
+                    <nav class="flex flex-col space-y-1">
+                        <a href="#development" class="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded transition">
+                            <i data-lucide="code" class="w-4 h-4"></i> Modo Desarrollo
+                        </a>
+                        <a href="#production" class="flex items-center gap-2 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded transition">
+                            <i data-lucide="rocket" class="w-4 h-4"></i> Modo Producción
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-8 lg:p-16 scroll-smooth">
+            <div class="max-w-5xl mx-auto pb-32">
+
+                <!-- 1. INTRO: EVENT LOG -->
+                <section id="event-log" class="mb-24">
+                    <div class="flex items-start gap-6">
+                        <div class="p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                            <i data-lucide="activity" class="w-10 h-10 text-blue-500"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-4xl font-black text-white mb-4">El Corazón: Event Log</h2>
+                            <p class="text-xl text-slate-400 leading-relaxed">
+                                DLT no es una caja negra. Cada acción, error, métrica de calidad o actualización de esquema se guarda en una tabla Delta oculta llamada <strong>Event Log</strong>.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-12 glass-panel p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-white">Estructura del Evento JSON</h3>
+                            <span class="text-xs font-mono text-slate-500">system.events</span>
+                        </div>
+                        <pre><code class="language-json">{
+  "id": "001-abc-event",
+  "sequence": {
+    "control_plane_id": "uuid",
+    "seq_no": 123
+  },
+  "timestamp": "2023-10-25T14:30:00.000Z",
+  "event_type": "flow_progress",  // <--- CLAVE
+  "details": {
+    "flow_progress": {
+      "metrics": {
+        "num_output_rows": 5000,
+        "num_invalid_rows": 12
+      },
+      "data_quality": {
+        "dropped_records": 12,
+        "expectations": [
+          {"name": "valid_id", "dataset": "silver_users", "passed_records": 4988, "failed_records": 12}
+        ]
+      }
+    }
+  }
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- 2. CONSULTANDO EL LOG -->
+                <section id="querying" class="mb-24 pt-12 border-t border-gray-800">
+                    <h2 class="text-3xl font-bold text-white mb-8">Consultando el Log</h2>
+                    <p class="text-slate-400 mb-6">
+                        Como el log es una tabla Delta, podemos usar SQL o PySpark para crear dashboards de monitoreo personalizados.
+                    </p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- SQL Query -->
+                        <div class="glass-panel">
+                            <div class="px-4 py-2 bg-[#161b22] border-b border-[#30363d] flex justify-between items-center">
+                                <span class="text-xs font-mono text-slate-500">monitor_quality.sql</span>
+                                <span class="text-[10px] text-blue-400">SQL</span>
+                            </div>
+                            <pre><code class="language-sql">SELECT
+  timestamp,
+  details:flow_progress.metrics.num_output_rows as rows,
+  details:flow_progress.data_quality.dropped_records as drops
+FROM event_log_raw
+WHERE event_type = 'flow_progress'
+ORDER BY timestamp DESC;</code></pre>
+                        </div>
+
+                        <!-- PySpark Parser -->
+                        <div class="glass-panel">
+                            <div class="px-4 py-2 bg-[#161b22] border-b border-[#30363d] flex justify-between items-center">
+                                <span class="text-xs font-mono text-slate-500">parse_expectations.py</span>
+                                <span class="text-[10px] text-yellow-400">PYTHON</span>
+                            </div>
+                            <pre><code class="language-python"># Explotar el array de expectativas para ver fallos por regla
+df_events.filter("event_type = 'flow_progress'") \
+  .select(explode("details.flow_progress.data_quality.expectations").alias("rule")) \
+  .select(
+      "rule.name", 
+      "rule.dataset", 
+      "rule.failed_records"
+  ).display()</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. MÉTRICAS VISUALES -->
+                <section id="data-quality" class="mb-24 pt-12 border-t border-gray-800">
+                    <h2 class="text-3xl font-bold text-white mb-8">Visualizando la Salud del Pipeline</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="metric-card border-t-4 border-t-green-500">
+                            <div class="text-slate-400 text-xs uppercase tracking-wider mb-1">Tasa de Éxito</div>
+                            <div class="text-3xl font-bold text-white">99.8%</div>
+                            <div class="text-xs text-green-400 mt-2 flex items-center gap-1">
+                                <i data-lucide="arrow-up" class="w-3 h-3"></i> +0.2% vs ayer
+                            </div>
+                        </div>
+                        <div class="metric-card border-t-4 border-t-yellow-500">
+                            <div class="text-slate-400 text-xs uppercase tracking-wider mb-1">Filas en Cuarentena</div>
+                            <div class="text-3xl font-bold text-white">1,240</div>
+                            <div class="text-xs text-yellow-400 mt-2 flex items-center gap-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> Requieren revisión
+                            </div>
+                        </div>
+                        <div class="metric-card border-t-4 border-t-blue-500">
+                            <div class="text-slate-400 text-xs uppercase tracking-wider mb-1">Latencia Promedio</div>
+                            <div class="text-3xl font-bold text-white">45s</div>
+                            <div class="text-xs text-blue-400 mt-2">End-to-End</div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Placeholder -->
+                    <div class="glass-panel p-6">
+                        <h4 class="text-white font-bold mb-4 text-sm">Tendencia de Calidad (Últimas 24h)</h4>
+                        <div class="h-64 relative w-full">
+                            <canvas id="qualityChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. OPERACIONES: DEV VS PROD -->
+                <section id="development" class="mb-24 pt-12 border-t border-gray-800">
+                    <h2 class="text-3xl font-bold text-white mb-8">Ciclo de Vida Operacional</h2>
+                    
+                    <p class="text-slate-400 mb-8">
+                        DLT ofrece dos modos de ejecución distintos que afectan el costo y el comportamiento ante fallos.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        
+                        <!-- DEVELOPMENT -->
+                        <div class="relative group">
+                            <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                            <div class="relative glass-panel p-6 h-full">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-xl font-bold text-white">Modo Desarrollo</h3>
+                                    <i data-lucide="code" class="w-5 h-5 text-blue-400"></i>
+                                </div>
+                                <ul class="space-y-3 text-sm text-slate-300">
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check" class="w-4 h-4 text-blue-500 mt-0.5"></i>
+                                        <span><strong>Reutilización de Cluster:</strong> Mantiene el cluster encendido para iteraciones rápidas de código.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check" class="w-4 h-4 text-blue-500 mt-0.5"></i>
+                                        <span><strong>Sin Reintentos:</strong> Si falla, falla inmediatamente para que puedas depurar.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- PRODUCTION -->
+                        <div id="production" class="relative group">
+                            <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                            <div class="relative glass-panel p-6 h-full">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-xl font-bold text-white">Modo Producción</h3>
+                                    <i data-lucide="rocket" class="w-5 h-5 text-purple-400"></i>
+                                </div>
+                                <ul class="space-y-3 text-sm text-slate-300">
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check" class="w-4 h-4 text-purple-500 mt-0.5"></i>
+                                        <span><strong>Reintentos Automáticos:</strong> Si un error transitorio ocurre, reintenta automáticamente antes de alertar.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i data-lucide="check" class="w-4 h-4 text-purple-500 mt-0.5"></i>
+                                        <span><strong>Nuevo Cluster por Run:</strong> (En modo Triggered) Asegura un ambiente limpio para cada ejecución.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- FINAL NAVIGATION -->
+                <section class="py-16 border-t border-gray-800 flex justify-between items-center">
+                    <a href="seccion10_2.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500 uppercase">Anterior</div>
+                            <div class="font-bold">Calidad de Datos</div>
+                        </div>
+                    </a>
+                    
+                    <a href="index.html" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition shadow-lg shadow-blue-900/20 flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        Finalizar Módulo 10
+                    </a>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        lucide.createIcons();
+        hljs.highlightAll();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+        // Chart.js Mock
+        const ctx = document.getElementById('qualityChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                datasets: [{
+                    label: 'Registros Procesados',
+                    data: [1200, 1900, 3000, 5000, 2300, 4000],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Registros Descartados',
+                    data: [10, 5, 20, 150, 12, 30],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#cbd5e1' } }
+                },
+                scales: {
+                    y: { 
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

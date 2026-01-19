@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 10.1: Masterclass de Sintaxis DLT | Data Strategy</title>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --code-bg: #0d1117;
+            --code-border: #30363d;
+            --accent-primary: #3b82f6; /* Blue 500 */
+            --accent-secondary: #eab308; /* Yellow 500 */
+            --accent-tertiary: #10b981; /* Emerald 500 */
+            --accent-danger: #ef4444; /* Red 500 */
+            --bg-deep: #020408;
+            --text-main: #cbd5e1;
+            --text-bright: #f1f5f9;
+        }
+        
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: var(--bg-deep); 
+            color: var(--text-main);
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* UI Components */
+        .glass-panel {
+            background: rgba(13, 17, 23, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--code-border);
+            border-radius: 0.75rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 1rem;
+        }
+        
+        .section-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-secondary);
+            opacity: 0.8;
+        }
+
+        .keyword-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        /* Syntax Highlighting Customization */
+        .hljs {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+        pre {
+            margin: 0;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.03);
+            color: var(--text-bright);
+        }
+        .sidebar-link.active {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), transparent);
+            border-left-color: var(--accent-primary);
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        /* Diagrams */
+        .mermaid-container {
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 0.5rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Navigation -->
+    <header class="h-16 bg-[#010203]/90 backdrop-blur border-b border-[#1f2937] flex items-center justify-between px-6 z-50 flex-shrink-0">
+        <div class="flex items-center gap-6">
+            <a href="seccion_10.html" class="flex items-center gap-2 text-slate-400 hover:text-white transition group">
+                <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+                <span class="font-bold tracking-wide text-sm">HUB PRINCIPAL</span>
+            </a>
+            <div class="h-6 w-px bg-[#1f2937]"></div>
+            <div>
+                <h1 class="text-white font-bold text-lg tracking-tight font-mono">
+                    DLT<span class="text-blue-500">.REFERENCE</span>(v=3.5)
+                </h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Documentación Técnica Completa</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs text-yellow-500 font-mono">
+                <i data-lucide="book-open" class="w-3 h-3"></i> API REFERENCE
+            </div>
+            <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded text-xs text-blue-500 font-mono">
+                <i data-lucide="code" class="w-3 h-3"></i> PYSPARK
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-72 bg-[#05090f] border-r border-[#1f2937] overflow-y-auto hidden lg:block z-40">
+            <div class="p-4 space-y-8">
+                
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">1. Fundamentos</h3>
+                    <nav class="flex flex-col space-y-1">
+                        <a href="#intro" class="sidebar-link active">
+                            <i data-lucide="hash" class="w-4 h-4"></i> Introducción
+                        </a>
+                        <a href="#anatomy" class="sidebar-link">
+                            <i data-lucide="box" class="w-4 h-4"></i> El Decorador @dlt
+                        </a>
+                        <a href="#views" class="sidebar-link">
+                            <i data-lucide="eye" class="w-4 h-4"></i> Tablas vs Vistas
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">2. Ingesta (Bronce)</h3>
+                    <nav class="flex flex-col space-y-1">
+                        <a href="#autoloader" class="sidebar-link">
+                            <i data-lucide="cloud-lightning" class="w-4 h-4"></i> Auto Loader
+                        </a>
+                        <a href="#formats" class="sidebar-link">
+                            <i data-lucide="file-text" class="w-4 h-4"></i> JSON, CSV, Parquet
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">3. Calidad (Plata)</h3>
+                    <nav class="flex flex-col space-y-1">
+                        <a href="#expectations" class="sidebar-link">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i> Expectativas
+                        </a>
+                        <a href="#transformations" class="sidebar-link">
+                            <i data-lucide="shuffle" class="w-4 h-4"></i> Transformaciones
+                        </a>
+                    </nav>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">4. Avanzado (Oro)</h3>
+                    <nav class="flex flex-col space-y-1">
+                        <a href="#cdc" class="sidebar-link">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> CDC (SCD Type 1/2)
+                        </a>
+                        <a href="#monitoring" class="sidebar-link">
+                            <i data-lucide="activity" class="w-4 h-4"></i> Monitoreo & Logs
+                        </a>
+                    </nav>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- Content -->
+        <main class="flex-1 overflow-y-auto p-8 lg:p-16 scroll-smooth relative">
+            <div class="max-w-5xl mx-auto pb-32">
+
+                <!-- 1. INTRODUCCIÓN -->
+                <section id="intro" class="mb-24">
+                    <h1 class="text-5xl font-black text-white mb-6 tracking-tight">Guía de Sintaxis DLT</h1>
+                    <p class="text-xl text-slate-400 leading-relaxed mb-8">
+                        Delta Live Tables (DLT) no es un nuevo lenguaje, es un <strong>framework declarativo</strong> construido sobre PySpark y SQL. 
+                        En lugar de definir una serie de pasos imperativos ("primero haz esto, luego aquello"), defines el <strong>estado final</strong> de tus datos y DLT construye el grafo de ejecución (DAG).
+                    </p>
+                    
+                    <div class="glass-panel p-6 border-l-4 border-blue-500 mb-8">
+                        <h4 class="text-blue-400 font-bold mb-2 flex items-center gap-2">
+                            <i data-lucide="info" class="w-5 h-5"></i> Concepto Clave: El Grafo
+                        </h4>
+                        <p class="text-sm text-slate-300">
+                            Cuando ejecutas un pipeline DLT, el código no se ejecuta inmediatamente. Primero, DLT analiza todas las funciones decoradas con <code>@dlt.table</code> para entender quién lee de quién. Luego, orquesta la ejecución paralela óptima.
+                        </p>
+                    </div>
+
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+                            graph LR
+                            A[Ingesta S3] -->|Auto Loader| B[Tabla Bronze]
+                            B -->|Limpieza| C[Tabla Silver]
+                            C -->|Agregación| D[Tabla Gold Ventas]
+                            C -->|Agregación| E[Tabla Gold Inventario]
+                            
+                            style A fill:#1e293b,stroke:#fff,color:#fff
+                            style B fill:#78350f,stroke:#fff,color:#fff
+                            style C fill:#475569,stroke:#fff,color:#fff
+                            style D fill:#854d0e,stroke:#fff,color:#fff
+                            style E fill:#854d0e,stroke:#fff,color:#fff
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. ANATOMÍA BÁSICA -->
+                <section id="anatomy" class="mb-24 pt-12 border-t border-gray-800">
+                    <div class="section-header">
+                        <span class="section-number">01</span>
+                        <h2 class="text-3xl font-bold text-white">Anatomía del Decorador</h2>
+                    </div>
+
+                    <p class="text-slate-400 mb-6">
+                        Todo en DLT comienza importando la librería <code>dlt</code>. La unidad fundamental es una función de Python decorada que retorna un DataFrame de Spark (o Koalas).
+                    </p>
+
+                    <div class="glass-panel mb-8">
+                        <div class="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#30363d]">
+                            <span class="text-xs font-mono text-slate-500">basic_structure.py</span>
+                            <div class="flex gap-1.5">
+                                <span class="w-3 h-3 rounded-full bg-red-500/50"></span>
+                                <span class="w-3 h-3 rounded-full bg-yellow-500/50"></span>
+                                <span class="w-3 h-3 rounded-full bg-green-500/50"></span>
+                            </div>
+                        </div>
+                        <pre><code class="language-python">import dlt
+from pyspark.sql.functions import *
+
+# 1. El Decorador: Define que esto es una entidad del pipeline
+@dlt.table(
+    name="raw_customers",                  # Nombre de la tabla destino en Delta Lake
+    comment="Tabla cruda de clientes",     # Documentación visible en Data Catalog
+    table_properties={                     # Propiedades TBLPROPERTIES de Delta
+        "quality": "bronze",
+        "pipelines.autoOptimize.managed": "true"
+    },
+    partition_cols=["country_code"],       # Particionamiento físico en disco
+    path="/mnt/lakehouse/bronze/customers" # (Opcional) Ruta física explícita
+)
+def funcion_ingesta_clientes():
+    # 2. El Cuerpo: Lógica de transformación Spark estándar
+    # Debe retornar un DataFrame
+    return (
+        spark.readStream.format("cloudFiles")
+        .option("cloudFiles.format", "json")
+        .load("s3://my-bucket/landing/customers/")
+    )</code></pre>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-white mb-4 mt-8">Parámetros Críticos</h3>
+                    <ul class="space-y-4">
+                        <li class="bg-[#0d1117] p-4 rounded border border-gray-800">
+                            <code class="text-yellow-400 font-bold">name</code>
+                            <p class="text-sm text-slate-400 mt-1">Si se omite, DLT usa el nombre de la función (<code>funcion_ingesta_clientes</code>) como nombre de la tabla. Es buena práctica definirlo explícitamente para desacoplar el código del nombre físico.</p>
+                        </li>
+                        <li class="bg-[#0d1117] p-4 rounded border border-gray-800">
+                            <code class="text-blue-400 font-bold">comment</code>
+                            <p class="text-sm text-slate-400 mt-1">Vital para el Gobierno de Datos. Unity Catalog muestra este texto a los analistas de negocio.</p>
+                        </li>
+                        <li class="bg-[#0d1117] p-4 rounded border border-gray-800">
+                            <code class="text-green-400 font-bold">temporary</code>
+                            <p class="text-sm text-slate-400 mt-1">Si usas <code>@dlt.table(temporary=True)</code>, la tabla no se guarda en el metastore ni en S3. Solo vive durante la ejecución del pipeline para cálculos intermedios.</p>
+                        </li>
+                    </ul>
+                </section>
+
+                <!-- 3. TABLAS VS VISTAS -->
+                <section id="views" class="mb-24 pt-12 border-t border-gray-800">
+                    <div class="section-header">
+                        <span class="section-number">02</span>
+                        <h2 class="text-3xl font-bold text-white">Tablas vs Vistas</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <div class="glass-panel p-6 border-t-4 border-yellow-500">
+                            <h3 class="text-xl font-bold text-white mb-2">@dlt.table</h3>
+                            <p class="text-sm text-slate-400 mb-4">Materializa los datos físicamente (archivos Parquet + Delta Log). Es persistente y tiene historial.</p>
+                            <ul class="list-disc list-inside text-xs text-slate-500 space-y-1">
+                                <li>Ingesta (Bronce)</li>
+                                <li>Tablas finales (Plata/Oro)</li>
+                                <li>Cuando el cómputo es costoso</li>
+                            </ul>
+                        </div>
+                        <div class="glass-panel p-6 border-t-4 border-purple-500">
+                            <h3 class="text-xl font-bold text-white mb-2">@dlt.view</h3>
+                            <p class="text-sm text-slate-400 mb-4">Solo guarda la lógica (la consulta SQL). Se recalcula cada vez que se llama. No ocupa espacio en disco.</p>
+                            <ul class="list-disc list-inside text-xs text-slate-500 space-y-1">
+                                <li>Lógica intermedia compleja</li>
+                                <li>Filtros temporales de seguridad</li>
+                                <li>Validaciones antes de escribir</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <pre><code class="language-python"># Ejemplo de Vista para lógica intermedia
+@dlt.view
+def clientes_validos_temp():
+    return dlt.read("raw_customers").filter(col("id").isNotNull())
+
+# La tabla final lee de la vista
+@dlt.table
+def customers_silver():
+    return dlt.read("clientes_validos_temp").select("id", "name", "email")</code></pre>
+                </section>
+
+                <!-- 4. INGESTA: AUTO LOADER -->
+                <section id="autoloader" class="mb-24 pt-12 border-t border-gray-800">
+                    <div class="section-header">
+                        <span class="section-number">03</span>
+                        <h2 class="text-3xl font-bold text-white">Ingesta Robusta (Auto Loader)</h2>
+                    </div>
+
+                    <p class="text-slate-400 mb-6">
+                        La función <code>spark.readStream.format("cloudFiles")</code> es la navaja suiza de la ingesta en Databricks. DLT la integra nativamente para procesar millones de archivos de forma incremental.
+                    </p>
+
+                    <div class="glass-panel mb-8">
+                        <div class="px-4 py-2 bg-[#161b22] border-b border-[#30363d] text-xs font-mono text-slate-500">ingest_patterns.py</div>
+                        <pre><code class="language-python">@dlt.table(
+    name="bronze_iot_sensors",
+    comment="Ingesta incremental de sensores IoT"
+)
+def ingest_iot():
+    return (
+        spark.readStream.format("cloudFiles")
+        # --- Configuración del Formato ---
+        .option("cloudFiles.format", "json")
+        
+        # --- Evolución de Esquema (Schema Rescue) ---
+        # Si llega una columna nueva, no falles. Guárdala en _rescued_data
+        .option("cloudFiles.inferColumnTypes", "true")
+        .option("cloudFiles.schemaEvolutionMode", "rescue")
+        
+        # --- Optimización de Listado ---
+        # Usa notificaciones de eventos (SQS/SNS) en lugar de listar directorios
+        .option("cloudFiles.useNotifications", "true")
+        
+        .load("s3://enterprise-data/iot-landing/")
+    )</code></pre>
+                    </div>
+
+                    <div class="flex gap-4 p-4 bg-blue-900/10 border border-blue-900/30 rounded-lg">
+                        <i data-lucide="life-buoy" class="w-6 h-6 text-blue-500 flex-shrink-0"></i>
+                        <div>
+                            <h4 class="font-bold text-blue-400 text-sm">Schema Rescue</h4>
+                            <p class="text-xs text-slate-400 mt-1">
+                                La opción <code>schemaEvolutionMode="rescue"</code> es mágica. Si un archivo JSON trae un campo inesperado (ej: <code>"temperatura": "error"</code> en vez de float), Auto Loader NO rompe el pipeline. Mueve ese dato a una columna especial llamada <code>_rescued_data</code> para que lo analices luego, pero el resto de la fila pasa limpia.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. EXPECTATIVAS DE CALIDAD -->
+                <section id="expectations" class="mb-24 pt-12 border-t border-gray-800">
+                    <div class="section-header">
+                        <span class="section-number">04</span>
+                        <h2 class="text-3xl font-bold text-white">Calidad de Datos (Expectations)</h2>
+                    </div>
+
+                    <p class="text-slate-400 mb-6">
+                        DLT permite definir "Unit Tests" para tus datos en tiempo de ejecución. Puedes advertir, descartar filas o detener el pipeline.
+                    </p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Warn -->
+                        <div class="glass-panel p-5 border-t-4 border-yellow-500">
+                            <code class="text-yellow-500 font-bold text-xs block mb-2">@dlt.expect</code>
+                            <h4 class="text-white font-bold mb-2">Advertir</h4>
+                            <p class="text-xs text-slate-400">Registra el error en los logs pero deja pasar el dato. Útil para monitorear degradación sin parar producción.</p>
+                        </div>
+                        <!-- Drop -->
+                        <div class="glass-panel p-5 border-t-4 border-orange-500">
+                            <code class="text-orange-500 font-bold text-xs block mb-2">@dlt.expect_or_drop</code>
+                            <h4 class="text-white font-bold mb-2">Descartar</h4>
+                            <p class="text-xs text-slate-400">Elimina la fila que viola la regla. El pipeline continúa con los datos limpios. Es el estándar para la Capa Plata.</p>
+                        </div>
+                        <!-- Fail -->
+                        <div class="glass-panel p-5 border-t-4 border-red-500">
+                            <code class="text-red-500 font-bold text-xs block mb-2">@dlt.expect_or_fail</code>
+                            <h4 class="text-white font-bold mb-2">Fallar</h4>
+                            <p class="text-xs text-slate-400">Detiene el pipeline inmediatamente. Úsalo para errores críticos que invalidan todo el dataset.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel">
+                        <pre><code class="language-python"># Definir reglas complejas en un diccionario
+reglas_validacion = {
+    "valid_id": "customer_id IS NOT NULL",
+    "valid_email": "email RLIKE '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'",
+    "positive_amount": "amount > 0"
+}
+
+@dlt.table(
+    name="silver_orders",
+    comment="Ordenes validadas y limpias"
+)
+@dlt.expect_all_or_drop(reglas_validacion)  # Aplica todas las reglas, descarta si falla alguna
+def silver_orders():
+    return (
+        dlt.readStream("bronze_orders")
+        .withColumn("amount", col("amount").cast("double"))
+    )</code></pre>
+                    </div>
+                </section>
+
+                <!-- 6. CDC (CHANGE DATA CAPTURE) -->
+                <section id="cdc" class="mb-24 pt-12 border-t border-gray-800">
+                    <div class="section-header">
+                        <span class="section-number">05</span>
+                        <h2 class="text-3xl font-bold text-white">CDC: Apply Changes</h2>
+                    </div>
+
+                    <p class="text-slate-400 mb-6">
+                        Manejar actualizaciones (Updates) y borrados (Deletes) en Big Data es difícil. DLT simplifica esto con <code>dlt.apply_changes</code>, implementando automáticamente lógica SCD Tipo 1 o Tipo 2.
+                    </p>
+
+                    <div class="glass-panel mb-8">
+                        <div class="px-4 py-2 bg-[#161b22] border-b border-[#30363d] text-xs font-mono text-slate-500">cdc_logic.py</div>
+                        <pre><code class="language-python"># 1. Primero creamos la tabla destino vacía (o leemos la existente)
+dlt.create_streaming_table("dim_customers_silver")
+
+# 2. Aplicamos la lógica de Merge (CDC)
+dlt.apply_changes(
+    target = "dim_customers_silver",      # Tabla destino
+    source = "bronze_customers_cdc",      # Stream de cambios (Inserts/Updates/Deletes)
+    keys = ["customer_id"],               # Clave primaria para identificar filas únicas
+    sequence_by = col("timestamp"),       # Campo para ordenar (gana el más reciente)
+    
+    # Manejo de Borrados
+    ignore_null_updates = True,           # Si una columna viene null, conserva el valor previo
+    apply_as_deletes = expr("operation = 'DELETE'"), # Condición para borrar físicamente
+    
+    # Tipo de SCD (Slowly Changing Dimension)
+    # stored_as_scd_type = 1              # Sobrescribe (Update in place)
+    stored_as_scd_type = 2                # Histórico (Crea filas nuevas con fecha inicio/fin)
+)</code></pre>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="text-white font-bold mb-2">SCD Tipo 1 (Upsert)</h4>
+                            <p class="text-sm text-slate-400">
+                                Mantiene solo el estado actual. Si el cliente cambia de dirección, se pierde la dirección anterior.
+                                <br><span class="text-xs text-blue-400">Uso: Corrección de errores, tablas de estado actual.</span>
+                            </p>
+                        </div>
+                        <div>
+                            <h4 class="text-white font-bold mb-2">SCD Tipo 2 (Histórico)</h4>
+                            <p class="text-sm text-slate-400">
+                                DLT añade columnas <code>__START_AT</code> y <code>__END_AT</code>. Cada cambio crea una nueva versión de la fila.
+                                <br><span class="text-xs text-blue-400">Uso: Auditoría, reconstrucción histórica de hechos.</span>
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. DEBUGGING & LOGGING -->
+                <section id="monitoring" class="mb-24 pt-12 border-t border-gray-800">
+                    <div class="section-header">
+                        <span class="section-number">06</span>
+                        <h2 class="text-3xl font-bold text-white">Debugging en Producción</h2>
+                    </div>
+
+                    <p class="text-slate-400 mb-6">
+                        En DLT, no puedes usar <code>print()</code> para ver datos, porque el código corre en el driver durante la planificación.
+                    </p>
+                    
+                    <h3 class="text-xl font-bold text-white mb-4">Patrones de Debugging</h3>
+                    
+                    <ul class="space-y-6">
+                        <li class="bg-[#0d1117] p-4 rounded border border-gray-800">
+                            <strong class="text-blue-400 block mb-2">1. Usar Pipeline Events Log</strong>
+                            <p class="text-sm text-slate-400 mb-2">DLT escribe un log de eventos detallado en el Storage. Puedes consultarlo con SQL:</p>
+                            <pre><code class="language-sql text-xs">SELECT * FROM delta.`/mnt/pipeline_path/system/events`
+WHERE event_type = 'flow_progress'</code></pre>
+                        </li>
+                        
+                        <li class="bg-[#0d1117] p-4 rounded border border-gray-800">
+                            <strong class="text-blue-400 block mb-2">2. Modo Desarrollo (Development Mode)</strong>
+                            <p class="text-sm text-slate-400">
+                                Al activar "Development Mode" en la UI del Pipeline:
+                            </p>
+                            <ul class="list-disc list-inside text-xs text-slate-500 mt-2">
+                                <li>Reutiliza el cluster (no tarda 5 min en arrancar cada vez).</li>
+                                <li>Desactiva reintentos automáticos (falla rápido para que veas el error).</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </section>
+
+                <!-- FINAL CTA -->
+                <section class="py-16 border-t border-gray-800 text-center">
+                    <h2 class="text-3xl font-bold text-white mb-6">¿Listo para Implementar?</h2>
+                    <div class="flex justify-center gap-4">
+                        <a href="seccion10_2.html" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded transition">
+                            Ir a Calidad de Datos (Lab)
+                        </a>
+                        <a href="index.html" class="px-6 py-3 border border-gray-600 hover:border-gray-400 text-slate-300 font-bold rounded transition">
+                            Volver al Inicio
+                        </a>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Init Scripts -->
+    <script>
+        lucide.createIcons();
+        hljs.highlightAll();
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'dark',
+            fontFamily: 'JetBrains Mono',
+            flowchart: { curve: 'monotoneX' }
+        });
+    </script>
+</body>
+</html>
