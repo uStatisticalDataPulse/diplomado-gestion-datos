@@ -174,10 +174,10 @@
                 <div class="md:w-2/3">
                     <div class="mermaid bg-slate-900/50 p-6 rounded-xl">
                         graph LR
-                        Src[Fuente CSV] -->|Seeds| B[Bronze (Raw)]
-                        B -->|Clean| S[Silver (Limpio)]
-                        S -->|Aggregate| G[Gold (KPIs)]
-                        
+                        Src[Fuente CSV] -|Seeds|-> B[Bronze Raw]
+                        B -|Clean|-> S[Silver Limpio]
+                        S -|Aggregate|-> G[Gold KPIs]
+
                         style Src fill:#1e293b,stroke:#fff
                         style B fill:#78350f,stroke:#fff
                         style S fill:#475569,stroke:#fff
