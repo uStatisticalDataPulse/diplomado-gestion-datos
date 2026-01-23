@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipelines de ML | Spark ML</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ml-red: #E74C3C;
+            --ml-orange: #FF6B6B;
+            --bg-deep: #050505;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+        }
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+        .math-block {
+            background: rgba(30, 30, 40, 0.8);
+            border-left: 4px solid #3b82f6;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="seccion_13.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">SECCIÓN 13</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-lg">MÓDULO 2<span class="text-blue-400">.Pipelines()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">COMPOSICIÓN DE TRANSFORMACIONES</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro -->
+        <section class="text-center space-y-4">
+            <h2 class="text-4xl font-black text-white">Pipelines de Machine Learning</h2>
+            <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+                Construye flujos end-to-end componiendo transformaciones matemáticas como funciones encadenadas.
+            </p>
+        </section>
+
+        <!-- Bloque 1: Concepto Matemático -->
+        <section>
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-blue-400">01.</span> Concepto Matemático de Pipeline
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Pipeline = Composición de Funciones</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    h(\mathbf{x}) = f_n \circ f_{n-1} \circ \cdots \circ f_2 \circ f_1(\mathbf{x})
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Cada función \(f_i: \mathbb{R}^{p_i} \to \mathbb{R}^{p_{i+1}}\) transforma el espacio de features.
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="bg-slate-900/50 p-4 rounded-lg">
+                        <div class="text-blue-400 font-bold mb-2">Ejemplo 1: Normalizar</div>
+                        <div class="math-block text-xs">
+                            $$
+                            f_1(\mathbf{x}) = \frac{\mathbf{x} - \boldsymbol{\mu}}{\boldsymbol{\sigma}}
+                            $$
+                        </div>
+                        <div class="text-xs text-slate-400 mt-2">
+                            Entrada: \(\mathbf{x} \in \mathbb{R}^p\)<br>
+                            Salida: \(\mathbf{z} \in \mathbb{R}^p\) (normalizado)
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/50 p-4 rounded-lg">
+                        <div class="text-purple-400 font-bold mb-2">Ejemplo 2: PCA</div>
+                        <div class="math-block text-xs">
+                            $$
+                            f_2(\mathbf{z}) = \mathbf{W}^T \mathbf{z}
+                            $$
+                        </div>
+                        <div class="text-xs text-slate-400 mt-2">
+                            Entrada: \(\mathbf{z} \in \mathbb{R}^p\)<br>
+                            Salida: \(\mathbf{z}' \in \mathbb{R}^k\) (k componentes)
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/50 p-4 rounded-lg">
+                        <div class="text-green-400 font-bold mb-2">Ejemplo 3: Regresión</div>
+                        <div class="math-block text-xs">
+                            $$
+                            f_3(\mathbf{z}') = \boldsymbol{\beta}^T \mathbf{z}'
+                            $$
+                        </div>
+                        <div class="text-xs text-slate-400 mt-2">
+                            Entrada: \(\mathbf{z}' \in \mathbb{R}^k\)<br>
+                            Salida: \(\hat{y} \in \mathbb{R}\) (predicción)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mermaid bg-slate-900/50 p-6 rounded-xl mb-8">
+                graph LR
+                    X[📊 x raw] -->|f₁: Normalizar| Z[z normalized]
+                    Z -->|f₂: PCA| ZP[z' reduced]
+                    ZP -->|f₃: Regresión| Y[ŷ prediction]
+
+                    style X fill:#3b82f6,stroke:#fff
+                    style Y fill:#10b981,stroke:#fff
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Código: Pipeline en PySpark</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml <span class="text-purple-400">import</span> Pipeline
+<span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> VectorAssembler, StandardScaler, PCA
+<span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+
+<span class="text-slate-500"># Definir etapas (stages)</span>
+assembler = VectorAssembler(
+    inputCols=[<span class="text-green-300">"edad"</span>, <span class="text-green-300">"salario"</span>, <span class="text-green-300">"antiguedad"</span>],
+    outputCol=<span class="text-green-300">"features_raw"</span>
+)
+
+scaler = StandardScaler(
+    inputCol=<span class="text-green-300">"features_raw"</span>,
+    outputCol=<span class="text-green-300">"features_scaled"</span>
+)
+
+pca = PCA(
+    k=<span class="text-yellow-300">2</span>,  <span class="text-slate-500"># Reducir a 2 dimensiones</span>
+    inputCol=<span class="text-green-300">"features_scaled"</span>,
+    outputCol=<span class="text-green-300">"features_pca"</span>
+)
+
+lr = LinearRegression(
+    featuresCol=<span class="text-green-300">"features_pca"</span>,
+    labelCol=<span class="text-green-300">"target"</span>
+)
+
+<span class="text-slate-500"># Crear pipeline (composición h = f₃ ∘ f₂ ∘ f₁)</span>
+pipeline = Pipeline(stages=[assembler, scaler, pca, lr])
+
+<span class="text-slate-500"># Entrenar (fit ejecuta todas las etapas en secuencia)</span>
+model = pipeline.fit(train_df)
+
+<span class="text-slate-500"># Predecir (transform aplica toda la cadena)</span>
+predictions = model.transform(test_df)</code></pre>
+                <div class="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                    💡 <code>pipeline.fit()</code> entrena cada etapa usando la salida de la anterior. <code>model.transform()</code> aplica todas las transformaciones automáticamente.
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: VectorAssembler -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-purple-400">02.</span> VectorAssembler: De Columnas a Vectores
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Matemática: Construcción de Matriz</h4>
+                    <div class="math-block mb-4">
+                        $$
+                        \mathbf{X} = [\mathbf{x}_1 \; \mathbf{x}_2 \; \cdots \; \mathbf{x}_p]
+                        $$
+                        <div class="text-xs text-slate-400 mt-2">
+                            Donde cada \(\mathbf{x}_j\) es una columna del DataFrame.
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        Spark ML requiere que todas las features estén en <strong>una sola columna</strong> como vector.
+                        VectorAssembler "apila" columnas horizontalmente.
+                    </p>
+                    <div class="text-xs text-slate-500 bg-slate-900 p-3 rounded">
+                        <strong>Antes:</strong><br>
+                        | edad | salario | antiguedad |<br>
+                        |------|---------|------------|<br>
+                        | 25   | 50000   | 2          |<br>
+                        <br>
+                        <strong>Después:</strong><br>
+                        | features           |<br>
+                        |--------------------|<br>
+                        | [25.0, 50000.0, 2.0] |
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Ingeniería: Código PySpark</h4>
+                    <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> VectorAssembler
+
+<span class="text-slate-500"># DataFrame con columnas separadas</span>
+df = spark.createDataFrame([
+    (<span class="text-yellow-300">25</span>, <span class="text-yellow-300">50000</span>, <span class="text-yellow-300">2</span>, <span class="text-yellow-300">1</span>),
+    (<span class="text-yellow-300">30</span>, <span class="text-yellow-300">60000</span>, <span class="text-yellow-300">5</span>, <span class="text-yellow-300">0</span>),
+], [<span class="text-green-300">"edad"</span>, <span class="text-green-300">"salario"</span>, <span class="text-green-300">"antiguedad"</span>, <span class="text-green-300">"target"</span>])
+
+<span class="text-slate-500"># Ensamblar features</span>
+assembler = VectorAssembler(
+    inputCols=[<span class="text-green-300">"edad"</span>, <span class="text-green-300">"salario"</span>, <span class="text-green-300">"antiguedad"</span>],
+    outputCol=<span class="text-green-300">"features"</span>  <span class="text-slate-500"># Nueva columna vector</span>
+)
+
+df_assembled = assembler.transform(df)
+df_assembled.select(<span class="text-green-300">"features"</span>, <span class="text-green-300">"target"</span>).show(truncate=<span class="text-yellow-300">False</span>)
+
+<span class="text-slate-500"># +-------------------+------+</span>
+<span class="text-slate-500"># |features           |target|</span>
+<span class="text-slate-500"># +-------------------+------+</span>
+<span class="text-slate-500"># |[25.0,50000.0,2.0] |1     |</span>
+<span class="text-slate-500"># |[30.0,60000.0,5.0] |0     |</span>
+<span class="text-slate-500"># +-------------------+------+</span></code></pre>
+                    <div class="mt-4 p-3 bg-purple-900/20 border border-purple-500/30 rounded text-xs text-purple-300">
+                        ⚠️ <code>VectorAssembler</code> es siempre la primera etapa en un pipeline de ML.
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl bg-orange-900/10">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="lightbulb" class="w-6 h-6 text-orange-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">Dense vs Sparse Vectors</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-3">
+                            <div>
+                                <div class="text-green-400 font-bold mb-2">Dense Vector</div>
+                                <code class="text-xs bg-slate-900 p-2 rounded block text-slate-300">
+                                    DenseVector([1.0, 2.0, 3.0])
+                                </code>
+                                <div class="text-xs text-slate-400 mt-2">
+                                    Almacena todos los valores. Usa más memoria pero es más rápido para vectores pequeños.
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-blue-400 font-bold mb-2">Sparse Vector</div>
+                                <code class="text-xs bg-slate-900 p-2 rounded block text-slate-300">
+                                    SparseVector(1000, [0, 5], [1.0, 2.0])
+                                </code>
+                                <div class="text-xs text-slate-400 mt-2">
+                                    Solo almacena índices no-cero. Ideal para one-hot encoding (mayoría ceros).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: Transformers vs Estimators -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-green-400">03.</span> Transformers vs Estimators
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="glass-card p-6 rounded-xl border-l-4 border-green-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="shuffle" class="w-6 h-6 text-green-400"></i>
+                        <h4 class="text-lg font-bold text-white">Transformer</h4>
+                    </div>
+                    <div class="math-block mb-4">
+                        $$
+                        T: \mathcal{X} \to \mathcal{Y} \quad \text{(función determinista)}
+                        $$
+                        <div class="text-xs text-slate-400 mt-2">
+                            No necesita entrenamiento. Aplica transformación directamente.
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        <strong>Método principal:</strong> <code class="text-green-400">transform(df)</code>
+                    </p>
+                    <div class="text-xs bg-slate-900 p-3 rounded text-slate-300 space-y-2">
+                        <div><strong class="text-white">Ejemplos:</strong></div>
+                        <div>• <code>VectorAssembler</code> - Combina columnas</div>
+                        <div>• <code>Normalizer</code> - Divide por norma L2</div>
+                        <div>• <code>Binarizer</code> - Convierte a 0/1</div>
+                        <div>• <code>SQLTransformer</code> - Ejecuta SQL</div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-l-4 border-blue-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="target" class="w-6 h-6 text-blue-400"></i>
+                        <h4 class="text-lg font-bold text-white">Estimator</h4>
+                    </div>
+                    <div class="math-block mb-4">
+                        $$
+                        E: \mathcal{D} \to \mathcal{M} \quad \text{(optimización)}
+                        $$
+                        <div class="text-xs text-slate-400 mt-2">
+                            Requiere entrenamiento con datos. Produce un modelo (Transformer).
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        <strong>Métodos principales:</strong> <code class="text-blue-400">fit(df)</code> → <code class="text-blue-400">transform(df)</code>
+                    </p>
+                    <div class="text-xs bg-slate-900 p-3 rounded text-slate-300 space-y-2">
+                        <div><strong class="text-white">Ejemplos:</strong></div>
+                        <div>• <code>StandardScaler</code> - Aprende μ, σ</div>
+                        <div>• <code>PCA</code> - Calcula eigenvectors</div>
+                        <div>• <code>LinearRegression</code> - Optimiza β</div>
+                        <div>• <code>StringIndexer</code> - Mapea strings</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-8 rounded-xl">
+                <h4 class="text-xl font-bold text-white mb-4">Ejemplo: Flujo Completo</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> VectorAssembler, StandardScaler
+<span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+
+<span class="text-slate-500"># 1. Transformer (no necesita fit)</span>
+assembler = VectorAssembler(
+    inputCols=[<span class="text-green-300">"x1"</span>, <span class="text-green-300">"x2"</span>],
+    outputCol=<span class="text-green-300">"features_raw"</span>
+)
+df_assembled = assembler.transform(df)  <span class="text-slate-500"># Directo</span>
+
+<span class="text-slate-500"># 2. Estimator (necesita fit para aprender μ, σ)</span>
+scaler = StandardScaler(
+    inputCol=<span class="text-green-300">"features_raw"</span>,
+    outputCol=<span class="text-green-300">"features_scaled"</span>
+)
+scaler_model = scaler.fit(df_assembled)  <span class="text-slate-500"># Aprende parámetros</span>
+df_scaled = scaler_model.transform(df_assembled)  <span class="text-slate-500"># Aplica</span>
+
+<span class="text-slate-500"># 3. Estimator (optimiza β)</span>
+lr = LinearRegression(
+    featuresCol=<span class="text-green-300">"features_scaled"</span>,
+    labelCol=<span class="text-green-300">"label"</span>
+)
+lr_model = lr.fit(df_scaled)  <span class="text-slate-500"># Entrena</span>
+predictions = lr_model.transform(test_df)  <span class="text-slate-500"># Predice</span></code></pre>
+            </div>
+        </section>
+
+        <!-- Bloque 4: StandardScaler -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-yellow-400">04.</span> StandardScaler: Normalización Z-Score
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Matemática: Z-Score</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    z_i = \frac{x_i - \mu}{\sigma}, \quad
+                    \mu = \frac{1}{n}\sum_{i=1}^{n} x_i, \quad
+                    \sigma = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_i - \mu)^2}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Transforma cada feature a media 0 y desviación estándar 1.
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">❓ ¿Por qué normalizar?</h5>
+                        <div class="text-xs text-slate-400 space-y-2">
+                            <div class="p-3 bg-slate-900/50 rounded">
+                                <strong class="text-white">Problema:</strong> Si <code>edad ∈ [20, 60]</code> y <code>salario ∈ [30000, 100000]</code>,
+                                salario domina el cálculo de distancias porque su escala es 1000x mayor.
+                            </div>
+                            <div class="p-3 bg-green-900/20 border border-green-500/30 rounded text-green-300">
+                                <strong>Solución:</strong> Normalizar pone todas las features en la misma escala [-3, 3] aproximadamente.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">⚙️ Implementación Distribuida</h5>
+                        <div class="text-xs text-slate-400 space-y-2">
+                            <div class="p-3 bg-slate-900/50 rounded">
+                                <strong class="text-blue-400">Fase 1 (Map):</strong> Calcular suma parcial \(\sum_{i \in P_j} x_i\) en cada partición.
+                            </div>
+                            <div class="p-3 bg-slate-900/50 rounded">
+                                <strong class="text-purple-400">Fase 2 (Reduce):</strong> Agregar sumas → \(\mu = \frac{\sum}{n}\).
+                            </div>
+                            <div class="p-3 bg-slate-900/50 rounded">
+                                <strong class="text-yellow-400">Fase 3 (Map):</strong> Calcular \((x_i - \mu)^2\) en cada partición.
+                            </div>
+                            <div class="p-3 bg-slate-900/50 rounded">
+                                <strong class="text-green-400">Fase 4 (Reduce):</strong> Agregar → \(\sigma = \sqrt{\sum(x_i - \mu)^2 / (n-1)}\).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Código: StandardScaler en PySpark</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> VectorAssembler, StandardScaler
+
+<span class="text-slate-500"># Dataset ejemplo</span>
+df = spark.createDataFrame([
+    (<span class="text-yellow-300">25</span>, <span class="text-yellow-300">50000</span>),
+    (<span class="text-yellow-300">30</span>, <span class="text-yellow-300">60000</span>),
+    (<span class="text-yellow-300">35</span>, <span class="text-yellow-300">70000</span>),
+    (<span class="text-yellow-300">40</span>, <span class="text-yellow-300">80000</span>)
+], [<span class="text-green-300">"edad"</span>, <span class="text-green-300">"salario"</span>])
+
+<span class="text-slate-500"># Paso 1: Ensamblar features</span>
+assembler = VectorAssembler(
+    inputCols=[<span class="text-green-300">"edad"</span>, <span class="text-green-300">"salario"</span>],
+    outputCol=<span class="text-green-300">"features"</span>
+)
+df_assembled = assembler.transform(df)
+
+<span class="text-slate-500"># Paso 2: Normalizar</span>
+scaler = StandardScaler(
+    inputCol=<span class="text-green-300">"features"</span>,
+    outputCol=<span class="text-green-300">"features_scaled"</span>,
+    withMean=<span class="text-yellow-300">True</span>,   <span class="text-slate-500"># Centrar en media 0</span>
+    withStd=<span class="text-yellow-300">True</span>     <span class="text-slate-500"># Escalar a std 1</span>
+)
+
+<span class="text-slate-500"># fit() aprende μ y σ del training set</span>
+scaler_model = scaler.fit(df_assembled)
+
+<span class="text-slate-500"># transform() aplica z = (x - μ) / σ</span>
+df_scaled = scaler_model.transform(df_assembled)
+
+df_scaled.select(<span class="text-green-300">"features"</span>, <span class="text-green-300">"features_scaled"</span>).show(truncate=<span class="text-yellow-300">False</span>)
+
+<span class="text-slate-500"># +----------------+----------------------------------------------------+</span>
+<span class="text-slate-500"># |features        |features_scaled                                      |</span>
+<span class="text-slate-500"># +----------------+----------------------------------------------------+</span>
+<span class="text-slate-500"># |[25.0,50000.0]  |[-1.3416..., -1.3416...]  # Ambos ~-1.34 (normalizados)|</span>
+<span class="text-slate-500"># |[30.0,60000.0]  |[-0.4472..., -0.4472...]  # Ahora en misma escala     |</span>
+<span class="text-slate-500"># |[35.0,70000.0]  |[0.4472..., 0.4472...]                               |</span>
+<span class="text-slate-500"># |[40.0,80000.0]  |[1.3416..., 1.3416...]                               |</span>
+<span class="text-slate-500"># +----------------+----------------------------------------------------+</span></code></pre>
+                <div class="mt-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded text-xs text-yellow-300">
+                    ⚠️ <strong>Importante:</strong> Usa los mismos μ y σ del training set para test set (<code>scaler_model.transform(test_df)</code>). No reajustes en test.
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 5: PCA -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-red-400">05.</span> PCA: Reducción Dimensional
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Matemática: Autovectores de la Covarianza</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    \begin{aligned}
+                    \boldsymbol{\Sigma} &= \frac{1}{n} \mathbf{X}^T \mathbf{X} \quad \text{(matriz de covarianza)} \\[0.5em]
+                    \boldsymbol{\Sigma} \mathbf{v}_i &= \lambda_i \mathbf{v}_i \quad \text{(eigenvectors)} \\[0.5em]
+                    \mathbf{X}_{\text{reduced}} &= \mathbf{X} \mathbf{W}, \quad \mathbf{W} = [\mathbf{v}_1 \; \mathbf{v}_2 \; \cdots \; \mathbf{v}_k]
+                    \end{aligned}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        PCA encuentra las \(k\) direcciones de máxima varianza. Proyectar en esas direcciones reduce dimensionalidad de \(p\) a \(k\).
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">❓ ¿Por qué reducir dimensiones?</h5>
+                        <ul class="text-xs text-slate-400 space-y-2">
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-400 mt-0.5"></i>
+                                <span><strong>Velocidad:</strong> Menos features → menos cómputo (regresión de \(p=1000\) a \(k=50\)).</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-blue-400 mt-0.5"></i>
+                                <span><strong>Visualización:</strong> Proyectar a 2D/3D para graficar.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-purple-400 mt-0.5"></i>
+                                <span><strong>Regularización:</strong> Eliminar ruido y colinealidad.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">⚙️ Problema Distribuido</h5>
+                        <div class="text-xs text-slate-400 space-y-2">
+                            <div class="p-3 bg-red-900/20 border border-red-500/30 rounded text-red-300">
+                                <strong>Desafío:</strong> Calcular \(\boldsymbol{\Sigma}\) requiere \(\mathbf{X}^T \mathbf{X}\).
+                                Si \(p = 10,000\), entonces \(\boldsymbol{\Sigma}\) es 10,000 × 10,000.
+                            </div>
+                            <div class="p-3 bg-green-900/20 border border-green-500/30 rounded text-green-300">
+                                <strong>Solución:</strong> Spark usa SVD (Singular Value Decomposition) distribuido, más eficiente que calcular eigenvectors directamente.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Código: PCA en PySpark</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> PCA
+<span class="text-purple-400">from</span> pyspark.ml.linalg <span class="text-purple-400">import</span> Vectors
+
+<span class="text-slate-500"># Dataset con 5 features</span>
+df = spark.createDataFrame([
+    (Vectors.dense([<span class="text-yellow-300">1.0</span>, <span class="text-yellow-300">0.0</span>, <span class="text-yellow-300">3.0</span>, <span class="text-yellow-300">0.0</span>, <span class="text-yellow-300">5.0</span>]),),
+    (Vectors.dense([<span class="text-yellow-300">2.0</span>, <span class="text-yellow-300">1.0</span>, <span class="text-yellow-300">4.0</span>, <span class="text-yellow-300">1.0</span>, <span class="text-yellow-300">6.0</span>]),),
+    (Vectors.dense([<span class="text-yellow-300">3.0</span>, <span class="text-yellow-300">2.0</span>, <span class="text-yellow-300">5.0</span>, <span class="text-yellow-300">2.0</span>, <span class="text-yellow-300">7.0</span>]),)
+], [<span class="text-green-300">"features"</span>])
+
+<span class="text-slate-500"># Reducir de 5 a 2 componentes principales</span>
+pca = PCA(
+    k=<span class="text-yellow-300">2</span>,  <span class="text-slate-500"># Número de componentes</span>
+    inputCol=<span class="text-green-300">"features"</span>,
+    outputCol=<span class="text-green-300">"pca_features"</span>
+)
+
+<span class="text-slate-500"># fit() calcula eigenvectors de Σ</span>
+pca_model = pca.fit(df)
+
+<span class="text-slate-500"># Mostrar varianza explicada</span>
+<span class="text-blue-400">print</span>(<span class="text-green-300">"Varianza explicada:"</span>, pca_model.explainedVariance)
+<span class="text-slate-500"># DenseVector([0.92, 0.05])  # 92% + 5% = 97% de varianza total</span>
+
+<span class="text-slate-500"># transform() proyecta X en los 2 eigenvectors principales</span>
+df_pca = pca_model.transform(df)
+
+df_pca.select(<span class="text-green-300">"features"</span>, <span class="text-green-300">"pca_features"</span>).show(truncate=<span class="text-yellow-300">False</span>)
+
+<span class="text-slate-500"># +--------------------+-------------------+</span>
+<span class="text-slate-500"># |features            |pca_features       |</span>
+<span class="text-slate-500"># +--------------------+-------------------+</span>
+<span class="text-slate-500"># |[1.0,0.0,3.0,0.0,5.0]|[-4.47, 0.16]      |  # 5D → 2D</span>
+<span class="text-slate-500"># |[2.0,1.0,4.0,1.0,6.0]|[-3.14, 0.11]      |</span>
+<span class="text-slate-500"># |[3.0,2.0,5.0,2.0,7.0]|[-1.81, 0.06]      |</span>
+<span class="text-slate-500"># +--------------------+-------------------+</span></code></pre>
+                <div class="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                    💡 <code>explainedVariance</code> indica cuánta información retienes. 0.92 = 92% de varianza. Ajusta \(k\) según cuánto quieras comprimir.
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 6: Pipeline Completo -->
+        <section class="border-t border-slate-800 pt-16">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-white">
+                    <span class="text-purple-400">06.</span> Pipeline Completo (End-to-End)
+                </h3>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl">
+                <h4 class="text-xl font-bold text-white mb-4">Ejemplo: Predicción de Salario</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300 mb-6"><code><span class="text-purple-400">from</span> pyspark.ml <span class="text-purple-400">import</span> Pipeline
+<span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> VectorAssembler, StandardScaler, PCA
+<span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+<span class="text-purple-400">from</span> pyspark.ml.evaluation <span class="text-purple-400">import</span> RegressionEvaluator
+
+<span class="text-slate-500"># Cargar datos</span>
+df = spark.read.csv(<span class="text-green-300">"salarios.csv"</span>, header=<span class="text-yellow-300">True</span>, inferSchema=<span class="text-yellow-300">True</span>)
+
+<span class="text-slate-500"># Split train/test (80/20)</span>
+train_df, test_df = df.randomSplit([<span class="text-yellow-300">0.8</span>, <span class="text-yellow-300">0.2</span>], seed=<span class="text-yellow-300">42</span>)
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Etapa 1: Ensamblar features</span>
+<span class="text-slate-500"># ======================================</span>
+assembler = VectorAssembler(
+    inputCols=[<span class="text-green-300">"edad"</span>, <span class="text-green-300">"antiguedad"</span>, <span class="text-green-300">"educacion_años"</span>, <span class="text-green-300">"horas_semana"</span>],
+    outputCol=<span class="text-green-300">"features_raw"</span>
+)
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Etapa 2: Normalizar (z-score)</span>
+<span class="text-slate-500"># ======================================</span>
+scaler = StandardScaler(
+    inputCol=<span class="text-green-300">"features_raw"</span>,
+    outputCol=<span class="text-green-300">"features_scaled"</span>,
+    withMean=<span class="text-yellow-300">True</span>,
+    withStd=<span class="text-yellow-300">True</span>
+)
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Etapa 3: Reducir dimensiones (PCA)</span>
+<span class="text-slate-500"># ======================================</span>
+pca = PCA(
+    k=<span class="text-yellow-300">3</span>,  <span class="text-slate-500"># 4 features → 3 componentes</span>
+    inputCol=<span class="text-green-300">"features_scaled"</span>,
+    outputCol=<span class="text-green-300">"features_pca"</span>
+)
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Etapa 4: Regresión Lineal</span>
+<span class="text-slate-500"># ======================================</span>
+lr = LinearRegression(
+    featuresCol=<span class="text-green-300">"features_pca"</span>,
+    labelCol=<span class="text-green-300">"salario"</span>,
+    maxIter=<span class="text-yellow-300">100</span>,
+    regParam=<span class="text-yellow-300">0.01</span>  <span class="text-slate-500"># Regularización L2</span>
+)
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Crear Pipeline (composición)</span>
+<span class="text-slate-500"># ======================================</span>
+pipeline = Pipeline(stages=[assembler, scaler, pca, lr])
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Entrenar (fit ejecuta todas las etapas)</span>
+<span class="text-slate-500"># ======================================</span>
+<span class="text-blue-400">print</span>(<span class="text-green-300">"Entrenando pipeline..."</span>)
+model = pipeline.fit(train_df)
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Predecir en test set</span>
+<span class="text-slate-500"># ======================================</span>
+predictions = model.transform(test_df)
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Evaluar (RMSE)</span>
+<span class="text-slate-500"># ======================================</span>
+evaluator = RegressionEvaluator(
+    labelCol=<span class="text-green-300">"salario"</span>,
+    predictionCol=<span class="text-green-300">"prediction"</span>,
+    metricName=<span class="text-green-300">"rmse"</span>
+)
+rmse = evaluator.evaluate(predictions)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"RMSE: </span>{rmse:.2f}<span class="text-green-300">"</span>)
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Guardar modelo entrenado</span>
+<span class="text-slate-500"># ======================================</span>
+model.save(<span class="text-green-300">"models/salary_pipeline"</span>)</code></pre>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div class="p-3 bg-green-900/20 border border-green-500/30 rounded">
+                        <div class="text-green-400 font-bold mb-2">✅ Ventajas del Pipeline</div>
+                        <ul class="text-slate-400 space-y-1">
+                            <li>• Código limpio y modular</li>
+                            <li>• Evita data leakage (μ, σ del train)</li>
+                            <li>• Fácil de serializar y desplegar</li>
+                        </ul>
+                    </div>
+                    <div class="p-3 bg-blue-900/20 border border-blue-500/30 rounded">
+                        <div class="text-blue-400 font-bold mb-2">📦 Despliegue</div>
+                        <ul class="text-slate-400 space-y-1">
+                            <li>• <code>model.save(path)</code> guarda todo</li>
+                            <li>• <code>PipelineModel.load(path)</code></li>
+                            <li>• <code>model.transform(new_data)</code></li>
+                        </ul>
+                    </div>
+                    <div class="p-3 bg-purple-900/20 border border-purple-500/30 rounded">
+                        <div class="text-purple-400 font-bold mb-2">🔍 Inspección</div>
+                        <ul class="text-slate-400 space-y-1">
+                            <li>• <code>model.stages[3]</code> → LR model</li>
+                            <li>• <code>.coefficients</code> → β</li>
+                            <li>• <code>.explainedVariance</code> (PCA)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion13_1.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-blue-500 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span class="text-slate-400">Anterior: Fundamentos</span>
+                </a>
+
+                <a href="seccion_13.html" class="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-600 transition text-slate-400 hover:text-white">
+                    Volver al Hub
+                </a>
+
+                <a href="seccion13_3.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-purple-500 transition">
+                    <span class="text-slate-400">Siguiente: Feature Engineering</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
+    </script>
+</body>
+</html>

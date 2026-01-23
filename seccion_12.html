@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 12: Delta Live Tables | Data Strategy</title>
+
+    <!-- Librerías Core -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <!-- Tipografía Técnica -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --dlt-green: #00A972;
+            --dlt-green-light: #00D4AA;
+            --dlt-green-dark: #008060;
+            --bg-deep: #050505;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(0, 169, 114, 0.05) 0%, transparent 50%);
+        }
+
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+
+        /* Tarjetas Glass */
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: var(--dlt-green);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 169, 114, 0.15);
+        }
+
+        /* Gradientes DLT */
+        .gradient-dlt {
+            background: linear-gradient(135deg, var(--dlt-green) 0%, var(--dlt-green-light) 100%);
+        }
+
+        /* Badges de Pipeline */
+        .badge-streaming {
+            background: rgba(0, 169, 114, 0.1);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            color: var(--dlt-green-light);
+        }
+
+        .badge-batch {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="index.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">HUB CENTRAL</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-xl">SECCIÓN 12<span class="text-[var(--dlt-green)]">.DLT()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">DELTA LIVE TABLES & DECLARATIVE PIPELINES</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-2 gradient-dlt rounded-full text-xs font-mono text-white font-bold">
+            <i data-lucide="play-circle" class="w-4 h-4"></i>
+            LIVE PIPELINES
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro Hero -->
+        <section class="text-center space-y-6">
+            <div class="inline-flex items-center justify-center p-4 rounded-full bg-green-500/10 border border-green-500/20 mb-4">
+                <i data-lucide="zap" class="w-10 h-10 text-[var(--dlt-green)]"></i>
+            </div>
+            <h2 class="text-5xl font-black text-white tracking-tight">Delta Live Tables</h2>
+            <p class="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                Pipelines declarativos de datos que se autoconstruyen, autovalidan y autorrecuperan.
+                <br>Define <strong>qué</strong> quieres lograr, no <strong>cómo</strong> hacerlo. DLT maneja el resto.
+            </p>
+        </section>
+
+        <!-- Bloque 1: ¿Qué es DLT? -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <h3 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <span class="text-[var(--dlt-green)]">01.</span> ¿Qué es DLT?
+                </h3>
+                <p class="text-slate-400 leading-relaxed">
+                    Delta Live Tables (DLT) es el framework de Databricks para construir pipelines de datos confiables, escalables y mantenibles.
+                    Transforma código imperativo complejo en declaraciones SQL o Python simples.
+                </p>
+                <ul class="space-y-4">
+                    <li class="flex items-start gap-4 p-4 glass-card rounded-xl">
+                        <i data-lucide="git-branch" class="w-6 h-6 text-green-400 mt-1"></i>
+                        <div>
+                            <strong class="text-white">DAG Automático</strong>
+                            <p class="text-sm text-slate-500">Define tablas con <code class="text-green-400">@dlt.table</code>. DLT calcula automáticamente dependencias y orden de ejecución.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4 p-4 glass-card rounded-xl">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-blue-400 mt-1"></i>
+                        <div>
+                            <strong class="text-white">Calidad Incorporada</strong>
+                            <p class="text-sm text-slate-500">Usa <code class="text-blue-400">expect()</code> para definir reglas. DLT monitorea y alerta violaciones automáticamente.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4 p-4 glass-card rounded-xl">
+                        <i data-lucide="repeat" class="w-6 h-6 text-purple-400 mt-1"></i>
+                        <div>
+                            <strong class="text-white">Reintento Inteligente</strong>
+                            <p class="text-sm text-slate-500">Si falla una tabla, DLT reintenta solo lo necesario, sin reprocesar todo el pipeline.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="glass-card p-8 rounded-2xl relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent"></div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-500 font-mono">pipeline/ventas_dlt.py</span>
+                    <span class="badge-streaming text-xs px-2 py-1 rounded font-mono">STREAMING</span>
+                </div>
+                <pre class="font-tech text-sm relative z-10"><code class="language-python text-slate-300">
+<span class="text-purple-400">import</span> dlt
+<span class="text-purple-400">from</span> pyspark.sql <span class="text-purple-400">import</span> functions <span class="text-purple-400">as</span> F
+
+<span class="text-slate-500"># Define una tabla en streaming</span>
+<span class="text-purple-400">@dlt.table</span>(
+    name=<span class="text-green-300">"ventas_silver"</span>,
+    comment=<span class="text-green-300">"Ventas limpias en tiempo real"</span>
+)
+<span class="text-purple-400">@dlt.expect_or_drop</span>(<span class="text-green-300">"valid_amount"</span>, <span class="text-green-300">"amount > 0"</span>)
+<span class="text-purple-400">def</span> <span class="text-blue-400">ventas_silver</span>():
+    <span class="text-purple-400">return</span> (
+        dlt.read_stream(<span class="text-green-300">"ventas_bronze"</span>)
+        .withColumn(<span class="text-green-300">"processed_at"</span>, F.current_timestamp())
+    )
+                </code></pre>
+                <div class="mt-4 text-center text-xs text-slate-500 font-mono">DLT maneja orquestación, checkpoints y reintentos.</div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: Anatomía de un Pipeline -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                <span class="text-blue-400">02.</span> Anatomía de un Pipeline DLT
+            </h3>
+
+            <div class="mermaid bg-slate-900/50 p-6 rounded-xl mb-8">
+                graph TD
+                Source[📁 Fuente Raw] -->|@dlt.table| Bronze[🥉 BRONZE: ventas_bronze]
+                Bronze -->|@dlt.view + expect| Silver[🥈 SILVER: ventas_silver]
+                Silver -->|@dlt.table| Gold[🥇 GOLD: ventas_kpi]
+
+                Bronze -.->|Violaciones| Q[⚠️ Expectation Failures]
+
+                style Source fill:#1e293b,stroke:#fff
+                style Bronze fill:#78350f,stroke:#fff
+                style Silver fill:#475569,stroke:#fff
+                style Gold fill:#854d0e,stroke:#fff
+                style Q fill:#7f1d1d,stroke:#fff,stroke-dasharray: 5 5
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-card p-6 rounded-xl border-l-4 border-green-500">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="database" class="w-5 h-5 text-green-400"></i>
+                        <h4 class="text-lg font-bold text-white">@dlt.table</h4>
+                    </div>
+                    <p class="text-sm text-slate-400">Materializa el resultado como tabla Delta. Soporta streaming y batch.</p>
+                    <code class="block mt-3 text-xs bg-slate-900 p-2 rounded text-green-300">
+                        @dlt.table(name="mi_tabla")<br>
+                        def mi_tabla(): ...
+                    </code>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-l-4 border-blue-500">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="eye" class="w-5 h-5 text-blue-400"></i>
+                        <h4 class="text-lg font-bold text-white">@dlt.view</h4>
+                    </div>
+                    <p class="text-sm text-slate-400">Crea una vista temporal (no persiste). Ideal para transformaciones intermedias.</p>
+                    <code class="block mt-3 text-xs bg-slate-900 p-2 rounded text-blue-300">
+                        @dlt.view()<br>
+                        def staging_view(): ...
+                    </code>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-l-4 border-purple-500">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="play" class="w-5 h-5 text-purple-400"></i>
+                        <h4 class="text-lg font-bold text-white">dlt.read_stream</h4>
+                    </div>
+                    <p class="text-sm text-slate-400">Lee datos en modo streaming (incremental). Procesa solo datos nuevos.</p>
+                    <code class="block mt-3 text-xs bg-slate-900 p-2 rounded text-purple-300">
+                        dlt.read_stream("table")<br>
+                        dlt.read("batch_table")
+                    </code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: Streaming vs Batch -->
+        <section class="border-t border-slate-800 pt-16">
+            <div class="flex flex-col md:flex-row gap-12 items-start">
+                <div class="md:w-1/3">
+                    <h3 class="text-3xl font-bold text-white mb-4">
+                        <span class="text-yellow-400">03.</span> Streaming vs Batch
+                    </h3>
+                    <p class="text-slate-400 text-sm">
+                        DLT permite cambiar entre modos con una línea de código. La misma lógica funciona en ambos escenarios.
+                    </p>
+                </div>
+                <div class="md:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Streaming -->
+                    <div class="glass-card p-6 rounded-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-bold text-white">Streaming</h4>
+                            <span class="badge-streaming text-xs px-2 py-1 rounded font-mono">INCREMENTAL</span>
+                        </div>
+                        <ul class="space-y-2 text-sm text-slate-400">
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-400 mt-0.5"></i>
+                                Procesa solo datos nuevos
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-400 mt-0.5"></i>
+                                Latencia ultra-baja (segundos)
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-400 mt-0.5"></i>
+                                Checkpoints automáticos
+                            </li>
+                        </ul>
+                        <code class="block mt-4 text-xs bg-slate-900 p-2 rounded text-green-300">
+                            dlt.read_stream("source")
+                        </code>
+                    </div>
+
+                    <!-- Batch -->
+                    <div class="glass-card p-6 rounded-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-bold text-white">Batch</h4>
+                            <span class="badge-batch text-xs px-2 py-1 rounded font-mono">FULL REFRESH</span>
+                        </div>
+                        <ul class="space-y-2 text-sm text-slate-400">
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-blue-400 mt-0.5"></i>
+                                Reprocesa todo el dataset
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-blue-400 mt-0.5"></i>
+                                Ideal para dimensiones
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-blue-400 mt-0.5"></i>
+                                Control total del estado
+                            </li>
+                        </ul>
+                        <code class="block mt-4 text-xs bg-slate-900 p-2 rounded text-blue-300">
+                            dlt.read("source")
+                        </code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 4: Expectations (Calidad) -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                <span class="text-red-400">04.</span> Expectations: Calidad de Datos
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass-card p-6 rounded-xl border-t-4 border-blue-500">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="alert-circle" class="w-5 h-5 text-blue-400"></i>
+                        <h4 class="text-lg font-bold text-white">expect</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-3">Monitorea violaciones pero <strong>permite</strong> que pasen los datos.</p>
+                    <code class="block text-xs bg-slate-900 p-2 rounded text-blue-300">
+                        @dlt.expect("valid_email",<br>
+                        &nbsp;&nbsp;"email IS NOT NULL")
+                    </code>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-t-4 border-yellow-500">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="x-circle" class="w-5 h-5 text-yellow-400"></i>
+                        <h4 class="text-lg font-bold text-white">expect_or_drop</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-3">Descarta registros que <strong>no cumplan</strong> la expectativa.</p>
+                    <code class="block text-xs bg-slate-900 p-2 rounded text-yellow-300">
+                        @dlt.expect_or_drop(<br>
+                        &nbsp;&nbsp;"valid_amount",<br>
+                        &nbsp;&nbsp;"amount > 0")
+                    </code>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-t-4 border-red-500">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-400"></i>
+                        <h4 class="text-lg font-bold text-white">expect_or_fail</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-3">Detiene todo el pipeline si encuentra <strong>una sola violación</strong>.</p>
+                    <code class="block text-xs bg-slate-900 p-2 rounded text-red-300">
+                        @dlt.expect_or_fail(<br>
+                        &nbsp;&nbsp;"no_duplicates",<br>
+                        &nbsp;&nbsp;"COUNT(*) = COUNT(DISTINCT id)")
+                    </code>
+                </div>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-500 font-mono">pipeline/quality_checks.py</span>
+                </div>
+                <pre class="font-tech text-sm"><code class="language-python text-slate-300">
+<span class="text-purple-400">@dlt.table</span>(
+    name=<span class="text-green-300">"customers_silver"</span>,
+    comment=<span class="text-green-300">"Clientes validados con reglas de calidad"</span>
+)
+<span class="text-purple-400">@dlt.expect_or_drop</span>(<span class="text-green-300">"valid_email"</span>, <span class="text-green-300">"email RLIKE '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$'"</span>)
+<span class="text-purple-400">@dlt.expect_or_drop</span>(<span class="text-green-300">"valid_age"</span>, <span class="text-green-300">"age >= 18 AND age <= 120"</span>)
+<span class="text-purple-400">@dlt.expect</span>(<span class="text-green-300">"has_phone"</span>, <span class="text-green-300">"phone IS NOT NULL"</span>)  <span class="text-slate-500"># Solo alerta</span>
+<span class="text-purple-400">def</span> <span class="text-blue-400">customers_silver</span>():
+    <span class="text-purple-400">return</span> (
+        dlt.read_stream(<span class="text-green-300">"customers_bronze"</span>)
+        .select(<span class="text-green-300">"id"</span>, <span class="text-green-300">"email"</span>, <span class="text-green-300">"age"</span>, <span class="text-green-300">"phone"</span>)
+    )
+                </code></pre>
+            </div>
+        </section>
+
+        <!-- Bloque 5: CDC (Change Data Capture) -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                <span class="text-purple-400">05.</span> Change Data Capture (CDC)
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+                <div class="space-y-6">
+                    <p class="text-slate-400 leading-relaxed">
+                        DLT simplifica CDC con <code class="text-purple-400">dlt.apply_changes()</code>.
+                        Captura inserciones, actualizaciones y eliminaciones desde un stream de eventos, manteniendo historial completo (SCD Type 2).
+                    </p>
+
+                    <div class="mermaid bg-slate-900/50 p-6 rounded-xl">
+                        graph LR
+                        CDC[CDC Stream] -->|INSERT| T[Target Table]
+                        CDC -->|UPDATE| T
+                        CDC -->|DELETE| T
+
+                        T --> Hist[Historical Records]
+                        T --> Curr[Current Records]
+
+                        style CDC fill:#6366f1,stroke:#fff
+                        style T fill:#00A972,stroke:#fff
+                        style Hist fill:#475569,stroke:#fff
+                        style Curr fill:#854d0e,stroke:#fff
+                    </div>
+
+                    <div class="glass-card p-4 rounded-xl">
+                        <h4 class="font-bold text-white mb-2 text-sm">Tipos de SCD</h4>
+                        <ul class="text-xs text-slate-400 space-y-1">
+                            <li><strong class="text-white">SCD Type 1:</strong> Sobreescribe valores antiguos (no historial)</li>
+                            <li><strong class="text-white">SCD Type 2:</strong> Mantiene historial completo con fechas de vigencia</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 rounded-2xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-slate-500 font-mono">pipeline/cdc_customers.py</span>
+                    </div>
+                    <pre class="font-tech text-sm"><code class="language-python text-slate-300">
+<span class="text-purple-400">import</span> dlt
+
+<span class="text-slate-500"># Aplicar CDC en streaming</span>
+dlt.create_streaming_table(<span class="text-green-300">"customers_scd2"</span>)
+
+dlt.apply_changes(
+    target=<span class="text-green-300">"customers_scd2"</span>,
+    source=<span class="text-green-300">"customers_cdc_stream"</span>,
+    keys=[<span class="text-green-300">"customer_id"</span>],
+    sequence_by=<span class="text-green-300">"event_timestamp"</span>,
+    stored_as_scd_type=<span class="text-yellow-300">2</span>,  <span class="text-slate-500"># Type 2 = historial</span>
+    except_column_list=[<span class="text-green-300">"_metadata"</span>]
+)
+
+<span class="text-slate-500"># Resultado: tabla con columnas automáticas:</span>
+<span class="text-slate-500"># - __START_AT (fecha inicio vigencia)</span>
+<span class="text-slate-500"># - __END_AT (fecha fin vigencia)</span>
+<span class="text-slate-500"># - __CURRENT (bool: registro actual?)</span>
+                    </code></pre>
+                </div>
+            </div>
+
+            <div class="mt-8 glass-card p-6 rounded-xl bg-purple-900/10">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="lightbulb" class="w-6 h-6 text-purple-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">Caso de Uso Real</h4>
+                        <p class="text-sm text-slate-400">
+                            Un sistema de e-commerce actualiza datos de clientes constantemente (cambios de dirección, email, categoría).
+                            Con CDC, puedes responder: <em>"¿Cuál era la categoría de este cliente el 15 de marzo?"</em> consultando la tabla SCD2.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 6: Monitoreo y Observabilidad -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                <span class="text-orange-400">06.</span> Monitoreo y Observabilidad
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="activity" class="w-6 h-6 text-green-400"></i>
+                        <h4 class="text-lg font-bold text-white">Event Log</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        DLT genera automáticamente una tabla <code class="text-green-400">event_log</code> con métricas detalladas de cada ejecución.
+                    </p>
+                    <code class="block text-xs bg-slate-900 p-3 rounded text-slate-300">
+                        SELECT<br>
+                        &nbsp;&nbsp;timestamp,<br>
+                        &nbsp;&nbsp;details:flow_name,<br>
+                        &nbsp;&nbsp;details:num_output_rows<br>
+                        FROM event_log<br>
+                        WHERE event_type = 'flow_progress'
+                    </code>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-yellow-400"></i>
+                        <h4 class="text-lg font-bold text-white">Expectation Metrics</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        Cada <code class="text-yellow-400">expect*()</code> registra violaciones. Úsalas para alertas.
+                    </p>
+                    <code class="block text-xs bg-slate-900 p-3 rounded text-slate-300">
+                        SELECT<br>
+                        &nbsp;&nbsp;dataset,<br>
+                        &nbsp;&nbsp;name AS expectation,<br>
+                        &nbsp;&nbsp;failed_records<br>
+                        FROM event_log<br>
+                        WHERE event_type = 'flow_progress'<br>
+                        &nbsp;&nbsp;AND failed_records > 0
+                    </code>
+                </div>
+            </div>
+
+            <div class="mt-8 glass-card p-6 rounded-xl">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="bar-chart-3" class="w-6 h-6 text-blue-400 mt-1"></i>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-white mb-2">Dashboard de Linaje</h4>
+                        <p class="text-sm text-slate-400 mb-3">
+                            La UI de DLT muestra automáticamente el linaje completo: qué tablas dependen de cuáles, estado de cada transformación, y métricas en tiempo real.
+                        </p>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div class="bg-slate-900 p-3 rounded">
+                                <div class="text-2xl font-bold text-green-400">99.7%</div>
+                                <div class="text-xs text-slate-500">Success Rate</div>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded">
+                                <div class="text-2xl font-bold text-blue-400">2.3s</div>
+                                <div class="text-xs text-slate-500">Avg Latency</div>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded">
+                                <div class="text-2xl font-bold text-purple-400">48</div>
+                                <div class="text-xs text-slate-500">Active Tables</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 7: Reto de Ingeniería -->
+        <section class="border-t border-slate-800 pt-16">
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center justify-center p-3 rounded-full bg-red-500/10 border border-red-500/20 mb-4">
+                    <i data-lucide="code-2" class="w-8 h-8 text-red-400"></i>
+                </div>
+                <h3 class="text-3xl font-bold text-white">
+                    <span class="text-red-400">07.</span> Reto de Ingeniería
+                </h3>
+                <p class="text-slate-400 mt-2">Pipeline CDC de Órdenes con DLT</p>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">📋 Contexto del Problema</h4>
+                <p class="text-slate-400 mb-4">
+                    Tienes un sistema de órdenes que emite eventos cada vez que una orden cambia de estado:
+                    <code class="text-blue-400">created</code>, <code class="text-yellow-400">shipped</code>, <code class="text-green-400">delivered</code>, <code class="text-red-400">cancelled</code>.
+                </p>
+                <p class="text-slate-400 mb-6">
+                    Los eventos llegan como JSON a una carpeta en S3. Necesitas construir un pipeline DLT que:
+                </p>
+
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-green-500/20 text-green-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">1</div>
+                        <div>
+                            <strong class="text-white">Bronze:</strong>
+                            <span class="text-slate-400">Ingesta incremental (streaming) de los archivos JSON desde S3 a tabla Delta.</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-green-500/20 text-green-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">2</div>
+                        <div>
+                            <strong class="text-white">Silver:</strong>
+                            <span class="text-slate-400">Valida que <code class="text-purple-400">order_id</code> no sea nulo y <code class="text-purple-400">event_timestamp</code> sea válido.</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-green-500/20 text-green-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">3</div>
+                        <div>
+                            <strong class="text-white">Gold (SCD Type 2):</strong>
+                            <span class="text-slate-400">Tabla de órdenes con historial completo. Cada cambio de estado debe quedar registrado con fechas de vigencia.</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-green-500/20 text-green-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">4</div>
+                        <div>
+                            <strong class="text-white">Monitoreo:</strong>
+                            <span class="text-slate-400">Query que identifique órdenes con más de 3 cambios de estado en las últimas 24 horas (anomalía).</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">🧪 Datos de Ejemplo</h4>
+                <div class="bg-slate-900 p-4 rounded-xl">
+                    <pre class="font-tech text-xs text-slate-300"><code>
+<span class="text-slate-500">// s3://mi-bucket/ordenes/evento_1.json</span>
+{
+  "order_id": "ORD-001",
+  "customer_id": "CUST-456",
+  "status": "created",
+  "amount": 129.99,
+  "event_timestamp": "2024-03-15T10:30:00Z"
+}
+
+<span class="text-slate-500">// s3://mi-bucket/ordenes/evento_2.json</span>
+{
+  "order_id": "ORD-001",
+  "customer_id": "CUST-456",
+  "status": "shipped",
+  "amount": 129.99,
+  "event_timestamp": "2024-03-16T14:22:00Z"
+}
+                    </code></pre>
+                </div>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl">
+                <h4 class="text-xl font-bold text-white mb-4">✅ Criterios de Evaluación</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-green-400 mt-1"></i>
+                        <div>
+                            <strong class="text-white text-sm">Ingesta Incremental</strong>
+                            <p class="text-xs text-slate-500">Usa <code>dlt.read_stream()</code> con formato JSON.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-blue-400 mt-1"></i>
+                        <div>
+                            <strong class="text-white text-sm">Validaciones</strong>
+                            <p class="text-xs text-slate-500">Implementa al menos 2 <code>expect_or_drop()</code>.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-purple-400 mt-1"></i>
+                        <div>
+                            <strong class="text-white text-sm">CDC Correcto</strong>
+                            <p class="text-xs text-slate-500">Usa <code>apply_changes()</code> con SCD Type 2.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-yellow-400 mt-1"></i>
+                        <div>
+                            <strong class="text-white text-sm">Query de Anomalía</strong>
+                            <p class="text-xs text-slate-500">SQL que detecte órdenes con múltiples cambios rápidos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 p-6 bg-gradient-to-r from-green-900/20 to-blue-900/20 border border-green-500/20 rounded-xl">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="trophy" class="w-6 h-6 text-yellow-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">🎯 Objetivo de Aprendizaje</h4>
+                        <p class="text-sm text-slate-400">
+                            Al completar este reto, habrás dominado: ingesta streaming con DLT, validación declarativa de calidad,
+                            implementación de SCD Type 2 con CDC, y consultas analíticas sobre datos históricos. Esto representa el 80% de casos de uso reales en ingeniería de datos moderna.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Footer -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion_11.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--dlt-green)] transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 text-slate-600 group-hover:text-[var(--dlt-green)]"></i>
+                    <span class="text-slate-400 group-hover:text-white">Anterior: Medallion</span>
+                </a>
+
+                <a href="index.html" class="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-600 transition text-slate-400 hover:text-white">
+                    Volver al Hub
+                </a>
+
+                <a href="seccion_13.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--dlt-green)] transition">
+                    <span class="text-slate-400 group-hover:text-white">Siguiente: Spark ML</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-slate-600 group-hover:text-[var(--dlt-green)]"></i>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
+    </script>
+</body>
+</html>

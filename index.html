@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diplomado en Estrategias de Datos con Python, SQL y Big Data</title>
+    <meta name="description" content="Diplomado experto en Ingeniería de Datos, Python, SQL Server, Big Data con Spark y Databricks. Aprende a construir pipelines ETL y modelos de Machine Learning escalables.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -122,7 +123,7 @@
                     <h3 class="text-3xl font-bold text-black mb-8 text-center">Explora Nuestro Plan de Estudios</h3>
                     <div id="accordion-container" class="space-y-4">
                         <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
-                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
+                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue" aria-expanded="false">
                                 <span>Módulo 1: Introducción a bases de datos con Python</span>
                                 <span class="icon text-usta-yellow">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -133,7 +134,7 @@
                             </div>
                         </div>
                         <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
-                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
+                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue" aria-expanded="false">
                                 <span>Módulo 2: Bases de Datos MICROSOFT SQL SERVER</span>
                                 <span class="icon text-usta-yellow">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -144,7 +145,7 @@
                             </div>
                         </div>
                         <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
-                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
+                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue" aria-expanded="false">
                                 <span>Módulo 3: Databricks y Apache Spark para Big Data</span>
                                 <span class="icon text-usta-yellow">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -155,7 +156,7 @@
                             </div>
                         </div>
                         <div class="border border-gray-200 rounded-lg bg-white shadow-sm">
-                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue">
+                            <button class="accordion-button w-full flex justify-between items-center p-6 text-left text-lg font-semibold text-usta-blue" aria-expanded="false">
                                 <span>Módulo 4: Machine Learning Escalable con Spark ML</span>
                                 <span class="icon text-usta-yellow">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -472,9 +473,14 @@
                     const allButtons = accordionContainer.querySelectorAll('.accordion-button');
                     if (button.classList.contains('active')) {
                         button.classList.remove('active');
+                        button.setAttribute('aria-expanded', 'false');
                     } else {
-                        allButtons.forEach(btn => btn.classList.remove('active'));
+                        allButtons.forEach(btn => {
+                            btn.classList.remove('active');
+                            btn.setAttribute('aria-expanded', 'false');
+                        });
                         button.classList.add('active');
+                        button.setAttribute('aria-expanded', 'true');
                     }
                 });
             }

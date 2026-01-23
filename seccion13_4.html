@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reto: One-Hot Encoding Manual | Spark ML</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ml-red: #E74C3C;
+            --challenge-yellow: #F59E0B;
+            --bg-deep: #050505;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
+        }
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: #F59E0B;
+            transform: translateY(-2px);
+        }
+        .math-block {
+            background: rgba(30, 30, 40, 0.8);
+            border-left: 4px solid #F59E0B;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="seccion_13.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">SECCIÓN 13</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-lg">RETO FINAL<span class="text-yellow-400">.challenge()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">ONE-HOT ENCODING MANUAL SIN LIBRERÍAS</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-2 bg-yellow-900/20 border border-yellow-500/30 rounded-full text-xs font-mono text-yellow-400 font-bold">
+            <i data-lucide="trophy" class="w-4 h-4"></i>
+            ENGINEERING CHALLENGE
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro -->
+        <section class="text-center space-y-6">
+            <div class="inline-flex items-center justify-center p-4 rounded-full bg-yellow-500/10 border border-yellow-500/20 mb-4">
+                <i data-lucide="code-2" class="w-10 h-10 text-yellow-400"></i>
+            </div>
+            <h2 class="text-5xl font-black text-white tracking-tight">Reto de Ingeniería</h2>
+            <p class="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                Implementa One-Hot Encoding <strong>manualmente</strong> sin usar <code class="text-yellow-400">OneHotEncoder</code>.
+                <br>Objetivo: Entender matrices sparse y optimización distribuida desde cero.
+            </p>
+        </section>
+
+        <!-- Bloque 1: Contexto del Problema -->
+        <section>
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-yellow-400">01.</span> Contexto del Problema
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">📊 Dataset: Transacciones de E-commerce</h4>
+                <p class="text-slate-400 mb-6">
+                    Tienes un dataset con millones de transacciones. Cada fila contiene información categórica de alta cardinalidad:
+                </p>
+
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full text-sm text-slate-300">
+                        <thead class="border-b border-slate-700">
+                            <tr>
+                                <th class="text-left py-2 px-3">transaction_id</th>
+                                <th class="text-left py-2 px-3">producto</th>
+                                <th class="text-left py-2 px-3">categoria</th>
+                                <th class="text-left py-2 px-3">marca</th>
+                                <th class="text-right py-2 px-3">monto</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xs">
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3">TXN001</td>
+                                <td class="py-2 px-3 text-green-300">Laptop Dell XPS 15</td>
+                                <td class="py-2 px-3 text-blue-300">Electrónica</td>
+                                <td class="py-2 px-3 text-purple-300">Dell</td>
+                                <td class="text-right py-2 px-3">$1,299</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3">TXN002</td>
+                                <td class="py-2 px-3 text-green-300">Nike Air Max</td>
+                                <td class="py-2 px-3 text-yellow-300">Ropa</td>
+                                <td class="py-2 px-3 text-purple-300">Nike</td>
+                                <td class="text-right py-2 px-3">$150</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-3">TXN003</td>
+                                <td class="py-2 px-3 text-green-300">iPhone 15 Pro</td>
+                                <td class="py-2 px-3 text-blue-300">Electrónica</td>
+                                <td class="py-2 px-3 text-purple-300">Apple</td>
+                                <td class="text-right py-2 px-3">$999</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div class="p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+                        <div class="text-red-400 font-bold mb-2">⚠️ Alto Cardinalidad</div>
+                        <ul class="text-slate-400 space-y-1">
+                            <li>• <strong>producto:</strong> 50,000 únicos</li>
+                            <li>• <strong>categoria:</strong> 200 únicas</li>
+                            <li>• <strong>marca:</strong> 5,000 únicas</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                        <div class="text-yellow-400 font-bold mb-2">🎯 Objetivo</div>
+                        <div class="text-slate-400">
+                            Convertir estas columnas categóricas en <strong>SparseVectors</strong> para entrenar un modelo de ML.
+                        </div>
+                    </div>
+                    <div class="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                        <div class="text-blue-400 font-bold mb-2">🚫 Restricción</div>
+                        <div class="text-slate-400">
+                            <strong>No puedes usar:</strong><br>
+                            • <code>OneHotEncoder</code><br>
+                            • Librerías de encoding
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl bg-purple-900/10">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="lightbulb" class="w-6 h-6 text-purple-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">¿Por qué este reto es importante?</h4>
+                        <p class="text-sm text-slate-400">
+                            Usar <code class="text-purple-400">OneHotEncoder</code> es fácil, pero no entiendes lo que sucede internamente.
+                            Al implementarlo manualmente, aprenderás:
+                            <br><br>
+                            • Cómo se construyen matrices sparse (formato CSR)<br>
+                            • Por qué broadcast es crítico para evitar shuffles<br>
+                            • Cómo optimizar memoria con alta cardinalidad<br>
+                            • Técnicas de ingeniería que aplicarás en producción
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: El Desafío -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-red-400">02.</span> El Desafío: 4 Fases
+            </h3>
+
+            <div class="space-y-6">
+                <!-- Fase 1 -->
+                <div class="glass-card p-6 rounded-xl border-l-4 border-blue-500">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-blue-500/20 text-blue-400 font-bold rounded-full w-10 h-10 flex items-center justify-center text-lg flex-shrink-0">1</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold text-white mb-3">Fase 1: Crear Mapeo Manual (String → Índice)</h4>
+                            <p class="text-sm text-slate-400 mb-4">
+                                Sin usar <code class="text-blue-400">StringIndexer</code>, crea un diccionario que mapee cada string único a un índice entero.
+                            </p>
+
+                            <div class="math-block mb-4">
+                                $$
+                                f: \mathcal{S} \to \mathbb{N}, \quad \text{donde } \mathcal{S} = \{\text{"Laptop"}, \text{"Smartphone"}, \ldots\}
+                                $$
+                                <div class="text-xs text-slate-400 mt-2">
+                                    Ejemplo: <code>{"Laptop": 0, "Smartphone": 1, "Tablet": 2, ...}</code>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900 p-4 rounded text-xs">
+                                <pre class="font-tech text-slate-300"><code><span class="text-slate-500"># Pista: Necesitas extraer valores únicos</span>
+productos_unicos = df.select(<span class="text-green-300">"producto"</span>).distinct().collect()
+
+<span class="text-slate-500"># TODO: Crear diccionario {producto: índice}</span>
+<span class="text-slate-500"># Desafío: ¿Cómo evitar collect() que trae TODO al driver?</span>
+mapeo_producto = <span class="text-slate-500"># ...</span></code></pre>
+                            </div>
+
+                            <div class="mt-4 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded text-xs text-yellow-300">
+                                ⚠️ <strong>Cuidado:</strong> <code>collect()</code> con 50,000 productos puede saturar la memoria del driver.
+                                Considera usar <code>broadcast</code> después de crear el mapeo.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fase 2 -->
+                <div class="glass-card p-6 rounded-xl border-l-4 border-purple-500">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-purple-500/20 text-purple-400 font-bold rounded-full w-10 h-10 flex items-center justify-center text-lg flex-shrink-0">2</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold text-white mb-3">Fase 2: Convertir a SparseVector</h4>
+                            <p class="text-sm text-slate-400 mb-4">
+                                Dada una fila con <code>producto = "Laptop"</code> y el mapeo dice <code>"Laptop" → índice 342</code>,
+                                crea un <code>SparseVector(50000, [342], [1.0])</code>.
+                            </p>
+
+                            <div class="math-block mb-4">
+                                $$
+                                \text{SparseVector}(n, \text{indices}, \text{values})
+                                $$
+                                <div class="text-xs text-slate-400 mt-2">
+                                    • \(n\): Dimensión total (número de categorías)<br>
+                                    • indices: Posiciones de valores no-cero<br>
+                                    • values: Valores en esas posiciones
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900 p-4 rounded text-xs">
+                                <pre class="font-tech text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.linalg <span class="text-purple-400">import</span> Vectors, SparseVector
+
+<span class="text-slate-500"># UDF para convertir string → SparseVector</span>
+<span class="text-purple-400">def</span> <span class="text-blue-400">string_to_sparse</span>(producto, mapeo_bc, total_dim):
+    <span class="text-slate-500"># TODO:</span>
+    <span class="text-slate-500"># 1. Obtener índice desde mapeo_bc.value</span>
+    <span class="text-slate-500"># 2. Crear SparseVector(total_dim, [indice], [1.0])</span>
+    <span class="text-slate-500"># 3. Manejar caso: producto no existe en mapeo (categoría nueva)</span>
+    <span class="text-purple-400">pass</span>
+
+<span class="text-slate-500"># Broadcast del mapeo</span>
+bc_mapeo = spark.sparkContext.broadcast(mapeo_producto)
+
+<span class="text-slate-500"># Registrar UDF</span>
+<span class="text-purple-400">from</span> pyspark.sql.types <span class="text-purple-400">import</span> *
+<span class="text-slate-500"># ... (necesitas schema para SparseVector)</span></code></pre>
+                            </div>
+
+                            <div class="mt-4 p-3 bg-purple-900/20 border border-purple-500/30 rounded text-xs text-purple-300">
+                                💡 <strong>Pista:</strong> <code>Vectors.sparse()</code> acepta (size, indices, values). Asegúrate que indices y values sean listas/arrays.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fase 3 -->
+                <div class="glass-card p-6 rounded-xl border-l-4 border-green-500">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-green-500/20 text-green-400 font-bold rounded-full w-10 h-10 flex items-center justify-center text-lg flex-shrink-0">3</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold text-white mb-3">Fase 3: Optimización - Evitar collect() en el Loop</h4>
+                            <p class="text-sm text-slate-400 mb-4">
+                                El enfoque naive usa <code>collect()</code> para crear el mapeo, lo cual falla con millones de categorías.
+                                <strong>Optimiza usando broadcast + zipWithIndex</strong>.
+                            </p>
+
+                            <div class="bg-slate-900 p-4 rounded text-xs mb-4">
+                                <pre class="font-tech text-slate-300"><code><span class="text-slate-500"># Enfoque optimizado (sin collect en loop)</span>
+<span class="text-purple-400">from</span> pyspark.sql <span class="text-purple-400">import</span> functions <span class="text-purple-400">as</span> F
+
+<span class="text-slate-500"># 1. Extraer categorías únicas CON índices</span>
+productos_indexed = (
+    df.select(<span class="text-green-300">"producto"</span>)
+    .distinct()
+    .rdd
+    .zipWithIndex()  <span class="text-slate-500"># Asigna índice automáticamente</span>
+    .map(<span class="text-purple-400">lambda</span> x: (x[<span class="text-yellow-300">0</span>][<span class="text-yellow-300">0</span>], <span class="text-yellow-300">int</span>(x[<span class="text-yellow-300">1</span>])))  <span class="text-slate-500"># (producto, index)</span>
+)
+
+<span class="text-slate-500"># 2. Convertir a diccionario (esto sí requiere collect, pero solo 50k elementos)</span>
+mapeo_producto = <span class="text-yellow-300">dict</span>(productos_indexed.collect())
+
+<span class="text-slate-500"># 3. Broadcast</span>
+bc_mapeo = spark.sparkContext.broadcast(mapeo_producto)
+
+<span class="text-slate-500"># TODO: Aplicar UDF a DataFrame sin usar collect() en cada fila</span></code></pre>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                <div class="p-3 bg-red-900/20 border border-red-500/30 rounded">
+                                    <div class="text-red-400 font-bold mb-2">❌ Enfoque Naive</div>
+                                    <div class="text-slate-400">
+                                        • <code>collect()</code> dentro del loop<br>
+                                        • Enviar mapeo en cada UDF call<br>
+                                        • Memoria del driver explota
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-green-900/20 border border-green-500/30 rounded">
+                                    <div class="text-green-400 font-bold mb-2">✅ Enfoque Optimizado</div>
+                                    <div class="text-slate-400">
+                                        • <code>zipWithIndex()</code> distribuido<br>
+                                        • Broadcast del mapeo (1 vez)<br>
+                                        • UDF accede a broadcast.value
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fase 4 -->
+                <div class="glass-card p-6 rounded-xl border-l-4 border-yellow-500">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-yellow-500/20 text-yellow-400 font-bold rounded-full w-10 h-10 flex items-center justify-center text-lg flex-shrink-0">4</div>
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold text-white mb-3">Fase 4: Validación y Comparación</h4>
+                            <p class="text-sm text-slate-400 mb-4">
+                                Compara tu implementación manual con <code>OneHotEncoder</code> oficial de Spark para verificar correctitud.
+                            </p>
+
+                            <div class="bg-slate-900 p-4 rounded text-xs mb-4">
+                                <pre class="font-tech text-slate-300"><code><span class="text-slate-500"># Tu implementación manual</span>
+df_manual = tu_funcion_ohe(df, <span class="text-green-300">"producto"</span>, <span class="text-green-300">"producto_ohe_manual"</span>)
+
+<span class="text-slate-500"># Implementación oficial de Spark</span>
+<span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> StringIndexer, OneHotEncoder
+<span class="text-purple-400">from</span> pyspark.ml <span class="text-purple-400">import</span> Pipeline
+
+indexer = StringIndexer(inputCol=<span class="text-green-300">"producto"</span>, outputCol=<span class="text-green-300">"producto_idx"</span>)
+encoder = OneHotEncoder(inputCol=<span class="text-green-300">"producto_idx"</span>, outputCol=<span class="text-green-300">"producto_ohe_oficial"</span>)
+pipeline = Pipeline(stages=[indexer, encoder])
+df_oficial = pipeline.fit(df).transform(df)
+
+<span class="text-slate-500"># Comparar: ¿Son idénticos los vectores?</span>
+<span class="text-slate-500"># TODO: Escribir función de comparación</span></code></pre>
+                            </div>
+
+                            <div class="space-y-2 text-xs">
+                                <div class="p-3 bg-blue-900/20 border border-blue-500/30 rounded">
+                                    <strong class="text-blue-400">Validación 1:</strong>
+                                    <span class="text-slate-400">Verificar que ambos vectores sean SparseVector con misma dimensión.</span>
+                                </div>
+                                <div class="p-3 bg-purple-900/20 border border-purple-500/30 rounded">
+                                    <strong class="text-purple-400">Validación 2:</strong>
+                                    <span class="text-slate-400">Comparar índices y valores no-ceros (deben ser idénticos).</span>
+                                </div>
+                                <div class="p-3 bg-green-900/20 border border-green-500/30 rounded">
+                                    <strong class="text-green-400">Validación 3:</strong>
+                                    <span class="text-slate-400">Medir tiempo de ejecución: ¿Tu implementación es comparable?</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: Dataset de Prueba -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-blue-400">03.</span> Dataset de Prueba
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl">
+                <h4 class="text-xl font-bold text-white mb-4">Código para generar dataset sintético</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">import</span> random
+<span class="text-purple-400">from</span> pyspark.sql <span class="text-purple-400">import</span> SparkSession
+
+spark = SparkSession.builder.appName(<span class="text-green-300">"OHE_Challenge"</span>).getOrCreate()
+
+<span class="text-slate-500"># Generar 1 millón de transacciones con alta cardinalidad</span>
+productos = [<span class="text-green-300">f"Producto_</span>{i}<span class="text-green-300">"</span> <span class="text-purple-400">for</span> i <span class="text-purple-400">in</span> <span class="text-yellow-300">range</span>(<span class="text-yellow-300">50000</span>)]  <span class="text-slate-500"># 50k productos únicos</span>
+categorias = [<span class="text-green-300">f"Categoria_</span>{i}<span class="text-green-300">"</span> <span class="text-purple-400">for</span> i <span class="text-purple-400">in</span> <span class="text-yellow-300">range</span>(<span class="text-yellow-300">200</span>)]      <span class="text-slate-500"># 200 categorías</span>
+marcas = [<span class="text-green-300">f"Marca_</span>{i}<span class="text-green-300">"</span> <span class="text-purple-400">for</span> i <span class="text-purple-400">in</span> <span class="text-yellow-300">range</span>(<span class="text-yellow-300">5000</span>)]            <span class="text-slate-500"># 5k marcas</span>
+
+<span class="text-slate-500"># Generar datos</span>
+data = [
+    (
+        <span class="text-green-300">f"TXN</span>{i:08d}<span class="text-green-300">"</span>,
+        random.choice(productos),
+        random.choice(categorias),
+        random.choice(marcas),
+        <span class="text-yellow-300">round</span>(random.uniform(<span class="text-yellow-300">10</span>, <span class="text-yellow-300">2000</span>), <span class="text-yellow-300">2</span>)
+    )
+    <span class="text-purple-400">for</span> i <span class="text-purple-400">in</span> <span class="text-yellow-300">range</span>(<span class="text-yellow-300">1_000_000</span>)
+]
+
+df = spark.createDataFrame(
+    data,
+    [<span class="text-green-300">"transaction_id"</span>, <span class="text-green-300">"producto"</span>, <span class="text-green-300">"categoria"</span>, <span class="text-green-300">"marca"</span>, <span class="text-green-300">"monto"</span>]
+)
+
+<span class="text-slate-500"># Cachear para evitar recomputación</span>
+df.cache()
+df.count()  <span class="text-slate-500"># Trigger cache</span>
+
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Dataset generado: </span>{df.count()}<span class="text-green-300"> filas"</span>)
+df.show(<span class="text-yellow-300">5</span>)</code></pre>
+
+                <div class="mt-6 p-4 bg-slate-900/50 rounded text-xs text-slate-300">
+                    <strong class="text-white">Salida esperada:</strong>
+                    <pre class="mt-2"><code>+-------------+-----------------+-------------+---------+-------+
+|transaction_id|producto         |categoria    |marca    |monto  |
++-------------+-----------------+-------------+---------+-------+
+|TXN00000000  |Producto_12345   |Categoria_42 |Marca_789|123.45 |
+|TXN00000001  |Producto_9876    |Categoria_15 |Marca_234|456.78 |
++-------------+-----------------+-------------+---------+-------+</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 4: Criterios de Evaluación -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-green-400">04.</span> Criterios de Evaluación
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
+                        Correctitud (40%)
+                    </h4>
+                    <ul class="text-sm text-slate-400 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400 font-bold">✓</span>
+                            <span>Vector sparse correctamente formado (dimensión, índices, valores)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400 font-bold">✓</span>
+                            <span>Mapeo string → índice sin colisiones</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400 font-bold">✓</span>
+                            <span>Resultado idéntico a <code>OneHotEncoder</code> oficial</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400 font-bold">✓</span>
+                            <span>Manejo de categorías no vistas en test set</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="zap" class="w-5 h-5 text-yellow-400"></i>
+                        Eficiencia (30%)
+                    </h4>
+                    <ul class="text-sm text-slate-400 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-yellow-400 font-bold">⚡</span>
+                            <span>No usar <code>collect()</code> dentro del loop principal</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-yellow-400 font-bold">⚡</span>
+                            <span>Broadcast del mapeo (evitar transferencias repetidas)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-yellow-400 font-bold">⚡</span>
+                            <span>Uso de SparseVector (no DenseVector)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-yellow-400 font-bold">⚡</span>
+                            <span>Tiempo comparable a OneHotEncoder (±20%)</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-5 h-5 text-blue-400"></i>
+                        Manejo de Memoria (20%)
+                    </h4>
+                    <ul class="text-sm text-slate-400 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-400 font-bold">💾</span>
+                            <span>Calcular % de ceros en vector final</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-400 font-bold">💾</span>
+                            <span>Comparar tamaño Dense vs Sparse (en bytes)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-400 font-bold">💾</span>
+                            <span>Demostrar que sparse ahorra &gt;90% memoria</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="book-open" class="w-5 h-5 text-purple-400"></i>
+                        Comprensión (10%)
+                    </h4>
+                    <ul class="text-sm text-slate-400 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-purple-400 font-bold">📖</span>
+                            <span>Comentarios explicando por qué sparse es mejor</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-purple-400 font-bold">📖</span>
+                            <span>Documentación de tradeoffs (memoria vs velocidad)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-purple-400 font-bold">📖</span>
+                            <span>Análisis de complejidad (tiempo/espacio)</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 5: Bonus -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-purple-400">05.</span> Desafíos Bonus
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-6 rounded-xl border-t-4 border-yellow-500">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="star" class="w-6 h-6 text-yellow-400"></i>
+                        <h4 class="text-lg font-bold text-white">Bonus 1: k-1 Encoding</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        Implementa k-1 encoding (eliminar última columna para evitar colinealidad).
+                    </p>
+                    <div class="text-xs bg-slate-900 p-3 rounded text-slate-300">
+                        <code>
+                            # Con 3 categorías, genera 2 columnas<br>
+                            # [1, 0] = categoria 0<br>
+                            # [0, 1] = categoria 1<br>
+                            # [0, 0] = categoria 2 (implícito)
+                        </code>
+                    </div>
+                    <div class="mt-3 p-2 bg-yellow-900/20 border border-yellow-500/30 rounded text-xs text-yellow-300">
+                        +10 puntos extra
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-t-4 border-blue-500">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="alert-circle" class="w-6 h-6 text-blue-400"></i>
+                        <h4 class="text-lg font-bold text-white">Bonus 2: Categorías Desconocidas</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        Maneja categorías nuevas en test set que no existían en train set.
+                    </p>
+                    <div class="text-xs bg-slate-900 p-3 rounded text-slate-300">
+                        <strong>Estrategias:</strong><br>
+                        • Asignar a índice especial "unknown"<br>
+                        • Vector de ceros (ignorar categoría)<br>
+                        • Lanzar error (strict mode)
+                    </div>
+                    <div class="mt-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                        +10 puntos extra
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-t-4 border-green-500">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-green-400"></i>
+                        <h4 class="text-lg font-bold text-white">Bonus 3: Frecuencia de Categorías</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        En vez de [0, 1] binario, usa frecuencia relativa [0, 0.15] (15% de apariciones).
+                    </p>
+                    <div class="text-xs bg-slate-900 p-3 rounded text-slate-300">
+                        <code>
+                            # "Laptop" aparece en 15% de transacciones<br>
+                            # SparseVector(n, [342], [0.15])
+                        </code>
+                    </div>
+                    <div class="mt-3 p-2 bg-green-900/20 border border-green-500/30 rounded text-xs text-green-300">
+                        +15 puntos extra
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-t-4 border-purple-500">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="layers" class="w-6 h-6 text-purple-400"></i>
+                        <h4 class="text-lg font-bold text-white">Bonus 4: Pipeline Serializable</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        Envuelve tu implementación en una clase que herede de <code>Transformer</code> y sea serializable.
+                    </p>
+                    <div class="text-xs bg-slate-900 p-3 rounded text-slate-300">
+                        <code>
+                            class CustomOHE(Transformer):<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;def _transform(self, df):<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# tu código aquí
+                        </code>
+                    </div>
+                    <div class="mt-3 p-2 bg-purple-900/20 border border-purple-500/30 rounded text-xs text-purple-300">
+                        +20 puntos extra (nivel avanzado)
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque Final: Objetivo de Aprendizaje -->
+        <section class="border-t border-slate-800 pt-16">
+            <div class="glass-card p-8 rounded-2xl bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border-2 border-yellow-500/30">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="trophy" class="w-10 h-10 text-yellow-400 mt-1"></i>
+                    <div>
+                        <h4 class="text-2xl font-bold text-white mb-4">🎯 Objetivo de Aprendizaje</h4>
+                        <p class="text-slate-300 mb-6 leading-relaxed">
+                            Al completar este reto, habrás dominado:
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="p-4 bg-slate-900/50 rounded-lg">
+                                <div class="text-green-400 font-bold mb-2">✅ Matemática</div>
+                                <ul class="text-slate-400 space-y-1 text-xs">
+                                    <li>• Matrices sparse (formato CSR)</li>
+                                    <li>• Indicadores binarios \(\mathbb{1}(x = c)\)</li>
+                                    <li>• Ahorro de memoria: O(n) vs O(n×k)</li>
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-slate-900/50 rounded-lg">
+                                <div class="text-blue-400 font-bold mb-2">✅ Ingeniería</div>
+                                <ul class="text-slate-400 space-y-1 text-xs">
+                                    <li>• Broadcast variables</li>
+                                    <li>• UDFs distribuidas</li>
+                                    <li>• zipWithIndex para asignación de IDs</li>
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-slate-900/50 rounded-lg">
+                                <div class="text-purple-400 font-bold mb-2">✅ Optimización</div>
+                                <ul class="text-slate-400 space-y-1 text-xs">
+                                    <li>• Evitar shuffles innecesarios</li>
+                                    <li>• Tradeoffs memoria/velocidad</li>
+                                    <li>• Profiling de Spark jobs</li>
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-slate-900/50 rounded-lg">
+                                <div class="text-yellow-400 font-bold mb-2">✅ Producción</div>
+                                <ul class="text-slate-400 space-y-1 text-xs">
+                                    <li>• Serialización de modelos</li>
+                                    <li>• Manejo de datos nuevos</li>
+                                    <li>• Testing y validación</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-6 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                            <p class="text-sm text-slate-300">
+                                <strong class="text-yellow-400">💡 Insight clave:</strong> Este reto representa el 90% de lo que necesitas saber
+                                para implementar feature engineering personalizado en producción. Las librerías como <code>OneHotEncoder</code>
+                                son convenientes, pero entender lo que hacen internamente te permite debuggear, optimizar, y adaptar cuando
+                                los requisitos no encajan con las herramientas estándar.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion13_3.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-yellow-400 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span class="text-slate-400">Anterior: Feature Engineering</span>
+                </a>
+
+                <a href="seccion_13.html" class="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-600 transition text-slate-400 hover:text-white">
+                    Volver al Hub
+                </a>
+
+                <a href="index.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-600 transition">
+                    <span class="text-slate-400">Hub Principal</span>
+                    <i data-lucide="home" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
+    </script>
+</body>
+</html>

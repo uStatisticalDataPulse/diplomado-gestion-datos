@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 13: Spark ML | Data Strategy</title>
+
+    <!-- Librerías Core -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <!-- MathJax para ecuaciones LaTeX -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Tipografía Técnica -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ml-red: #E74C3C;
+            --ml-orange: #FF6B6B;
+            --ml-dark: #C0392B;
+            --ml-light: #FADBD8;
+            --bg-deep: #050505;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(231, 76, 60, 0.05) 0%, transparent 50%);
+        }
+
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+
+        /* Tarjetas Glass */
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: var(--ml-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.15);
+        }
+
+        /* Gradientes ML */
+        .gradient-ml {
+            background: linear-gradient(135deg, var(--ml-red) 0%, var(--ml-orange) 100%);
+        }
+
+        /* Bloques matemáticos */
+        .math-block {
+            background: rgba(30, 30, 40, 0.8);
+            border-left: 4px solid var(--ml-orange);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Badges de módulos */
+        .badge-fundamentos {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: var(--ml-orange);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="index.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">HUB CENTRAL</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-xl">SECCIÓN 13<span class="text-[var(--ml-orange)]">.SparkML()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">MACHINE LEARNING DISTRIBUIDO</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-2 gradient-ml rounded-full text-xs font-mono text-white font-bold">
+            <i data-lucide="cpu" class="w-4 h-4"></i>
+            DISTRIBUTED LEARNING
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro Hero -->
+        <section class="text-center space-y-6">
+            <div class="inline-flex items-center justify-center p-4 rounded-full bg-red-500/10 border border-red-500/20 mb-4">
+                <i data-lucide="brain" class="w-10 h-10 text-[var(--ml-orange)]"></i>
+            </div>
+            <h2 class="text-5xl font-black text-white tracking-tight">De Estadística a ML Distribuido</h2>
+            <p class="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                Aprende a escalar algoritmos de Machine Learning desde un laptop hasta un cluster de 1000 nodos.
+                <br>Domina la <strong>ingeniería detrás de la matemática</strong> que ya conoces.
+            </p>
+        </section>
+
+        <!-- Bloque 1: El Problema de Escala -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <h3 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <span class="text-[var(--ml-orange)]">01.</span> El Problema de Escala
+                </h3>
+                <p class="text-slate-400 leading-relaxed">
+                    La estadística clásica asume que los datos caben en memoria. Pero en Big Data, un dataset de 1TB
+                    no cabe en ningún laptop. Necesitamos <strong>distribuir</strong> los cálculos.
+                </p>
+
+                <div class="math-block">
+                    <div class="text-sm text-slate-400 mb-2">Complejidad Computacional</div>
+                    <div class="text-white text-lg">
+                        $$
+                        \text{Regresión Lineal: } \beta = (X^T X)^{-1} X^T y
+                        $$
+                    </div>
+                    <div class="text-xs text-slate-500 mt-3">
+                        Problema: \(X^T X\) requiere \(O(n \times p^2)\) operaciones.
+                        <br>Con \(n = 10^9\) filas y \(p = 1000\) features → <strong>1 petaflop</strong> de cómputo.
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl">
+                    <h4 class="font-bold text-white mb-3 text-sm">Comparación: Laptop vs Cluster</h4>
+                    <table class="w-full text-xs text-slate-300">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="text-left py-2">Recurso</th>
+                                <th class="text-right py-2">Laptop</th>
+                                <th class="text-right py-2">Cluster (100 nodos)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2">RAM</td>
+                                <td class="text-right text-yellow-400">16 GB</td>
+                                <td class="text-right text-green-400">1.6 TB</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2">Cores</td>
+                                <td class="text-right text-yellow-400">8</td>
+                                <td class="text-right text-green-400">800</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2">Tiempo (regresión 1TB)</td>
+                                <td class="text-right text-red-400">Imposible</td>
+                                <td class="text-right text-green-400">~5 minutos</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mermaid bg-slate-900/50 p-6 rounded-xl">
+                graph TB
+                    Data[Dataset 1TB] --> Split{Particionar}
+                    Split --> P1[Partición 1<br/>10GB]
+                    Split --> P2[Partición 2<br/>10GB]
+                    Split --> P3[...]
+                    Split --> P100[Partición 100<br/>10GB]
+
+                    P1 --> W1[Worker 1]
+                    P2 --> W2[Worker 2]
+                    P3 --> W3[Worker ...]
+                    P100 --> W100[Worker 100]
+
+                    W1 --> Agg[Agregar Resultados]
+                    W2 --> Agg
+                    W3 --> Agg
+                    W100 --> Agg
+
+                    Agg --> Result[Modelo Final]
+
+                    style Data fill:#E74C3C,stroke:#fff
+                    style Result fill:#27AE60,stroke:#fff
+            </div>
+        </section>
+
+        <!-- Bloque 2: ¿Qué es Spark ML? -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                <span class="text-blue-400">02.</span> ¿Qué es Spark ML?
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="layers" class="w-6 h-6 text-orange-400"></i>
+                        <h4 class="text-lg font-bold text-white">DataFrame = Matriz Distribuida</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        En estadística: \(X \in \mathbb{R}^{n \times p}\) es una matriz en memoria.
+                        <br>En Spark: <code class="text-orange-400">DataFrame</code> es la misma matriz, pero particionada en múltiples nodos.
+                    </p>
+                    <div class="bg-slate-900 p-3 rounded text-xs font-tech text-slate-300">
+                        # Estadística clásica (NumPy)<br>
+                        X = np.array([[1, 2], [3, 4]])<br>
+                        <br>
+                        # Spark ML<br>
+                        df = spark.createDataFrame([<br>
+                        &nbsp;&nbsp;(1, 2), (3, 4)<br>
+                        ], ["x1", "x2"])
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="zap" class="w-6 h-6 text-yellow-400"></i>
+                        <h4 class="text-lg font-bold text-white">Operaciones Lazy (Perezosas)</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-4">
+                        Spark no ejecuta inmediatamente. Construye un DAG (grafo) de operaciones y las optimiza antes de ejecutar.
+                    </p>
+                    <div class="bg-slate-900 p-3 rounded text-xs font-tech text-slate-300">
+                        df_filtered = df.filter(col("age") > 18)<br>
+                        df_grouped = df_filtered.groupBy("city")<br>
+                        <br>
+                        <span class="text-green-400"># Nada se ejecuta hasta aquí ↓</span><br>
+                        result = df_grouped.count().collect()
+                    </div>
+                    <div class="mt-3 text-xs text-slate-500">
+                        💡 Esto permite optimizaciones imposibles en pandas/NumPy.
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl">
+                <h4 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <i data-lucide="book-open" class="w-5 h-5 text-purple-400"></i>
+                    Para el Estadístico: ¿Por qué no usar scikit-learn?
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-900/50 p-4 rounded-lg">
+                        <div class="text-red-400 font-bold mb-2">❌ scikit-learn</div>
+                        <ul class="text-xs text-slate-400 space-y-1">
+                            <li>• Todo en memoria RAM</li>
+                            <li>• Máximo ~10GB de datos</li>
+                            <li>• Un solo core (mayoría)</li>
+                            <li>• No escala a cluster</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-900/50 p-4 rounded-lg">
+                        <div class="text-green-400 font-bold mb-2">✅ Spark ML</div>
+                        <ul class="text-xs text-slate-400 space-y-1">
+                            <li>• Datos en disco/HDFS</li>
+                            <li>• Hasta petabytes</li>
+                            <li>• Miles de cores</li>
+                            <li>• Escala horizontal</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-900/50 p-4 rounded-lg">
+                        <div class="text-blue-400 font-bold mb-2">🎯 Cuándo usar cada uno</div>
+                        <ul class="text-xs text-slate-400 space-y-1">
+                            <li>• <strong>sklearn:</strong> Datos &lt; 5GB</li>
+                            <li>• <strong>Spark ML:</strong> Datos &gt; 100GB</li>
+                            <li>• <strong>Ambos:</strong> Prototipo en sklearn, producción en Spark</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: Anatomía de un Pipeline -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                <span class="text-purple-400">03.</span> Anatomía de un Pipeline de ML
+            </h3>
+
+            <div class="mermaid bg-slate-900/50 p-6 rounded-xl mb-8">
+                graph LR
+                    Raw[📊 Datos Raw<br/>CSV/Parquet] --> Clean[🧹 Limpieza<br/>Nulls, Outliers]
+                    Clean --> FE[⚙️ Feature Engineering<br/>VectorAssembler]
+                    FE --> Scale[📏 Normalización<br/>StandardScaler]
+                    Scale --> Model[🧠 Modelo<br/>LinearRegression]
+                    Model --> Pred[🎯 Predicciones<br/>y_hat]
+
+                    style Raw fill:#3498DB,stroke:#fff
+                    style FE fill:#E74C3C,stroke:#fff
+                    style Model fill:#27AE60,stroke:#fff
+                    style Pred fill:#F39C12,stroke:#fff
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Matemática: Composición de Funciones</h4>
+                    <div class="math-block">
+                        $$
+                        \begin{aligned}
+                        \text{Pipeline: } & h(x) = f_4(f_3(f_2(f_1(x)))) \\[0.5em]
+                        \text{Donde:} \\
+                        f_1 &: \text{VectorAssembler} \\
+                        f_2 &: \text{StandardScaler} \\
+                        f_3 &: \text{PCA (opcional)} \\
+                        f_4 &: \text{LinearRegression}
+                        \end{aligned}
+                        $$
+                    </div>
+                    <p class="text-xs text-slate-500 mt-3">
+                        Cada \(f_i\) es una transformación. El pipeline las ejecuta en secuencia automáticamente.
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Ingeniería: Código PySpark</h4>
+                    <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code>
+<span class="text-purple-400">from</span> pyspark.ml <span class="text-purple-400">import</span> Pipeline
+<span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> VectorAssembler, StandardScaler
+<span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+
+<span class="text-slate-500"># Definir etapas del pipeline</span>
+assembler = VectorAssembler(
+    inputCols=[<span class="text-green-300">"edad"</span>, <span class="text-green-300">"salario"</span>],
+    outputCol=<span class="text-green-300">"features"</span>
+)
+scaler = StandardScaler(
+    inputCol=<span class="text-green-300">"features"</span>,
+    outputCol=<span class="text-green-300">"scaled_features"</span>
+)
+lr = LinearRegression(
+    featuresCol=<span class="text-green-300">"scaled_features"</span>,
+    labelCol=<span class="text-green-300">"target"</span>
+)
+
+<span class="text-slate-500"># Crear pipeline (composición)</span>
+pipeline = Pipeline(stages=[assembler, scaler, lr])
+
+<span class="text-slate-500"># Entrenar (ejecuta todas las etapas)</span>
+model = pipeline.fit(train_df)
+
+<span class="text-slate-500"># Predecir</span>
+predictions = model.transform(test_df)
+                    </code></pre>
+                </div>
+            </div>
+
+            <div class="mt-8 glass-card p-6 rounded-xl bg-orange-900/10">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="lightbulb" class="w-6 h-6 text-orange-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">🔗 Conexión Teoría-Práctica</h4>
+                        <p class="text-sm text-slate-400">
+                            En estadística, escribirías: "Primero normalizo \(X\), luego ajusto \(\beta = (X^T X)^{-1} X^T y\)".
+                            <br>En Spark ML, el <code class="text-orange-400">Pipeline</code> hace exactamente eso, pero distribuido en 100 nodos.
+                            La matemática es idéntica, la <strong>ejecución</strong> es paralela.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Módulos de Aprendizaje -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                📚 Módulos de Aprendizaje
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Módulo 1 -->
+                <a href="seccion13_1.html" class="group glass-card p-6 rounded-xl hover:border-[var(--ml-orange)] transition block">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-red-500/10 p-3 rounded-lg">
+                            <i data-lucide="database" class="w-6 h-6 text-[var(--ml-orange)] group-hover:scale-110 transition"></i>
+                        </div>
+                        <span class="text-[10px] badge-fundamentos px-2 py-1 rounded font-mono">FUNDAMENTOS</span>
+                    </div>
+                    <h5 class="font-bold text-white text-lg mb-2">1. Fundamentos de ML Distribuido</h5>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Álgebra lineal en un cluster: de vectores a particiones. MapReduce, broadcast variables, y operaciones matriciales distribuidas.
+                    </p>
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <i data-lucide="clock" class="w-3 h-3"></i>
+                        <span>7 bloques de contenido</span>
+                    </div>
+                </a>
+
+                <!-- Módulo 2 -->
+                <a href="seccion13_2.html" class="group glass-card p-6 rounded-xl hover:border-blue-500 transition block">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-blue-500/10 p-3 rounded-lg">
+                            <i data-lucide="git-branch" class="w-6 h-6 text-blue-400 group-hover:scale-110 transition"></i>
+                        </div>
+                        <span class="text-[10px] bg-blue-900/20 border border-blue-500/30 text-blue-400 px-2 py-1 rounded font-mono">PIPELINES</span>
+                    </div>
+                    <h5 class="font-bold text-white text-lg mb-2">2. Pipelines de Machine Learning</h5>
+                    <p class="text-xs text-slate-400 mb-4">
+                        VectorAssembler, Transformers vs Estimators, StandardScaler, PCA. Composición de transformaciones end-to-end.
+                    </p>
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <i data-lucide="clock" class="w-3 h-3"></i>
+                        <span>6 bloques de contenido</span>
+                    </div>
+                </a>
+
+                <!-- Módulo 3 -->
+                <a href="seccion13_3.html" class="group glass-card p-6 rounded-xl hover:border-purple-500 transition block">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-purple-500/10 p-3 rounded-lg">
+                            <i data-lucide="sliders" class="w-6 h-6 text-purple-400 group-hover:scale-110 transition"></i>
+                        </div>
+                        <span class="text-[10px] bg-purple-900/20 border border-purple-500/30 text-purple-400 px-2 py-1 rounded font-mono">FEATURES</span>
+                    </div>
+                    <h5 class="font-bold text-white text-lg mb-2">3. Feature Engineering Avanzado</h5>
+                    <p class="text-xs text-slate-400 mb-4">
+                        One-Hot Encoding, matrices sparse, StringIndexer, Bucketizer, PolynomialExpansion. De variables categóricas a vectores binarios.
+                    </p>
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <i data-lucide="clock" class="w-3 h-3"></i>
+                        <span>8 bloques de contenido</span>
+                    </div>
+                </a>
+
+                <!-- Módulo 4 (Reto) -->
+                <a href="seccion13_4.html" class="group glass-card p-6 rounded-xl hover:border-yellow-500 transition block border-2 border-yellow-500/20">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-yellow-500/10 p-3 rounded-lg">
+                            <i data-lucide="code-2" class="w-6 h-6 text-yellow-400 group-hover:scale-110 transition"></i>
+                        </div>
+                        <span class="text-[10px] bg-yellow-900/20 border border-yellow-500/30 text-yellow-400 px-2 py-1 rounded font-mono">RETO</span>
+                    </div>
+                    <h5 class="font-bold text-white text-lg mb-2">4. Reto: One-Hot Encoding Manual</h5>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Implementa OHE sin librerías para entender matrices sparse. Dataset con 50,000 categorías. Validación vs OneHotEncoder oficial.
+                    </p>
+                    <div class="flex items-center gap-2 text-xs text-yellow-500">
+                        <i data-lucide="trophy" class="w-3 h-3"></i>
+                        <span>Reto de Ingeniería Completo</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Navigation Footer -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion_12.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--ml-orange)] transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 text-slate-600 group-hover:text-[var(--ml-orange)]"></i>
+                    <span class="text-slate-400 group-hover:text-white">Anterior: DLT</span>
+                </a>
+
+                <a href="index.html" class="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-600 transition text-slate-400 hover:text-white">
+                    Volver al Hub
+                </a>
+
+                <a href="seccion_14.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--ml-orange)] transition">
+                    <span class="text-slate-400 group-hover:text-white">Siguiente: Regresión</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-slate-600 group-hover:text-[var(--ml-orange)]"></i>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
+    </script>
+</body>
+</html>

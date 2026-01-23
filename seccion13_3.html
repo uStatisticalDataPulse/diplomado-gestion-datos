@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Engineering | Spark ML</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ml-red: #E74C3C;
+            --ml-purple: #9333ea;
+            --bg-deep: #050505;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(147, 51, 234, 0.05) 0%, transparent 50%);
+        }
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: #9333ea;
+            transform: translateY(-2px);
+        }
+        .math-block {
+            background: rgba(30, 30, 40, 0.8);
+            border-left: 4px solid #9333ea;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="seccion_13.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">SECCIÓN 13</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-lg">MÓDULO 3<span class="text-purple-400">.FeatureEng()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">DE VARIABLES CATEGÓRICAS A MATRICES BINARIAS</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro -->
+        <section class="text-center space-y-4">
+            <h2 class="text-4xl font-black text-white">Feature Engineering Avanzado</h2>
+            <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+                Transforma variables categóricas en representaciones numéricas que los modelos de ML pueden procesar eficientemente.
+            </p>
+        </section>
+
+        <!-- Bloque 1: El Problema con Categóricas -->
+        <section>
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-purple-400">01.</span> El Problema con Variables Categóricas
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">¿Por qué no podemos usar strings directamente?</h4>
+
+                <div class="math-block mb-6">
+                    <div class="text-white mb-3">Modelo de regresión lineal:</div>
+                    $$
+                    y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots + \beta_p x_p
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Requiere que todas las \(x_i\) sean números reales. Pero, ¿qué pasa si \(x_1\) = "Rojo", "Verde", "Azul"?
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+                        <div class="text-red-400 font-bold mb-3 flex items-center gap-2">
+                            <i data-lucide="x-circle" class="w-5 h-5"></i>
+                            No se puede hacer:
+                        </div>
+                        <div class="math-block text-sm">
+                            $$
+                            y = 5 + 3 \times \text{"Rojo"}
+                            $$
+                        </div>
+                        <div class="text-xs text-slate-400 mt-3">
+                            No existe definición matemática para multiplicar números por strings.
+                        </div>
+                    </div>
+
+                    <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+                        <div class="text-green-400 font-bold mb-3 flex items-center gap-2">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            Necesitamos codificación:
+                        </div>
+                        <div class="text-xs text-slate-400 space-y-2">
+                            <div class="p-2 bg-slate-900/50 rounded">
+                                "Rojo" → <code class="text-green-400">[1, 0, 0]</code>
+                            </div>
+                            <div class="p-2 bg-slate-900/50 rounded">
+                                "Verde" → <code class="text-blue-400">[0, 1, 0]</code>
+                            </div>
+                            <div class="p-2 bg-slate-900/50 rounded">
+                                "Azul" → <code class="text-purple-400">[0, 0, 1]</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Ejemplo: Dataset de E-commerce</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-slate-300">
+                        <thead class="border-b border-slate-700">
+                            <tr>
+                                <th class="text-left py-2 px-3">producto_id</th>
+                                <th class="text-left py-2 px-3">categoria</th>
+                                <th class="text-left py-2 px-3">marca</th>
+                                <th class="text-right py-2 px-3">precio</th>
+                                <th class="text-right py-2 px-3">ventas</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xs">
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3">P001</td>
+                                <td class="py-2 px-3 text-yellow-300">Electrónica</td>
+                                <td class="py-2 px-3 text-blue-300">Samsung</td>
+                                <td class="text-right py-2 px-3">299.99</td>
+                                <td class="text-right py-2 px-3">150</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3">P002</td>
+                                <td class="py-2 px-3 text-green-300">Ropa</td>
+                                <td class="py-2 px-3 text-purple-300">Nike</td>
+                                <td class="text-right py-2 px-3">89.99</td>
+                                <td class="text-right py-2 px-3">320</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-3">P003</td>
+                                <td class="py-2 px-3 text-yellow-300">Electrónica</td>
+                                <td class="py-2 px-3 text-red-300">Apple</td>
+                                <td class="text-right py-2 px-3">999.99</td>
+                                <td class="text-right py-2 px-3">450</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 p-3 bg-purple-900/20 border border-purple-500/30 rounded text-xs text-purple-300">
+                    🎯 <strong>Objetivo:</strong> Predecir <code>ventas</code> usando <code>categoria</code>, <code>marca</code> y <code>precio</code>.
+                    Pero <code>categoria</code> y <code>marca</code> son strings. ¡Necesitamos codificarlas!
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: Codificación Ordinal -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-blue-400">02.</span> Codificación Ordinal (StringIndexer)
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Matemática: Mapeo a Enteros</h4>
+                    <div class="math-block mb-4">
+                        $$
+                        f: \mathcal{C} \to \mathbb{N}, \quad \mathcal{C} = \{\text{Rojo}, \text{Verde}, \text{Azul}\}
+                        $$
+                        $$
+                        \begin{aligned}
+                        f(\text{Rojo}) &= 0 \\
+                        f(\text{Verde}) &= 1 \\
+                        f(\text{Azul}) &= 2
+                        \end{aligned}
+                        $$
+                    </div>
+                    <div class="p-4 bg-red-900/20 border border-red-500/30 rounded text-xs text-red-300">
+                        <strong>⚠️ Problema:</strong> Implica orden: Rojo &lt; Verde &lt; Azul.
+                        <br>El modelo interpretará que "Azul" es "mayor" que "Rojo" (distancia = 2), lo cual es falso si son categorías nominales.
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Código: StringIndexer</h4>
+                    <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> StringIndexer
+
+df = spark.createDataFrame([
+    (<span class="text-green-300">"Rojo"</span>,),
+    (<span class="text-green-300">"Verde"</span>,),
+    (<span class="text-green-300">"Azul"</span>,),
+    (<span class="text-green-300">"Rojo"</span>,)
+], [<span class="text-green-300">"color"</span>])
+
+<span class="text-slate-500"># Mapea strings → índices (por frecuencia)</span>
+indexer = StringIndexer(
+    inputCol=<span class="text-green-300">"color"</span>,
+    outputCol=<span class="text-green-300">"color_index"</span>
+)
+
+model = indexer.fit(df)
+df_indexed = model.transform(df)
+
+df_indexed.show()
+<span class="text-slate-500"># +------+-----------+</span>
+<span class="text-slate-500"># | color|color_index|</span>
+<span class="text-slate-500"># +------+-----------+</span>
+<span class="text-slate-500"># |  Rojo|        0.0|  # Más frecuente</span>
+<span class="text-slate-500"># | Verde|        1.0|</span>
+<span class="text-slate-500"># |  Azul|        2.0|  # Menos frecuente</span>
+<span class="text-slate-500"># |  Rojo|        0.0|</span>
+<span class="text-slate-500"># +------+-----------+</span></code></pre>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl bg-yellow-900/10">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-yellow-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">⚠️ Cuándo usar codificación ordinal</h4>
+                        <div class="text-sm text-slate-400">
+                            <strong class="text-white">Solo si hay orden natural:</strong><br>
+                            • Talla: "S" &lt; "M" &lt; "L" &lt; "XL" (0, 1, 2, 3) ✅<br>
+                            • Nivel educativo: "Primaria" &lt; "Secundaria" &lt; "Universidad" ✅<br>
+                            <br>
+                            <strong class="text-red-400">No usar si son categorías nominales:</strong><br>
+                            • Color, Ciudad, Marca → No tienen orden intrínseco ❌
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: One-Hot Encoding -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-green-400">03.</span> One-Hot Encoding: La Solución Correcta
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Matemática: Indicador Binario</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    \mathbb{1}(x = c) = \begin{cases}
+                    1 & \text{si } x = c \\
+                    0 & \text{si } x \neq c
+                    \end{cases}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Crea una columna binaria por cada categoría. La fila tiene 1 en la categoría activa, 0 en el resto.
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">Transformación Visual</h5>
+                        <div class="bg-slate-900/50 p-4 rounded text-xs">
+                            <div class="mb-3">
+                                <strong class="text-blue-400">Antes (String):</strong>
+                                <table class="w-full mt-2 border-collapse">
+                                    <tr class="border-b border-slate-700">
+                                        <th class="text-left py-1">color</th>
+                                    </tr>
+                                    <tr><td class="py-1">Rojo</td></tr>
+                                    <tr><td class="py-1">Verde</td></tr>
+                                    <tr><td class="py-1">Azul</td></tr>
+                                </table>
+                            </div>
+                            <div>
+                                <strong class="text-green-400">Después (One-Hot):</strong>
+                                <table class="w-full mt-2 border-collapse">
+                                    <tr class="border-b border-slate-700">
+                                        <th class="text-center py-1 px-2">Rojo</th>
+                                        <th class="text-center py-1 px-2">Verde</th>
+                                        <th class="text-center py-1 px-2">Azul</th>
+                                    </tr>
+                                    <tr><td class="text-center py-1 text-green-400">1</td><td class="text-center py-1">0</td><td class="text-center py-1">0</td></tr>
+                                    <tr><td class="text-center py-1">0</td><td class="text-center py-1 text-green-400">1</td><td class="text-center py-1">0</td></tr>
+                                    <tr><td class="text-center py-1">0</td><td class="text-center py-1">0</td><td class="text-center py-1 text-green-400">1</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">Matriz Resultante</h5>
+                        <div class="math-block">
+                            $$
+                            \mathbf{X}_{\text{encoded}} = \begin{bmatrix}
+                            1 & 0 & 0 \\
+                            0 & 1 & 0 \\
+                            0 & 0 & 1
+                            \end{bmatrix}
+                            $$
+                            <div class="text-xs text-slate-400 mt-3">
+                                Cada fila tiene exactamente un 1. No hay orden implícito.
+                            </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-green-900/20 border border-green-500/30 rounded text-xs text-green-300">
+                            ✅ Ahora el modelo puede aprender: \(\beta_{\text{Rojo}} x_{\text{Rojo}} + \beta_{\text{Verde}} x_{\text{Verde}} + \beta_{\text{Azul}} x_{\text{Azul}}\)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl bg-orange-900/10">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="lightbulb" class="w-6 h-6 text-orange-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">Dummy Variable Trap (Colinealidad)</h4>
+                        <div class="text-sm text-slate-400">
+                            <strong class="text-white">Problema:</strong> Si incluyes las 3 columnas [Rojo, Verde, Azul], son linealmente dependientes:
+                            <div class="math-block text-xs mt-3">
+                                $$
+                                x_{\text{Rojo}} + x_{\text{Verde}} + x_{\text{Azul}} = 1 \quad \text{(siempre)}
+                                $$
+                            </div>
+                            <strong class="text-white mt-3 block">Solución (k-1 encoding):</strong> Elimina una columna (la primera o la última).
+                            Con 2 columnas puedes inferir la tercera:
+                            <div class="text-xs mt-2 bg-slate-900/50 p-2 rounded">
+                                Si <code>Rojo=0</code> y <code>Verde=0</code> → entonces <code>Azul=1</code> (implícito)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 4: Matrices Sparse -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-yellow-400">04.</span> Matrices Sparse (Dispersas)
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">El Problema de Dimensionalidad</h4>
+                    <div class="math-block mb-4">
+                        <div class="text-white mb-2">Ejemplo: Dataset de productos</div>
+                        $$
+                        \begin{aligned}
+                        \text{Categorías: } & k = 10,000 \\
+                        \text{Filas: } & n = 1,000,000
+                        \end{aligned}
+                        $$
+                    </div>
+                    <div class="text-xs text-slate-400 mb-4">
+                        Cada fila one-hot encoded:
+                        <div class="p-3 bg-red-900/20 border border-red-500/30 rounded mt-2">
+                            <strong class="text-red-400">Matriz densa:</strong><br>
+                            10,000 valores × 4 bytes = <strong>40 KB por fila</strong><br>
+                            1M filas × 40 KB = <strong>40 GB total</strong>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-green-900/20 border border-green-500/30 rounded text-xs text-green-300">
+                        <strong>Matriz sparse:</strong><br>
+                        Solo almacenar índice del "1" = 4 bytes por fila<br>
+                        1M filas × 4 bytes = <strong>4 MB total</strong> (10,000x menos)
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Formato CSR (Compressed Sparse Row)</h4>
+                    <div class="text-xs text-slate-400 mb-4">
+                        Spark usa este formato para almacenar vectores sparse eficientemente:
+                    </div>
+                    <div class="bg-slate-900/50 p-4 rounded text-xs mb-4">
+                        <strong class="text-white">Dense Vector:</strong><br>
+                        <code class="text-red-400">[0, 0, 0, 0, 1, 0, 0, 0, 0, 0]</code><br>
+                        Almacena 10 valores (40 bytes)
+                        <br><br>
+                        <strong class="text-white">Sparse Vector:</strong><br>
+                        <code class="text-green-400">SparseVector(10, [4], [1.0])</code><br>
+                        <div class="mt-2 text-slate-500">
+                            • <code>10</code>: Dimensión total<br>
+                            • <code>[4]</code>: Índice del valor no-cero<br>
+                            • <code>[1.0]</code>: Valor en ese índice<br>
+                            • Resto son ceros implícitos
+                        </div>
+                    </div>
+                    <div class="math-block">
+                        $$
+                        \text{Ahorro} = \frac{40 \text{ bytes}}{8 \text{ bytes}} = 5x
+                        $$
+                        <div class="text-xs text-slate-400 mt-2">
+                            Con 10,000 categorías, el ahorro es 1000x+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mermaid bg-slate-900/50 p-6 rounded-xl">
+                graph LR
+                    A[String: 'Electrónica'] -->|StringIndexer| B[Index: 342]
+                    B -->|OneHotEncoder| C[SparseVector<br/>10000, [342], [1.0]]
+
+                    style A fill:#3b82f6,stroke:#fff
+                    style C fill:#10b981,stroke:#fff
+            </div>
+        </section>
+
+        <!-- Bloque 5: OneHotEncoder en PySpark -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-red-400">05.</span> OneHotEncoder en PySpark
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Pipeline Completo: String → Índice → Vector</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> StringIndexer, OneHotEncoder, VectorAssembler
+<span class="text-purple-400">from</span> pyspark.ml <span class="text-purple-400">import</span> Pipeline
+
+<span class="text-slate-500"># Dataset ejemplo</span>
+df = spark.createDataFrame([
+    (<span class="text-green-300">"Electrónica"</span>, <span class="text-green-300">"Samsung"</span>, <span class="text-yellow-300">299.99</span>),
+    (<span class="text-green-300">"Ropa"</span>, <span class="text-green-300">"Nike"</span>, <span class="text-yellow-300">89.99</span>),
+    (<span class="text-green-300">"Electrónica"</span>, <span class="text-green-300">"Apple"</span>, <span class="text-yellow-300">999.99</span>),
+    (<span class="text-green-300">"Hogar"</span>, <span class="text-green-300">"Ikea"</span>, <span class="text-yellow-300">149.99</span>)
+], [<span class="text-green-300">"categoria"</span>, <span class="text-green-300">"marca"</span>, <span class="text-green-300">"precio"</span>])
+
+<span class="text-slate-500"># ===========================================</span>
+<span class="text-slate-500"># Paso 1: String → Índice (StringIndexer)</span>
+<span class="text-slate-500"># ===========================================</span>
+categoria_indexer = StringIndexer(
+    inputCol=<span class="text-green-300">"categoria"</span>,
+    outputCol=<span class="text-green-300">"categoria_index"</span>
+)
+
+marca_indexer = StringIndexer(
+    inputCol=<span class="text-green-300">"marca"</span>,
+    outputCol=<span class="text-green-300">"marca_index"</span>
+)
+
+<span class="text-slate-500"># ===========================================</span>
+<span class="text-slate-500"># Paso 2: Índice → Vector binario (OneHotEncoder)</span>
+<span class="text-slate-500"># ===========================================</span>
+categoria_encoder = OneHotEncoder(
+    inputCol=<span class="text-green-300">"categoria_index"</span>,
+    outputCol=<span class="text-green-300">"categoria_vec"</span>,
+    dropLast=<span class="text-yellow-300">True</span>  <span class="text-slate-500"># k-1 encoding (evita colinealidad)</span>
+)
+
+marca_encoder = OneHotEncoder(
+    inputCol=<span class="text-green-300">"marca_index"</span>,
+    outputCol=<span class="text-green-300">"marca_vec"</span>,
+    dropLast=<span class="text-yellow-300">True</span>
+)
+
+<span class="text-slate-500"># ===========================================</span>
+<span class="text-slate-500"># Paso 3: Ensamblar todas las features</span>
+<span class="text-slate-500"># ===========================================</span>
+assembler = VectorAssembler(
+    inputCols=[<span class="text-green-300">"categoria_vec"</span>, <span class="text-green-300">"marca_vec"</span>, <span class="text-green-300">"precio"</span>],
+    outputCol=<span class="text-green-300">"features"</span>
+)
+
+<span class="text-slate-500"># ===========================================</span>
+<span class="text-slate-500"># Pipeline: Ejecuta todas las etapas en orden</span>
+<span class="text-slate-500"># ===========================================</span>
+pipeline = Pipeline(stages=[
+    categoria_indexer,
+    marca_indexer,
+    categoria_encoder,
+    marca_encoder,
+    assembler
+])
+
+model = pipeline.fit(df)
+df_transformed = model.transform(df)
+
+<span class="text-slate-500"># Ver resultado</span>
+df_transformed.select(<span class="text-green-300">"categoria"</span>, <span class="text-green-300">"marca"</span>, <span class="text-green-300">"features"</span>).show(truncate=<span class="text-yellow-300">False</span>)
+
+<span class="text-slate-500"># +------------+-------+----------------------------------+</span>
+<span class="text-slate-500"># |categoria   |marca  |features                          |</span>
+<span class="text-slate-500"># +------------+-------+----------------------------------+</span>
+<span class="text-slate-500"># |Electrónica |Samsung|(6,[0,2,5],[1.0,1.0,299.99])     |  # Sparse!</span>
+<span class="text-slate-500"># |Ropa        |Nike   |(6,[1,3,5],[1.0,1.0,89.99])      |</span>
+<span class="text-slate-500"># |Electrónica |Apple  |(6,[0,4,5],[1.0,1.0,999.99])     |</span>
+<span class="text-slate-500"># |Hogar       |Ikea   |(6,[5],[149.99])                 |  # Solo precio!</span>
+<span class="text-slate-500"># +------------+-------+----------------------------------+</span></code></pre>
+
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div class="p-3 bg-blue-900/20 border border-blue-500/30 rounded">
+                        <div class="text-blue-400 font-bold mb-2">Interpretación</div>
+                        <code class="text-slate-300">
+                            (6, [0,2,5], [1.0,1.0,299.99])
+                        </code>
+                        <div class="text-slate-400 mt-2">
+                            • 6 dimensiones totales<br>
+                            • Índices [0,2,5] no-ceros<br>
+                            • Valores [1.0, 1.0, 299.99]
+                        </div>
+                    </div>
+                    <div class="p-3 bg-green-900/20 border border-green-500/30 rounded">
+                        <div class="text-green-400 font-bold mb-2">Ahorro de Memoria</div>
+                        <div class="text-slate-400">
+                            Si hubiera 1000 categorías:<br>
+                            • Dense: 1000 × 8 bytes = 8KB<br>
+                            • Sparse: 3 × 8 bytes = 24 bytes<br>
+                            <strong class="text-green-300">→ 333x menos</strong>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-purple-900/20 border border-purple-500/30 rounded">
+                        <div class="text-purple-400 font-bold mb-2">dropLast=True</div>
+                        <div class="text-slate-400">
+                            Con 3 categorías, genera 2 columnas (k-1). La tercera se infiere:
+                            <code class="block mt-1 text-slate-300">[0,0] → categoría 3</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 6: Bucketizer -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-orange-400">06.</span> Bucketizer: Discretización
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Convertir Continuo → Categórico</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    g(x) = k \quad \text{si } x \in [b_k, b_{k+1})
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Divide el rango continuo en bins (buckets) con límites \(b_0, b_1, \ldots, b_n\).
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">Ejemplo: Edad en Grupos</h5>
+                        <div class="bg-slate-900/50 p-4 rounded text-xs">
+                            <div class="mb-3">
+                                <strong class="text-blue-400">Splits:</strong>
+                                <code class="block mt-1 text-slate-300">[0, 18, 35, 60, 100]</code>
+                            </div>
+                            <table class="w-full">
+                                <tr class="border-b border-slate-700">
+                                    <th class="text-left py-1">Edad</th>
+                                    <th class="text-left py-1">Bucket</th>
+                                    <th class="text-left py-1">Etiqueta</th>
+                                </tr>
+                                <tr><td class="py-1">15</td><td class="py-1">0</td><td class="py-1 text-green-300">Menor</td></tr>
+                                <tr><td class="py-1">25</td><td class="py-1">1</td><td class="py-1 text-blue-300">Joven</td></tr>
+                                <tr><td class="py-1">45</td><td class="py-1">2</td><td class="py-1 text-purple-300">Adulto</td></tr>
+                                <tr><td class="py-1">70</td><td class="py-1">3</td><td class="py-1 text-yellow-300">Senior</td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">¿Por qué discretizar?</h5>
+                        <ul class="text-xs text-slate-400 space-y-2">
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-green-400 mt-0.5"></i>
+                                <span><strong class="text-white">Relaciones no lineales:</strong> Salario vs edad no es lineal (crece, luego se estanca).</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-blue-400 mt-0.5"></i>
+                                <span><strong class="text-white">Interpretabilidad:</strong> "Jóvenes compran más" es más claro que "β_edad = 0.03".</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-purple-400 mt-0.5"></i>
+                                <span><strong class="text-white">Robustez a outliers:</strong> Edad = 150 (error) → cae en último bucket.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Código: Bucketizer en PySpark</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> Bucketizer
+
+df = spark.createDataFrame([
+    (<span class="text-yellow-300">15</span>,), (<span class="text-yellow-300">25</span>,), (<span class="text-yellow-300">35</span>,), (<span class="text-yellow-300">45</span>,), (<span class="text-yellow-300">70</span>,)
+], [<span class="text-green-300">"edad"</span>])
+
+<span class="text-slate-500"># Definir límites de buckets</span>
+splits = [<span class="text-yellow-300">0.0</span>, <span class="text-yellow-300">18.0</span>, <span class="text-yellow-300">35.0</span>, <span class="text-yellow-300">60.0</span>, <span class="text-yellow-300">100.0</span>]
+
+bucketizer = Bucketizer(
+    splits=splits,
+    inputCol=<span class="text-green-300">"edad"</span>,
+    outputCol=<span class="text-green-300">"edad_bucket"</span>
+)
+
+df_bucketed = bucketizer.transform(df)
+df_bucketed.show()
+
+<span class="text-slate-500"># +----+-----------+</span>
+<span class="text-slate-500"># |edad|edad_bucket|</span>
+<span class="text-slate-500"># +----+-----------+</span>
+<span class="text-slate-500"># |  15|        0.0|  # [0, 18)</span>
+<span class="text-slate-500"># |  25|        1.0|  # [18, 35)</span>
+<span class="text-slate-500"># |  35|        2.0|  # [35, 60)</span>
+<span class="text-slate-500"># |  45|        2.0|  # [35, 60)</span>
+<span class="text-slate-500"># |  70|        3.0|  # [60, 100)</span>
+<span class="text-slate-500"># +----+-----------+</span>
+
+<span class="text-slate-500"># Luego puedes aplicar OneHotEncoder a edad_bucket</span></code></pre>
+            </div>
+        </section>
+
+        <!-- Bloque 7: PolynomialExpansion -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-pink-400">07.</span> PolynomialExpansion: Features Polinómicas
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Kernel Trick Manual</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    \phi(\mathbf{x}) = [x_1, x_2, x_1^2, x_1 x_2, x_2^2, \ldots]
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Expande features originales a polinomios de grado \(d\). Permite a modelos lineales aprender relaciones no lineales.
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">Ejemplo: Grado 2 con 2 features</h5>
+                        <div class="math-block text-sm">
+                            $$
+                            \begin{aligned}
+                            \mathbf{x} &= [x_1, x_2] \\[0.5em]
+                            \phi(\mathbf{x}) &= [x_1, x_2, x_1^2, x_1 x_2, x_2^2]
+                            \end{aligned}
+                            $$
+                        </div>
+                        <div class="text-xs text-slate-400 mt-3 bg-slate-900/50 p-3 rounded">
+                            <strong class="text-white">Modelo resultante:</strong><br>
+                            \(y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_1^2 + \beta_4 x_1 x_2 + \beta_5 x_2^2\)
+                            <br><br>
+                            Aunque sigue siendo regresión <em>lineal</em> (en los coeficientes), puede modelar curvas.
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">¿Por qué usar esto?</h5>
+                        <div class="text-xs text-slate-400 space-y-2">
+                            <div class="p-3 bg-slate-900/50 rounded">
+                                <strong class="text-red-400">Problema:</strong> Relación entre X e Y es cuadrática (parábola).
+                                Modelo lineal simple \(y = \beta_0 + \beta_1 x\) no la captura.
+                            </div>
+                            <div class="p-3 bg-green-900/20 border border-green-500/30 rounded text-green-300">
+                                <strong>Solución:</strong> Agregar \(x^2\) como feature.
+                                Ahora: \(y = \beta_0 + \beta_1 x + \beta_2 x^2\) ajusta perfectamente.
+                            </div>
+                            <div class="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded text-yellow-300">
+                                <strong>Cuidado:</strong> Grado alto (d=5+) puede causar overfitting.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Código: PolynomialExpansion</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> PolynomialExpansion
+<span class="text-purple-400">from</span> pyspark.ml.linalg <span class="text-purple-400">import</span> Vectors
+
+df = spark.createDataFrame([
+    (Vectors.dense([<span class="text-yellow-300">2.0</span>, <span class="text-yellow-300">1.0</span>]),),
+    (Vectors.dense([<span class="text-yellow-300">0.0</span>, <span class="text-yellow-300">0.0</span>]),),
+    (Vectors.dense([<span class="text-yellow-300">3.0</span>, <span class="text-yellow-300">-1.0</span>]),)
+], [<span class="text-green-300">"features"</span>])
+
+<span class="text-slate-500"># Expandir a grado 2</span>
+poly_expansion = PolynomialExpansion(
+    degree=<span class="text-yellow-300">2</span>,
+    inputCol=<span class="text-green-300">"features"</span>,
+    outputCol=<span class="text-green-300">"poly_features"</span>
+)
+
+df_poly = poly_expansion.transform(df)
+df_poly.select(<span class="text-green-300">"features"</span>, <span class="text-green-300">"poly_features"</span>).show(truncate=<span class="text-yellow-300">False</span>)
+
+<span class="text-slate-500"># +---------+------------------------------------------+</span>
+<span class="text-slate-500"># |features |poly_features                             |</span>
+<span class="text-slate-500"># +---------+------------------------------------------+</span>
+<span class="text-slate-500"># |[2.0,1.0]|[2.0, 4.0, 2.0, 1.0, 1.0]                |  # [x₁, x₁², x₁x₂, x₂, x₂²]</span>
+<span class="text-slate-500"># |[0.0,0.0]|[0.0, 0.0, 0.0, 0.0, 0.0]                |</span>
+<span class="text-slate-500"># |[3.0,-1.0]|[3.0, 9.0, -3.0, -1.0, 1.0]              |</span>
+<span class="text-slate-500"># +---------+------------------------------------------+</span>
+
+<span class="text-slate-500"># Verificación manual para [2.0, 1.0]:</span>
+<span class="text-slate-500"># x₁ = 2, x₂ = 1</span>
+<span class="text-slate-500"># → [x₁, x₁², x₁x₂, x₂, x₂²] = [2, 4, 2, 1, 1] ✓</span></code></pre>
+                <div class="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                    💡 Usa esto cuando detectes relaciones no lineales en tus gráficos de exploración. Combina con regularización (Ridge/Lasso) para evitar overfitting.
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 8: Reto Intermedio -->
+        <section class="border-t border-slate-800 pt-16">
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center justify-center p-3 rounded-full bg-purple-500/10 border border-purple-500/20 mb-4">
+                    <i data-lucide="code-2" class="w-8 h-8 text-purple-400"></i>
+                </div>
+                <h3 class="text-3xl font-bold text-white">
+                    <span class="text-purple-400">08.</span> Reto Intermedio
+                </h3>
+                <p class="text-slate-400 mt-2">Pipeline Multi-Categórico</p>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">📋 Desafío</h4>
+                <p class="text-slate-400 mb-4">
+                    Crea un pipeline que procese este dataset de clientes:
+                </p>
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full text-xs text-slate-300">
+                        <thead class="border-b border-slate-700">
+                            <tr>
+                                <th class="text-left py-2 px-3">edad</th>
+                                <th class="text-left py-2 px-3">ciudad</th>
+                                <th class="text-left py-2 px-3">producto</th>
+                                <th class="text-right py-2 px-3">compro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3">25</td>
+                                <td class="py-2 px-3 text-blue-300">Bogotá</td>
+                                <td class="py-2 px-3 text-green-300">Laptop</td>
+                                <td class="text-right py-2 px-3">1</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3">45</td>
+                                <td class="py-2 px-3 text-blue-300">Medellín</td>
+                                <td class="py-2 px-3 text-yellow-300">Smartphone</td>
+                                <td class="text-right py-2 px-3">0</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-3">32</td>
+                                <td class="py-2 px-3 text-blue-300">Cali</td>
+                                <td class="py-2 px-3 text-green-300">Laptop</td>
+                                <td class="text-right py-2 px-3">1</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-purple-500/20 text-purple-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">1</div>
+                        <div>
+                            <strong class="text-white">Discretizar edad:</strong>
+                            <span class="text-slate-400">5 bins: [0-18, 18-25, 25-40, 40-60, 60-100]</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-purple-500/20 text-purple-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">2</div>
+                        <div>
+                            <strong class="text-white">One-hot encode ciudad:</strong>
+                            <span class="text-slate-400">StringIndexer → OneHotEncoder (con dropLast=True)</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-purple-500/20 text-purple-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">3</div>
+                        <div>
+                            <strong class="text-white">One-hot encode producto:</strong>
+                            <span class="text-slate-400">StringIndexer → OneHotEncoder (con dropLast=True)</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-purple-500/20 text-purple-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">4</div>
+                        <div>
+                            <strong class="text-white">Ensamblar:</strong>
+                            <span class="text-slate-400">VectorAssembler con [edad_bucket, ciudad_vec, producto_vec]</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">✅ Validación</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div class="p-3 bg-green-900/20 border border-green-500/30 rounded">
+                        <div class="text-green-400 font-bold mb-2">Verificar</div>
+                        <ul class="text-slate-400 space-y-1">
+                            <li>• Vector final debe ser <strong>SparseVector</strong></li>
+                            <li>• Mostrar dimensión total del vector</li>
+                            <li>• Imprimir una fila completa transformada</li>
+                        </ul>
+                    </div>
+                    <div class="p-3 bg-blue-900/20 border border-blue-500/30 rounded">
+                        <div class="text-blue-400 font-bold mb-2">Bonus</div>
+                        <ul class="text-slate-400 space-y-1">
+                            <li>• Calcular % de ceros en el vector final</li>
+                            <li>• Comparar tamaño Dense vs Sparse</li>
+                            <li>• Guardar pipeline entrenado</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion13_2.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-purple-500 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span class="text-slate-400">Anterior: Pipelines</span>
+                </a>
+
+                <a href="seccion_13.html" class="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-600 transition text-slate-400 hover:text-white">
+                    Volver al Hub
+                </a>
+
+                <a href="seccion13_4.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-yellow-500 transition">
+                    <span class="text-slate-400">Siguiente: Reto Final</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
+    </script>
+</body>
+</html>

@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 11: Arquitectura Medallion | Data Strategy</title>
+
+    <!-- Librerías Core -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <!-- Tipografía Técnica -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bronze: #CD7F32;
+            --silver: #C0C0C0;
+            --gold: #FFD700;
+            --quarantine-red: #DC2626;
+            --bg-deep: #050505;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(205, 127, 50, 0.05) 0%, transparent 50%);
+        }
+
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+
+        /* Tarjetas Glass */
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: var(--bronze);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(205, 127, 50, 0.2);
+        }
+
+        /* Animación de capas */
+        @keyframes pulse-bronze {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        .animate-pulse-bronze {
+            animation: pulse-bronze 2s ease-in-out infinite;
+        }
+
+        /* Estilos para código */
+        .code-block {
+            background: rgba(15, 23, 42, 0.8);
+            border-left: 4px solid var(--bronze);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="index.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">HUB CENTRAL</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-xl">SECCIÓN 11<span class="text-[var(--gold)]">.medallion()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">BRONZE → SILVER → GOLD</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-2 bg-yellow-900/10 text-[var(--gold)] rounded-full text-xs font-mono border border-yellow-500/20">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            ARQUITECTURA: MEDALLION
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro Hero -->
+        <section class="text-center space-y-6">
+            <div class="inline-flex items-center justify-center p-4 rounded-full bg-gradient-to-r from-yellow-500/10 via-slate-500/10 to-orange-500/10 border border-yellow-500/20 mb-4">
+                <i data-lucide="layers" class="w-10 h-10 text-[var(--gold)]"></i>
+            </div>
+            <h2 class="text-5xl font-black text-white tracking-tight">Arquitectura Medallion</h2>
+            <p class="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                El estándar de la industria para organizar <strong>Data Lakehouses</strong>.
+                <br>Refina tus datos en capas incrementales: <span class="text-[var(--bronze)]">Bronze</span>, <span class="text-[var(--silver)]">Silver</span> y <span class="text-[var(--gold)]">Gold</span>.
+            </p>
+            <div class="inline-flex items-center gap-2 text-sm text-slate-500 bg-slate-900/50 px-4 py-2 rounded-full border border-slate-800">
+                <i data-lucide="zap" class="w-4 h-4 text-yellow-400"></i>
+                Popularizado por Databricks | Optimizado con Delta Lake
+            </div>
+        </section>
+
+        <!-- Bloque 1: ¿Qué es Medallion? -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div class="space-y-6">
+                <h3 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <span class="text-[var(--bronze)]">01.</span> El Paradigma de Capas
+                </h3>
+                <p class="text-slate-400 leading-relaxed">
+                    La arquitectura Medallion estructura tu lakehouse en <strong>tres capas de refinamiento progresivo</strong>,
+                    donde cada capa transforma y mejora la calidad de los datos.
+                </p>
+
+                <div class="space-y-4">
+                    <!-- Bronze -->
+                    <div class="flex items-start gap-4 p-4 glass-card rounded-xl border-l-4 border-[var(--bronze)]">
+                        <i data-lucide="database" class="w-6 h-6 text-[var(--bronze)] mt-1 flex-shrink-0"></i>
+                        <div>
+                            <strong class="text-white text-lg">Bronze (Raw)</strong>
+                            <p class="text-sm text-slate-400 mt-1">
+                                Datos crudos sin transformar. Copia exacta de las fuentes.
+                                <span class="text-[var(--bronze)]">Inmutables</span> y con schema completo.
+                            </p>
+                            <code class="text-xs text-slate-500 font-tech mt-2 block">bronze.orders_raw</code>
+                        </div>
+                    </div>
+
+                    <!-- Silver -->
+                    <div class="flex items-start gap-4 p-4 glass-card rounded-xl border-l-4 border-[var(--silver)]">
+                        <i data-lucide="filter" class="w-6 h-6 text-[var(--silver)] mt-1 flex-shrink-0"></i>
+                        <div>
+                            <strong class="text-white text-lg">Silver (Cleaned)</strong>
+                            <p class="text-sm text-slate-400 mt-1">
+                                Datos limpios, validados y deduplicados. Aplica reglas de negocio.
+                                <span class="text-[var(--silver)]">Enterprise-ready</span>.
+                            </p>
+                            <code class="text-xs text-slate-500 font-tech mt-2 block">silver.orders_clean</code>
+                        </div>
+                    </div>
+
+                    <!-- Gold -->
+                    <div class="flex items-start gap-4 p-4 glass-card rounded-xl border-l-4 border-[var(--gold)]">
+                        <i data-lucide="trophy" class="w-6 h-6 text-[var(--gold)] mt-1 flex-shrink-0"></i>
+                        <div>
+                            <strong class="text-white text-lg">Gold (Aggregated)</strong>
+                            <p class="text-sm text-slate-400 mt-1">
+                                KPIs, métricas y features ML. Optimizadas para consultas analíticas.
+                                <span class="text-[var(--gold)]">Business-ready</span>.
+                            </p>
+                            <code class="text-xs text-slate-500 font-tech mt-2 block">gold.monthly_revenue</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagrama Mermaid -->
+            <div class="glass-card p-8 rounded-2xl relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent"></div>
+                <div class="relative z-10">
+                    <h4 class="text-center text-sm font-bold text-slate-400 mb-6 uppercase tracking-wider">Flujo de Refinamiento</h4>
+                    <div class="mermaid">
+                        graph TD
+                        Sources[Fuentes Externas<br/>APIs, Files, DBs] --> Bronze[🥉 BRONZE<br/>Raw Data]
+                        Bronze --> Silver[🥈 SILVER<br/>Cleaned & Validated]
+                        Silver --> Gold[🥇 GOLD<br/>Business Metrics]
+
+                        Bronze -.->|Datos Corruptos| Q[⚠️ QUARANTINE]
+                        Silver -.->|Reglas Fallidas| Q
+
+                        Gold --> BI[📊 Dashboards]
+                        Gold --> ML[🤖 ML Models]
+
+                        style Sources fill:#1e293b,stroke:#64748b,stroke-width:2px
+                        style Bronze fill:#CD7F32,stroke:#fff,color:#000
+                        style Silver fill:#C0C0C0,stroke:#fff,color:#000
+                        style Gold fill:#FFD700,stroke:#fff,color:#000
+                        style Q fill:#DC2626,stroke:#fff,color:#fff
+                        style BI fill:#3b82f6,stroke:#fff
+                        style ML fill:#8b5cf6,stroke:#fff
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: Capa Bronze -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 flex items-center gap-3">
+                <span class="text-[var(--bronze)]">02.</span>
+                <span>Capa Bronze</span>
+                <span class="text-2xl">🥉</span>
+            </h3>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div class="space-y-6">
+                    <div class="glass-card p-6 rounded-xl">
+                        <h4 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <i data-lucide="file-archive" class="w-5 h-5 text-[var(--bronze)]"></i>
+                            Características
+                        </h4>
+                        <ul class="space-y-3 text-sm text-slate-400">
+                            <li class="flex items-start gap-3">
+                                <i data-lucide="check" class="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0"></i>
+                                <span><strong class="text-white">Schema-on-read:</strong> Carga todos los campos tal cual vienen</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i data-lucide="check" class="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0"></i>
+                                <span><strong class="text-white">Append-only:</strong> Nunca actualiza ni borra (inmutable)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i data-lucide="check" class="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0"></i>
+                                <span><strong class="text-white">Metadata:</strong> Agrega columnas de auditoría (_ingestion_time, _source_file)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i data-lucide="check" class="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0"></i>
+                                <span><strong class="text-white">Delta Lake:</strong> Control de versiones y Time Travel</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-900/10 border border-blue-500/20 rounded-xl p-5">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="lightbulb" class="w-5 h-5 text-blue-400 mt-1 flex-shrink-0"></i>
+                            <div class="text-sm text-blue-200">
+                                <strong class="block mb-2">💡 Principio Clave</strong>
+                                Bronze es tu <strong>"seguro de vida"</strong>. Si algo falla en capas superiores,
+                                siempre puedes reproducir el pipeline desde aquí.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Código Bronze -->
+                <div class="glass-card p-6 rounded-2xl code-block">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs text-slate-500 font-tech">bronze_ingestion.py</span>
+                        <span class="text-[10px] bg-[var(--bronze)] text-black px-2 py-1 rounded font-bold">BRONZE LAYER</span>
+                    </div>
+                    <pre class="font-tech text-xs text-slate-300 overflow-x-auto"><code class="language-python"><span class="text-purple-400">from</span> pyspark.sql <span class="text-purple-400">import</span> functions <span class="text-purple-400">as</span> F
+
+<span class="text-slate-500"># Leer desde fuente cruda (CSV, JSON, Parquet)</span>
+df_raw = (spark.read
+    .format(<span class="text-green-300">"csv"</span>)
+    .option(<span class="text-green-300">"header"</span>, <span class="text-green-300">"true"</span>)
+    .option(<span class="text-green-300">"inferSchema"</span>, <span class="text-green-300">"true"</span>)
+    .load(<span class="text-green-300">"s3://landing/orders/*.csv"</span>)
+)
+
+<span class="text-slate-500"># Agregar metadata de auditoría</span>
+df_bronze = df_raw.withColumn(
+    <span class="text-green-300">"_ingestion_time"</span>,
+    F.current_timestamp()
+).withColumn(
+    <span class="text-green-300">"_source_file"</span>,
+    F.input_file_name()
+)
+
+<span class="text-slate-500"># Escribir a Bronze (Delta Lake)</span>
+(df_bronze.write
+    .format(<span class="text-green-300">"delta"</span>)
+    .mode(<span class="text-green-300">"append"</span>)
+    .partitionBy(<span class="text-green-300">"_ingestion_date"</span>)
+    .saveAsTable(<span class="text-green-300">"bronze.orders_raw"</span>)
+)
+
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"✅ Loaded {df_bronze.count()} rows to Bronze"</span>)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: Capa Silver -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 flex items-center gap-3">
+                <span class="text-[var(--silver)]">03.</span>
+                <span>Capa Silver</span>
+                <span class="text-2xl">🥈</span>
+            </h3>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <!-- Código Silver -->
+                <div class="glass-card p-6 rounded-2xl code-block">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs text-slate-500 font-tech">silver_cleaning.py</span>
+                        <span class="text-[10px] bg-[var(--silver)] text-black px-2 py-1 rounded font-bold">SILVER LAYER</span>
+                    </div>
+                    <pre class="font-tech text-xs text-slate-300 overflow-x-auto"><code class="language-python"><span class="text-slate-500"># Leer desde Bronze</span>
+df_bronze = spark.table(<span class="text-green-300">"bronze.orders_raw"</span>)
+
+<span class="text-slate-500"># TRANSFORMACIONES SILVER</span>
+df_silver = (df_bronze
+    <span class="text-slate-500"># 1. Limpieza de tipos</span>
+    .withColumn(<span class="text-green-300">"amount"</span>, F.col(<span class="text-green-300">"amount"</span>).cast(<span class="text-green-300">"double"</span>))
+    .withColumn(<span class="text-green-300">"order_date"</span>, F.to_date(<span class="text-green-300">"order_date"</span>))
+
+    <span class="text-slate-500"># 2. Deduplicación</span>
+    .dropDuplicates([<span class="text-green-300">"order_id"</span>])
+
+    <span class="text-slate-500"># 3. Validaciones básicas</span>
+    .filter(F.col(<span class="text-green-300">"amount"</span>) > <span class="text-yellow-300">0</span>)
+    .filter(F.col(<span class="text-green-300">"customer_id"</span>).isNotNull())
+
+    <span class="text-slate-500"># 4. Normalización</span>
+    .withColumn(<span class="text-green-300">"email"</span>, F.lower(F.trim(<span class="text-green-300">"email"</span>)))
+
+    <span class="text-slate-500"># 5. Enriquecimiento</span>
+    .withColumn(<span class="text-green-300">"year_month"</span>, F.date_format(<span class="text-green-300">"order_date"</span>, <span class="text-green-300">"yyyy-MM"</span>))
+)
+
+<span class="text-slate-500"># Escribir a Silver (MERGE para upserts)</span>
+(df_silver.write
+    .format(<span class="text-green-300">"delta"</span>)
+    .mode(<span class="text-green-300">"overwrite"</span>)
+    .option(<span class="text-green-300">"mergeSchema"</span>, <span class="text-green-300">"true"</span>)
+    .saveAsTable(<span class="text-green-300">"silver.orders_clean"</span>)
+)</code></pre>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="glass-card p-6 rounded-xl">
+                        <h4 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-[var(--silver)]"></i>
+                            Operaciones Típicas
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center flex-shrink-0">
+                                    <span class="text-xs font-bold text-green-400">1</span>
+                                </div>
+                                <div>
+                                    <strong class="text-white text-sm">Type Casting</strong>
+                                    <p class="text-xs text-slate-500 mt-1">Convertir strings a tipos correctos (dates, decimals)</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                                    <span class="text-xs font-bold text-blue-400">2</span>
+                                </div>
+                                <div>
+                                    <strong class="text-white text-sm">Deduplicación</strong>
+                                    <p class="text-xs text-slate-500 mt-1">Eliminar duplicados por clave primaria</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                                    <span class="text-xs font-bold text-purple-400">3</span>
+                                </div>
+                                <div>
+                                    <strong class="text-white text-sm">Normalización</strong>
+                                    <p class="text-xs text-slate-500 mt-1">Lowercase, trim, formato consistente</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center flex-shrink-0">
+                                    <span class="text-xs font-bold text-yellow-400">4</span>
+                                </div>
+                                <div>
+                                    <strong class="text-white text-sm">Joins Empresariales</strong>
+                                    <p class="text-xs text-slate-500 mt-1">Unir con tablas de referencia (dim_customers, dim_products)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-900/10 border border-yellow-500/20 rounded-xl p-5">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-400 mt-1 flex-shrink-0"></i>
+                            <div class="text-sm text-yellow-200">
+                                <strong class="block mb-2">⚠️ Importante</strong>
+                                Silver NO elimina datos por defecto. Los datos inválidos deben desviarse a
+                                <strong>quarantine</strong> para auditoría posterior.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 4: Capa Gold -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 flex items-center gap-3">
+                <span class="text-[var(--gold)]">04.</span>
+                <span>Capa Gold</span>
+                <span class="text-2xl">🥇</span>
+            </h3>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div class="space-y-6">
+                    <p class="text-slate-400 leading-relaxed">
+                        La capa Gold contiene <strong>métricas de negocio listas para consumo</strong>.
+                        Aquí viven los KPIs, dashboards de BI y features para modelos ML.
+                    </p>
+
+                    <div class="glass-card p-6 rounded-xl">
+                        <h4 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5 text-[var(--gold)]"></i>
+                            Casos de Uso
+                        </h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3 bg-slate-900/50 rounded border border-slate-800">
+                                <div class="text-2xl mb-2">📊</div>
+                                <div class="text-xs font-bold text-white">Revenue YTD</div>
+                                <div class="text-[10px] text-slate-500 mt-1">Ingresos acumulados</div>
+                            </div>
+
+                            <div class="p-3 bg-slate-900/50 rounded border border-slate-800">
+                                <div class="text-2xl mb-2">👥</div>
+                                <div class="text-xs font-bold text-white">Customer LTV</div>
+                                <div class="text-[10px] text-slate-500 mt-1">Valor de vida del cliente</div>
+                            </div>
+
+                            <div class="p-3 bg-slate-900/50 rounded border border-slate-800">
+                                <div class="text-2xl mb-2">📈</div>
+                                <div class="text-xs font-bold text-white">Churn Rate</div>
+                                <div class="text-[10px] text-slate-500 mt-1">Tasa de abandono</div>
+                            </div>
+
+                            <div class="p-3 bg-slate-900/50 rounded border border-slate-800">
+                                <div class="text-2xl mb-2">🎯</div>
+                                <div class="text-xs font-bold text-white">RFM Score</div>
+                                <div class="text-[10px] text-slate-500 mt-1">Recency-Frequency-Monetary</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-xl bg-gradient-to-br from-yellow-500/5 to-transparent">
+                        <h5 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4 text-[var(--gold)]"></i>
+                            Optimizaciones Gold
+                        </h5>
+                        <ul class="space-y-2 text-xs text-slate-400">
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle" class="w-3 h-3 text-green-400"></i>
+                                <span>Z-Ordering en columnas de filtro frecuente</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle" class="w-3 h-3 text-green-400"></i>
+                                <span>Particionamiento temporal (año/mes)</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check-circle" class="w-3 h-3 text-green-400"></i>
+                                <span>Agregaciones pre-calculadas</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Código Gold -->
+                <div class="glass-card p-6 rounded-2xl code-block">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs text-slate-500 font-tech">gold_metrics.py</span>
+                        <span class="text-[10px] bg-[var(--gold)] text-black px-2 py-1 rounded font-bold">GOLD LAYER</span>
+                    </div>
+                    <pre class="font-tech text-xs text-slate-300 overflow-x-auto"><code class="language-python"><span class="text-slate-500"># Leer desde Silver</span>
+df_silver = spark.table(<span class="text-green-300">"silver.orders_clean"</span>)
+
+<span class="text-slate-500"># AGREGACIÓN: Revenue mensual por región</span>
+df_gold_revenue = (df_silver
+    .groupBy(<span class="text-green-300">"year_month"</span>, <span class="text-green-300">"region"</span>)
+    .agg(
+        F.sum(<span class="text-green-300">"amount"</span>).alias(<span class="text-green-300">"total_revenue"</span>),
+        F.count(<span class="text-green-300">"order_id"</span>).alias(<span class="text-green-300">"order_count"</span>),
+        F.countDistinct(<span class="text-green-300">"customer_id"</span>).alias(<span class="text-green-300">"unique_customers"</span>),
+        F.avg(<span class="text-green-300">"amount"</span>).alias(<span class="text-green-300">"avg_order_value"</span>)
+    )
+    <span class="text-slate-500"># Window function: Growth MoM</span>
+    .withColumn(
+        <span class="text-green-300">"prev_month_revenue"</span>,
+        F.lag(<span class="text-green-300">"total_revenue"</span>).over(
+            Window.partitionBy(<span class="text-green-300">"region"</span>)
+                  .orderBy(<span class="text-green-300">"year_month"</span>)
+        )
+    )
+    .withColumn(
+        <span class="text-green-300">"growth_pct"</span>,
+        ((F.col(<span class="text-green-300">"total_revenue"</span>) - F.col(<span class="text-green-300">"prev_month_revenue"</span>))
+         / F.col(<span class="text-green-300">"prev_month_revenue"</span>) * <span class="text-yellow-300">100</span>)
+    )
+)
+
+<span class="text-slate-500"># Escribir a Gold</span>
+(df_gold_revenue.write
+    .format(<span class="text-green-300">"delta"</span>)
+    .mode(<span class="text-green-300">"overwrite"</span>)
+    .saveAsTable(<span class="text-green-300">"gold.monthly_revenue"</span>)
+)
+
+<span class="text-blue-400">print</span>(<span class="text-green-300">"🥇 Gold metrics generated successfully"</span>)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 5: Data Quality Gates -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 flex items-center gap-3">
+                <span class="text-red-500">05.</span>
+                <span>Data Quality Gates</span>
+                <span class="text-2xl">🚨</span>
+            </h3>
+
+            <div class="mb-8 text-center max-w-3xl mx-auto">
+                <p class="text-slate-400 leading-relaxed">
+                    Un <strong>Quality Gate</strong> es un checkpoint de validación que decide si un registro
+                    puede avanzar a la siguiente capa o debe desviarse a <span class="text-red-400">cuarentena</span>.
+                </p>
+            </div>
+
+            <!-- Diagrama de Quality Gate -->
+            <div class="glass-card p-8 rounded-2xl mb-8">
+                <div class="mermaid">
+                    graph LR
+                    Bronze[🥉 Bronze Raw] --> QG{Quality Gate<br/>Validations}
+
+                    QG -->|✅ PASS| Silver[🥈 Silver Clean]
+                    QG -->|❌ FAIL| Quarantine[⚠️ Quarantine Table]
+
+                    Quarantine -.->|Manual Review| Fix[🔧 Data Fix]
+                    Fix -.->|Re-ingest| Bronze
+
+                    style Bronze fill:#CD7F32,stroke:#fff,color:#000
+                    style QG fill:#3b82f6,stroke:#fff,color:#fff
+                    style Silver fill:#C0C0C0,stroke:#fff,color:#000
+                    style Quarantine fill:#DC2626,stroke:#fff,color:#fff
+                    style Fix fill:#eab308,stroke:#fff,color:#000
+                </div>
+            </div>
+
+            <!-- Grid de Validaciones -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass-card p-6 rounded-xl border-t-4 border-blue-500">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i data-lucide="check-square" class="w-6 h-6 text-blue-400"></i>
+                        <h4 class="text-lg font-bold text-white">Schema Validation</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-3">Verificar que existan columnas requeridas y tipos correctos.</p>
+                    <code class="text-xs bg-slate-900 p-2 rounded block text-blue-300">amount IS NOT NULL</code>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-t-4 border-purple-500">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i data-lucide="alert-circle" class="w-6 h-6 text-purple-400"></i>
+                        <h4 class="text-lg font-bold text-white">Business Rules</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-3">Lógica de negocio específica del dominio.</p>
+                    <code class="text-xs bg-slate-900 p-2 rounded block text-purple-300">amount > 0 AND amount < 1000000</code>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-t-4 border-yellow-500">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i data-lucide="git-compare" class="w-6 h-6 text-yellow-400"></i>
+                        <h4 class="text-lg font-bold text-white">Referential Integrity</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-3">Verificar que FKs existan en tablas relacionadas.</p>
+                    <code class="text-xs bg-slate-900 p-2 rounded block text-yellow-300">customer_id IN dim_customers</code>
+                </div>
+            </div>
+
+            <!-- Código Completo de Quality Gate -->
+            <div class="glass-card p-6 rounded-2xl code-block">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-xs text-slate-500 font-tech">quality_gate.py</span>
+                    <span class="text-[10px] bg-red-600 text-white px-2 py-1 rounded font-bold">QUALITY GATE</span>
+                </div>
+                <pre class="font-tech text-xs text-slate-300 overflow-x-auto"><code class="language-python"><span class="text-purple-400">from</span> pyspark.sql <span class="text-purple-400">import</span> functions <span class="text-purple-400">as</span> F
+
+df_bronze = spark.table(<span class="text-green-300">"bronze.orders_raw"</span>)
+
+<span class="text-slate-500"># DEFINIR REGLAS DE VALIDACIÓN</span>
+df_validated = df_bronze.withColumn(
+    <span class="text-green-300">"_quality_checks"</span>,
+    F.struct(
+        <span class="text-slate-500"># Regla 1: Amount positivo</span>
+        (F.col(<span class="text-green-300">"amount"</span>) > <span class="text-yellow-300">0</span>).alias(<span class="text-green-300">"valid_amount"</span>),
+
+        <span class="text-slate-500"># Regla 2: Email no nulo</span>
+        F.col(<span class="text-green-300">"email"</span>).isNotNull().alias(<span class="text-green-300">"valid_email"</span>),
+
+        <span class="text-slate-500"># Regla 3: Fecha no futura</span>
+        (F.col(<span class="text-green-300">"order_date"</span>) <= F.current_date()).alias(<span class="text-green-300">"valid_date"</span>),
+
+        <span class="text-slate-500"># Regla 4: Customer ID existe</span>
+        F.col(<span class="text-green-300">"customer_id"</span>).isNotNull().alias(<span class="text-green-300">"valid_customer"</span>)
+    )
+)
+
+<span class="text-slate-500"># Calcular si TODAS las reglas pasan</span>
+df_validated = df_validated.withColumn(
+    <span class="text-green-300">"_is_valid"</span>,
+    (F.col(<span class="text-green-300">"_quality_checks.valid_amount"</span>) &
+     F.col(<span class="text-green-300">"_quality_checks.valid_email"</span>) &
+     F.col(<span class="text-green-300">"_quality_checks.valid_date"</span>) &
+     F.col(<span class="text-green-300">"_quality_checks.valid_customer"</span>))
+)
+
+<span class="text-slate-500"># Agregar razón de rechazo para registros fallidos</span>
+df_validated = df_validated.withColumn(
+    <span class="text-green-300">"_rejection_reason"</span>,
+    F.when(~F.col(<span class="text-green-300">"_is_valid"</span>), F.concat_ws(<span class="text-green-300">", "</span>,
+        F.when(~F.col(<span class="text-green-300">"_quality_checks.valid_amount"</span>), <span class="text-green-300">"Invalid amount"</span>),
+        F.when(~F.col(<span class="text-green-300">"_quality_checks.valid_email"</span>), <span class="text-green-300">"Missing email"</span>),
+        F.when(~F.col(<span class="text-green-300">"_quality_checks.valid_date"</span>), <span class="text-green-300">"Future date"</span>),
+        F.when(~F.col(<span class="text-green-300">"_quality_checks.valid_customer"</span>), <span class="text-green-300">"Invalid customer"</span>)
+    ))
+)
+
+<span class="text-slate-500"># SEPARAR: Válidos a Silver, Inválidos a Quarantine</span>
+df_clean = df_validated.filter(F.col(<span class="text-green-300">"_is_valid"</span>))
+df_quarantine = df_validated.filter(~F.col(<span class="text-green-300">"_is_valid"</span>))
+
+<span class="text-slate-500"># Escribir a Silver</span>
+(df_clean
+    .drop(<span class="text-green-300">"_quality_checks"</span>, <span class="text-green-300">"_is_valid"</span>, <span class="text-green-300">"_rejection_reason"</span>)
+    .write.format(<span class="text-green-300">"delta"</span>).mode(<span class="text-green-300">"append"</span>)
+    .saveAsTable(<span class="text-green-300">"silver.orders_clean"</span>)
+)
+
+<span class="text-slate-500"># Escribir a Quarantine (con razón de rechazo)</span>
+(df_quarantine
+    .withColumn(<span class="text-green-300">"_quarantine_timestamp"</span>, F.current_timestamp())
+    .write.format(<span class="text-green-300">"delta"</span>).mode(<span class="text-green-300">"append"</span>)
+    .saveAsTable(<span class="text-green-300">"silver.quarantine"</span>)
+)
+
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"✅ Clean records: {df_clean.count()}"</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"❌ Quarantine records: {df_quarantine.count()}"</span>)</code></pre>
+            </div>
+        </section>
+
+        <!-- Bloque 6: Reto de Ingeniería -->
+        <section class="border-t border-slate-800 pt-16">
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center justify-center p-4 rounded-full bg-red-500/10 border border-red-500/20 mb-4">
+                    <i data-lucide="code" class="w-10 h-10 text-red-400"></i>
+                </div>
+                <h3 class="text-3xl font-bold text-white mb-4">
+                    🎯 RETO DE INGENIERÍA
+                </h3>
+                <p class="text-slate-400 max-w-2xl mx-auto">
+                    Implementa un pipeline Medallion completo con Quality Gate robusto
+                </p>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl bg-gradient-to-br from-red-900/10 to-transparent">
+                <h4 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                    <i data-lucide="alert-octagon" class="w-6 h-6 text-red-400"></i>
+                    Desafío: Quality Gate con Cuarentena
+                </h4>
+
+                <div class="space-y-6">
+                    <!-- Objetivo -->
+                    <div class="border-l-4 border-red-500 pl-6 py-2">
+                        <h5 class="text-lg font-bold text-white mb-2">📋 Objetivo</h5>
+                        <p class="text-slate-300 text-sm">
+                            Crear un pipeline que procese datos de <code class="text-red-400">bronze.transactions</code>
+                            aplicando validaciones estrictas. Los registros válidos avanzan a Silver,
+                            los inválidos se desvían a <code class="text-red-400">silver.quarantine</code> con metadata de auditoría.
+                        </p>
+                    </div>
+
+                    <!-- Requisitos -->
+                    <div>
+                        <h5 class="text-lg font-bold text-white mb-4">✅ Requisitos Técnicos</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                                        <span class="text-xs font-bold text-blue-400">1</span>
+                                    </div>
+                                    <div>
+                                        <strong class="text-white text-sm">Validar Schema</strong>
+                                        <p class="text-xs text-slate-400 mt-1">Campos obligatorios: transaction_id, amount, customer_id, transaction_date</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                                        <span class="text-xs font-bold text-green-400">2</span>
+                                    </div>
+                                    <div>
+                                        <strong class="text-white text-sm">Reglas de Negocio</strong>
+                                        <p class="text-xs text-slate-400 mt-1">amount entre 0 y 100,000 | date no futura | customer_id formato válido</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                                        <span class="text-xs font-bold text-purple-400">3</span>
+                                    </div>
+                                    <div>
+                                        <strong class="text-white text-sm">Metadata de Auditoría</strong>
+                                        <p class="text-xs text-slate-400 mt-1">Agregar: _validation_timestamp, _pipeline_version, _rejection_code</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-1">
+                                        <span class="text-xs font-bold text-yellow-400">4</span>
+                                    </div>
+                                    <div>
+                                        <strong class="text-white text-sm">Reportes</strong>
+                                        <p class="text-xs text-slate-400 mt-1">Generar métricas: % de rechazo por tipo de error, top 3 errores frecuentes</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bonus Points -->
+                    <div class="bg-yellow-900/10 border border-yellow-500/20 rounded-xl p-5">
+                        <div class="flex items-start gap-3">
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <strong class="text-yellow-200 block mb-2">🌟 Bonus Points</strong>
+                                <ul class="text-sm text-yellow-100 space-y-1">
+                                    <li>• Implementar <strong>re-processing</strong>: script para reintentar registros en quarantine después de corrección</li>
+                                    <li>• Agregar <strong>alertas</strong>: enviar notificación si tasa de rechazo > 5%</li>
+                                    <li>• Crear <strong>dashboard</strong> en Databricks SQL mostrando tendencias de calidad</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Entregables -->
+                    <div>
+                        <h5 class="text-lg font-bold text-white mb-3">📦 Entregables</h5>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-3 text-sm">
+                                <i data-lucide="file-code" class="w-4 h-4 text-slate-500"></i>
+                                <code class="text-slate-300">medallion_pipeline.py</code>
+                                <span class="text-slate-500">- Script completo del pipeline</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm">
+                                <i data-lucide="file-text" class="w-4 h-4 text-slate-500"></i>
+                                <code class="text-slate-300">quality_report.sql</code>
+                                <span class="text-slate-500">- Query de análisis de calidad</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm">
+                                <i data-lucide="book-open" class="w-4 h-4 text-slate-500"></i>
+                                <code class="text-slate-300">README.md</code>
+                                <span class="text-slate-500">- Documentación de decisiones técnicas</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Criterios de Evaluación -->
+                    <div class="border-t border-slate-800 pt-6">
+                        <h5 class="text-lg font-bold text-white mb-4">📊 Criterios de Evaluación</h5>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-[var(--bronze)] mb-2">25%</div>
+                                <div class="text-xs text-slate-400">Correctitud del código</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-[var(--silver)] mb-2">25%</div>
+                                <div class="text-xs text-slate-400">Robustez de validaciones</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-[var(--gold)] mb-2">25%</div>
+                                <div class="text-xs text-slate-400">Calidad de metadata</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-400 mb-2">25%</div>
+                                <div class="text-xs text-slate-400">Documentación</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Arquitectura Completa -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                🏗️ Arquitectura Medallion Completa
+            </h3>
+
+            <div class="glass-card p-8 rounded-2xl">
+                <div class="mermaid">
+                    graph TB
+                    subgraph Sources[" "]
+                        S1[CSV Files]
+                        S2[REST APIs]
+                        S3[Databases]
+                    end
+
+                    subgraph Bronze[" 🥉 BRONZE LAYER "]
+                        B1[raw_customers]
+                        B2[raw_orders]
+                        B3[raw_products]
+                    end
+
+                    subgraph QualityGate[" 🚨 QUALITY GATE "]
+                        QG[Validation Engine]
+                        Q[Quarantine Table]
+                    end
+
+                    subgraph Silver[" 🥈 SILVER LAYER "]
+                        S1L[clean_customers]
+                        S2L[clean_orders]
+                        S3L[clean_products]
+                    end
+
+                    subgraph Gold[" 🥇 GOLD LAYER "]
+                        G1[monthly_revenue]
+                        G2[customer_ltv]
+                        G3[product_analytics]
+                    end
+
+                    subgraph Consumers[" "]
+                        C1[📊 BI Dashboards]
+                        C2[🤖 ML Models]
+                        C3[📈 Reports]
+                    end
+
+                    S1 & S2 & S3 --> B1 & B2 & B3
+                    B1 & B2 & B3 --> QG
+                    QG -->|Valid| S1L & S2L & S3L
+                    QG -->|Invalid| Q
+                    S1L & S2L & S3L --> G1 & G2 & G3
+                    G1 & G2 & G3 --> C1 & C2 & C3
+
+                    style Sources fill:#1e293b,stroke:#64748b
+                    style Bronze fill:#CD7F32,stroke:#fff,color:#000
+                    style QualityGate fill:#3b82f6,stroke:#fff
+                    style Silver fill:#C0C0C0,stroke:#fff,color:#000
+                    style Gold fill:#FFD700,stroke:#fff,color:#000
+                    style Consumers fill:#10b981,stroke:#fff
+                    style Q fill:#DC2626,stroke:#fff,color:#fff
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Footer -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion_10.html" class="group flex items-center gap-3 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--bronze)] transition">
+                    <i data-lucide="chevron-left" class="w-5 h-5 text-slate-500 group-hover:text-[var(--bronze)]"></i>
+                    <div>
+                        <div class="text-xs text-slate-500">Anterior</div>
+                        <div class="text-sm font-bold text-white">Sección 10: dbt</div>
+                    </div>
+                </a>
+
+                <a href="index.html" class="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-white transition">
+                    <div class="text-xs text-slate-500 text-center mb-1">Hub Central</div>
+                    <div class="text-sm font-bold text-white">📚 Índice</div>
+                </a>
+
+                <a href="seccion_12.html" class="group flex items-center gap-3 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--gold)] transition">
+                    <div>
+                        <div class="text-xs text-slate-500 text-right">Siguiente</div>
+                        <div class="text-sm font-bold text-white">Sección 12: DLT</div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500 group-hover:text-[var(--gold)]"></i>
+                </a>
+            </div>
+
+            <div class="mt-8 text-center">
+                <p class="text-xs text-slate-600">
+                    &copy; 2024 Universidad Santo Tomás | Diplomado en Estrategias de Datos
+                </p>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#CD7F32',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#FFD700',
+                lineColor: '#C0C0C0',
+                secondaryColor: '#FFD700',
+                tertiaryColor: '#1e293b'
+            },
+            fontFamily: 'JetBrains Mono'
+        });
+    </script>
+</body>
+</html>

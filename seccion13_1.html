@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentos de ML Distribuido | Spark ML</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ml-red: #E74C3C;
+            --ml-orange: #FF6B6B;
+            --bg-deep: #050505;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(231, 76, 60, 0.05) 0%, transparent 50%);
+        }
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: var(--ml-orange);
+            transform: translateY(-2px);
+        }
+        .math-block {
+            background: rgba(30, 30, 40, 0.8);
+            border-left: 4px solid var(--ml-orange);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="seccion_13.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">SECCIÓN 13</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-lg">MÓDULO 1<span class="text-[var(--ml-orange)]">.Fundamentos()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">ÁLGEBRA LINEAL EN UN CLUSTER</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro -->
+        <section class="text-center space-y-4">
+            <h2 class="text-4xl font-black text-white">Fundamentos de ML Distribuido</h2>
+            <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+                Entiende cómo escalar álgebra lineal y cálculo estadístico desde un vector en memoria hasta particiones distribuidas en miles de nodos.
+            </p>
+        </section>
+
+        <!-- Bloque 1: De Vectores a Particiones -->
+        <section>
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-[var(--ml-orange)]">01.</span> De Vectores a Particiones
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">📊 Matemática Clásica</h4>
+                    <div class="math-block mb-4">
+                        $$
+                        \mathbf{x} \in \mathbb{R}^n, \quad \mathbf{X} \in \mathbb{R}^{n \times p}
+                        $$
+                        <div class="text-xs text-slate-400 mt-2">
+                            Un vector \(\mathbf{x}\) o matriz \(\mathbf{X}\) completo en memoria RAM.
+                        </div>
+                    </div>
+                    <pre class="font-tech text-xs bg-slate-900 p-3 rounded text-slate-300"><code><span class="text-purple-400">import</span> numpy <span class="text-purple-400">as</span> np
+
+<span class="text-slate-500"># Vector de 1 millón de elementos</span>
+x = np.random.randn(<span class="text-yellow-300">1_000_000</span>)
+
+<span class="text-slate-500"># Calcular media</span>
+mu = np.mean(x)  <span class="text-slate-500"># Todo en memoria</span></code></pre>
+                    <div class="mt-3 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded text-xs text-yellow-300">
+                        ⚠️ Problema: Si x tiene 10 mil millones de elementos (80GB), no cabe en RAM de laptop.
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">⚙️ Ingeniería Distribuida</h4>
+                    <div class="math-block mb-4">
+                        $$
+                        \mathbf{x} = \begin{bmatrix} \mathbf{x}_1 \\ \mathbf{x}_2 \\ \vdots \\ \mathbf{x}_k \end{bmatrix} \quad \text{(k particiones)}
+                        $$
+                        <div class="text-xs text-slate-400 mt-2">
+                            El vector se divide en \(k\) particiones, cada una en un nodo diferente.
+                        </div>
+                    </div>
+                    <pre class="font-tech text-xs bg-slate-900 p-3 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.sql <span class="text-purple-400">import</span> functions <span class="text-purple-400">as</span> F
+
+<span class="text-slate-500"># DataFrame con 10 mil millones de filas</span>
+<span class="text-slate-500"># Distribuido en 100 particiones</span>
+df = spark.read.parquet(<span class="text-green-300">"s3://data.parquet"</span>)
+
+<span class="text-slate-500"># Calcular media (distribuido)</span>
+mu = df.select(F.avg(<span class="text-green-300">"value"</span>)).collect()[<span class="text-yellow-300">0</span>][<span class="text-yellow-300">0</span>]</code></pre>
+                    <div class="mt-3 p-3 bg-green-900/20 border border-green-500/30 rounded text-xs text-green-300">
+                        ✅ Solución: Spark divide en particiones, calcula sumas parciales en paralelo, luego agrega.
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 glass-card p-6 rounded-xl bg-orange-900/10">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="lightbulb" class="w-6 h-6 text-orange-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">🔗 Por qué np.dot(A, B) no funciona con A de 100GB</h4>
+                        <p class="text-sm text-slate-400">
+                            NumPy asume que \(A\) y \(B\) están completos en memoria contigua. Con 100GB de datos, el sistema operativo
+                            empezará a hacer swap (usar disco como RAM), reduciendo velocidad 1000x. Spark mantiene particiones en disco
+                            y procesa solo lo necesario en cada momento.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: MapReduce Matemático -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-blue-400">02.</span> MapReduce Explicado Matemáticamente
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Ejemplo: Calcular Media μ = (1/n)Σxᵢ</h4>
+
+                <div class="math-block mb-6">
+                    <div class="text-white mb-3">Matemática clásica:</div>
+                    $$
+                    \mu = \frac{1}{n} \sum_{i=1}^{n} x_i
+                    $$
+                    <div class="text-xs text-slate-400 mt-2">
+                        Requiere recorrer todos los \(n\) elementos secuencialmente.
+                    </div>
+                </div>
+
+                <div class="math-block mb-6">
+                    <div class="text-white mb-3">Versión distribuida (MapReduce):</div>
+                    $$
+                    \begin{aligned}
+                    \text{Map: } &\quad s_j = \sum_{i \in P_j} x_i \quad \text{(suma parcial en partición } j\text{)} \\[0.5em]
+                    \text{Reduce: } &\quad \mu = \frac{1}{n} \sum_{j=1}^{k} s_j \quad \text{(agregar sumas parciales)}
+                    \end{aligned}
+                    $$
+                    <div class="text-xs text-slate-400 mt-2">
+                        Cada partición \(P_j\) calcula su suma local \(s_j\) en paralelo. Luego se agregan.
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">🗺️ Fase MAP (Paralelo)</h5>
+                        <pre class="font-tech text-xs bg-slate-900 p-3 rounded text-slate-300"><code><span class="text-slate-500"># En Worker 1 (Partición 1)</span>
+sum_p1 = <span class="text-yellow-300">0</span>
+<span class="text-purple-400">for</span> x <span class="text-purple-400">in</span> partition_1:
+    sum_p1 += x
+<span class="text-slate-500"># sum_p1 = 12345.67</span>
+
+<span class="text-slate-500"># En Worker 2 (Partición 2)</span>
+sum_p2 = <span class="text-yellow-300">0</span>
+<span class="text-purple-400">for</span> x <span class="text-purple-400">in</span> partition_2:
+    sum_p2 += x
+<span class="text-slate-500"># sum_p2 = 23456.78</span>
+
+<span class="text-slate-500"># ... (100 workers en total)</span></code></pre>
+                    </div>
+
+                    <div>
+                        <h5 class="font-bold text-white mb-3 text-sm">📉 Fase REDUCE (Secuencial)</h5>
+                        <pre class="font-tech text-xs bg-slate-900 p-3 rounded text-slate-300"><code><span class="text-slate-500"># En el Driver (nodo maestro)</span>
+partial_sums = [
+    sum_p1,   <span class="text-slate-500"># 12345.67</span>
+    sum_p2,   <span class="text-slate-500"># 23456.78</span>
+    <span class="text-slate-500"># ...</span>
+    sum_p100  <span class="text-slate-500"># 98765.43</span>
+]
+
+total = <span class="text-yellow-300">sum</span>(partial_sums)
+n = <span class="text-yellow-300">10_000_000_000</span>
+mu = total / n
+
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Media: </span>{mu}<span class="text-green-300">"</span>)</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Implementación PySpark Real</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.sql <span class="text-purple-400">import</span> functions <span class="text-purple-400">as</span> F
+
+<span class="text-slate-500"># Dataset distribuido</span>
+df = spark.createDataFrame([(<span class="text-yellow-300">1</span>,), (<span class="text-yellow-300">2</span>,), (<span class="text-yellow-300">3</span>,), (<span class="text-yellow-300">4</span>,), (<span class="text-yellow-300">5</span>,)], [<span class="text-green-300">"value"</span>])
+
+<span class="text-slate-500"># Spark ejecuta MapReduce automáticamente</span>
+result = df.agg(
+    F.avg(<span class="text-green-300">"value"</span>).alias(<span class="text-green-300">"media"</span>),      <span class="text-slate-500"># Media: (1+2+3+4+5)/5 = 3.0</span>
+    F.sum(<span class="text-green-300">"value"</span>).alias(<span class="text-green-300">"suma"</span>),       <span class="text-slate-500"># Suma: 15</span>
+    F.stddev(<span class="text-green-300">"value"</span>).alias(<span class="text-green-300">"desv_std"</span>) <span class="text-slate-500"># Desviación estándar</span>
+).collect()[<span class="text-yellow-300">0</span>]
+
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Media: </span>{result[<span class="text-green-300">'media'</span>]}<span class="text-green-300">"</span>)  <span class="text-slate-500"># 3.0</span></code></pre>
+                <div class="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                    💡 <code>F.avg()</code> ejecuta MapReduce internamente: suma parcial en cada partición, luego divide por n total.
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: Particiones y Paralelización -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-purple-400">03.</span> Particiones y Paralelización
+            </h3>
+
+            <div class="mermaid bg-slate-900/50 p-6 rounded-xl mb-8">
+                graph TD
+                    DF[DataFrame<br/>1TB de datos] --> R{Repartition<br/>k=8}
+                    R --> P1[Partición 1<br/>125GB]
+                    R --> P2[Partición 2<br/>125GB]
+                    R --> P3[Partición 3<br/>125GB]
+                    R --> P8[Partición 8<br/>125GB]
+
+                    P1 --> C1[Core 1]
+                    P2 --> C2[Core 2]
+                    P3 --> C3[Core 3]
+                    P8 --> C8[Core 8]
+
+                    C1 --> Res[Resultado Final]
+                    C2 --> Res
+                    C3 --> Res
+                    C8 --> Res
+
+                    style DF fill:#E74C3C,stroke:#fff
+                    style Res fill:#27AE60,stroke:#fff
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Ley de Amdahl (Speedup)</h4>
+                    <div class="math-block">
+                        $$
+                        S(n) = \frac{T_1}{T_n} = \frac{1}{(1-p) + \frac{p}{n}}
+                        $$
+                        <div class="text-xs text-slate-400 mt-3">
+                            Donde:<br>
+                            • \(T_1\): Tiempo con 1 core<br>
+                            • \(T_n\): Tiempo con n cores<br>
+                            • \(p\): Fracción paralelizable del código
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-slate-900 rounded text-xs text-slate-300">
+                        <strong class="text-white">Ejemplo:</strong> Si p=0.9 (90% paralelizable) y n=8 cores:
+                        <div class="mt-2">
+                            \( S(8) = \frac{1}{0.1 + 0.9/8} = \frac{1}{0.2125} \approx 4.7x \)
+                        </div>
+                        <div class="mt-2 text-yellow-300">
+                            ⚡ Con 8 cores, obtienes 4.7x speedup (no 8x por overhead).
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Código: Reparticionamiento</h4>
+                    <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-slate-500"># Ver particiones actuales</span>
+<span class="text-blue-400">print</span>(df.rdd.getNumPartitions())  <span class="text-slate-500"># 200 (default)</span>
+
+<span class="text-slate-500"># Reparticionar a 8 (para cluster pequeño)</span>
+df_optimized = df.repartition(<span class="text-yellow-300">8</span>)
+
+<span class="text-slate-500"># O usar coalesce (sin shuffle, más rápido)</span>
+<span class="text-slate-500"># Solo para reducir particiones</span>
+df_reduced = df.coalesce(<span class="text-yellow-300">4</span>)
+
+<span class="text-slate-500"># Particionar por columna (útil para joins)</span>
+df_by_city = df.repartition(<span class="text-green-300">"city"</span>)</code></pre>
+                    <div class="mt-4 space-y-2 text-xs">
+                        <div class="p-2 bg-green-900/20 border border-green-500/30 rounded text-green-300">
+                            ✅ <strong>repartition(n):</strong> Distribuye datos uniformemente (con shuffle).
+                        </div>
+                        <div class="p-2 bg-blue-900/20 border border-blue-500/30 rounded text-blue-300">
+                            ℹ️ <strong>coalesce(n):</strong> Reduce particiones sin shuffle (más eficiente).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">⚙️ Cuándo reparticionar</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div class="bg-slate-900/50 p-3 rounded">
+                        <div class="text-red-400 font-bold mb-2">Muy pocas particiones</div>
+                        <div class="text-slate-400">
+                            • Particiones > 1GB cada una<br>
+                            • Cores ociosos<br>
+                            • <strong>Solución:</strong> Aumentar con <code>repartition()</code>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded">
+                        <div class="text-green-400 font-bold mb-2">Balance óptimo</div>
+                        <div class="text-slate-400">
+                            • 128MB - 1GB por partición<br>
+                            • Particiones ≈ 2-4x número de cores<br>
+                            • <strong>Ideal para performance</strong>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded">
+                        <div class="text-yellow-400 font-bold mb-2">Demasiadas particiones</div>
+                        <div class="text-slate-400">
+                            • Miles de archivos pequeños<br>
+                            • Overhead de scheduling<br>
+                            • <strong>Solución:</strong> Reducir con <code>coalesce()</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 4: Broadcast Variables -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-green-400">04.</span> Broadcast Variables
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">❌ Problema: Envío Repetido</h4>
+                    <div class="mermaid bg-slate-900/50 p-4 rounded mb-4">
+                        graph TD
+                            D[Driver<br/>θ coeficientes] -->|Copia| W1[Worker 1]
+                            D -->|Copia| W2[Worker 2]
+                            D -->|Copia| W3[Worker 3]
+                            D -->|Copia| W100[Worker 100]
+
+                            style D fill:#E74C3C,stroke:#fff
+                    </div>
+                    <div class="text-xs text-slate-400">
+                        Sin broadcast: Envía θ (parámetros modelo) a cada tarea. Si hay 1000 tareas en 100 workers,
+                        envía θ <strong>1000 veces</strong> por la red.
+                    </div>
+                    <div class="math-block mt-4">
+                        $$
+                        \text{Tráfico red} = \text{size}(\theta) \times n_{\text{tasks}}
+                        $$
+                        <div class="text-xs text-slate-400 mt-2">
+                            Ejemplo: θ = 10MB, 1000 tareas → 10GB de tráfico de red.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">✅ Solución: Broadcast</h4>
+                    <div class="mermaid bg-slate-900/50 p-4 rounded mb-4">
+                        graph TD
+                            D[Driver<br/>θ broadcast] -->|1 copia| W1[Worker 1<br/>Todas las tareas]
+                            D -->|1 copia| W2[Worker 2<br/>Todas las tareas]
+                            D -->|1 copia| W3[Worker 3<br/>Todas las tareas]
+                            D -->|1 copia| W100[Worker 100<br/>Todas las tareas]
+
+                            style D fill:#27AE60,stroke:#fff
+                    </div>
+                    <div class="text-xs text-slate-400">
+                        Con broadcast: Envía θ <strong>una sola vez por worker</strong> (100 veces para 100 workers),
+                        sin importar cuántas tareas.
+                    </div>
+                    <div class="math-block mt-4">
+                        $$
+                        \text{Tráfico red} = \text{size}(\theta) \times n_{\text{workers}}
+                        $$
+                        <div class="text-xs text-slate-400 mt-2">
+                            Ejemplo: θ = 10MB, 100 workers → 1GB de tráfico (10x menos).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Código: Broadcast en PySpark</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.sql <span class="text-purple-400">import</span> functions <span class="text-purple-400">as</span> F
+
+<span class="text-slate-500"># Diccionario de parámetros de modelo</span>
+<span class="text-slate-500"># (en la práctica, serían coeficientes de regresión)</span>
+model_params = {
+    <span class="text-green-300">"intercept"</span>: <span class="text-yellow-300">2.5</span>,
+    <span class="text-green-300">"coef_edad"</span>: <span class="text-yellow-300">0.3</span>,
+    <span class="text-green-300">"coef_salario"</span>: <span class="text-yellow-300">0.0001</span>
+}
+
+<span class="text-slate-500"># Broadcast (enviar una sola vez a cada worker)</span>
+bc_params = spark.sparkContext.broadcast(model_params)
+
+<span class="text-slate-500"># Usar en UDF (User Defined Function)</span>
+<span class="text-purple-400">def</span> <span class="text-blue-400">predict_udf</span>(edad, salario):
+    params = bc_params.value  <span class="text-slate-500"># Acceder a broadcast</span>
+    <span class="text-purple-400">return</span> (params[<span class="text-green-300">"intercept"</span>] +
+            params[<span class="text-green-300">"coef_edad"</span>] * edad +
+            params[<span class="text-green-300">"coef_salario"</span>] * salario)
+
+<span class="text-slate-500"># Registrar UDF</span>
+predict = F.udf(predict_udf)
+
+<span class="text-slate-500"># Aplicar a DataFrame (se ejecuta en workers)</span>
+df_with_predictions = df.withColumn(
+    <span class="text-green-300">"prediction"</span>,
+    predict(F.col(<span class="text-green-300">"edad"</span>), F.col(<span class="text-green-300">"salario"</span>))
+)</code></pre>
+                <div class="mt-4 p-3 bg-green-900/20 border border-green-500/30 rounded text-xs text-green-300">
+                    💡 <code>bc_params.value</code> accede al diccionario sin transferirlo 1000 veces. Cada worker lo tiene en caché.
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 5: Operaciones Matriciales Distribuidas -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-yellow-400">05.</span> Operaciones Matriciales Distribuidas
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Ejemplo: Producto Matriz-Vector y = Ax + b</h4>
+
+                <div class="math-block mb-6">
+                    <div class="text-white mb-3">Matemática:</div>
+                    $$
+                    \mathbf{y} = \mathbf{A}\mathbf{x} + \mathbf{b}, \quad
+                    \mathbf{A} \in \mathbb{R}^{n \times p}, \;
+                    \mathbf{x} \in \mathbb{R}^{p}, \;
+                    \mathbf{b} \in \mathbb{R}^{n}
+                    $$
+                    <div class="text-xs text-slate-400 mt-2">
+                        Si \(n = 10^9\), la matriz \(\mathbf{A}\) tiene \(10^9 \times p\) elementos. No cabe en memoria.
+                    </div>
+                </div>
+
+                <div class="math-block mb-6">
+                    <div class="text-white mb-3">Estrategia Distribuida (Partición por Filas):</div>
+                    $$
+                    \mathbf{A} = \begin{bmatrix} \mathbf{A}_1 \\ \mathbf{A}_2 \\ \vdots \\ \mathbf{A}_k \end{bmatrix}, \quad
+                    \mathbf{y} = \begin{bmatrix} \mathbf{y}_1 \\ \mathbf{y}_2 \\ \vdots \\ \mathbf{y}_k \end{bmatrix}
+                    $$
+                    <div class="text-xs text-slate-400 mt-2">
+                        Cada partición \(\mathbf{A}_i\) calcula \(\mathbf{y}_i = \mathbf{A}_i \mathbf{x} + \mathbf{b}_i\) independientemente.
+                    </div>
+                </div>
+
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.linalg <span class="text-purple-400">import</span> Vectors, DenseVector
+<span class="text-purple-400">from</span> pyspark.sql <span class="text-purple-400">import</span> functions <span class="text-purple-400">as</span> F
+
+<span class="text-slate-500"># DataFrame con features como vectores (cada fila = fila de A)</span>
+df = spark.createDataFrame([
+    (<span class="text-yellow-300">1</span>, Vectors.dense([<span class="text-yellow-300">1.0</span>, <span class="text-yellow-300">2.0</span>, <span class="text-yellow-300">3.0</span>])),
+    (<span class="text-yellow-300">2</span>, Vectors.dense([<span class="text-yellow-300">4.0</span>, <span class="text-yellow-300">5.0</span>, <span class="text-yellow-300">6.0</span>])),
+    (<span class="text-yellow-300">3</span>, Vectors.dense([<span class="text-yellow-300">7.0</span>, <span class="text-yellow-300">8.0</span>, <span class="text-yellow-300">9.0</span>]))
+], [<span class="text-green-300">"id"</span>, <span class="text-green-300">"features"</span>])
+
+<span class="text-slate-500"># Vector x (coeficientes) - broadcast</span>
+x = [<span class="text-yellow-300">0.5</span>, <span class="text-yellow-300">1.0</span>, <span class="text-yellow-300">1.5</span>]
+bc_x = spark.sparkContext.broadcast(x)
+
+<span class="text-slate-500"># UDF para producto punto: A_i · x</span>
+<span class="text-purple-400">def</span> <span class="text-blue-400">dot_product</span>(features):
+    x_vec = bc_x.value
+    <span class="text-purple-400">return</span> <span class="text-yellow-300">float</span>(<span class="text-yellow-300">sum</span>(f * x <span class="text-purple-400">for</span> f, x <span class="text-purple-400">in</span> <span class="text-yellow-300">zip</span>(features, x_vec)))
+
+dot_udf = F.udf(dot_product)
+
+<span class="text-slate-500"># Aplicar: y_i = A_i · x (cada fila en paralelo)</span>
+df_result = df.withColumn(<span class="text-green-300">"y"</span>, dot_udf(F.col(<span class="text-green-300">"features"</span>)))
+
+df_result.show()
+<span class="text-slate-500"># +---+-------------+----+</span>
+<span class="text-slate-500"># | id|     features|   y|</span>
+<span class="text-slate-500"># +---+-------------+----+</span>
+<span class="text-slate-500"># |  1|[1.0,2.0,3.0]| 7.0|  # (1×0.5 + 2×1.0 + 3×1.5)</span>
+<span class="text-slate-500"># |  2|[4.0,5.0,6.0]|16.0|</span>
+<span class="text-slate-500"># |  3|[7.0,8.0,9.0]|25.0|</span>
+<span class="text-slate-500"># +---+-------------+----+</span></code></pre>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl bg-purple-900/10">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="lightbulb" class="w-6 h-6 text-purple-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">🔗 Conexión con Regresión Lineal</h4>
+                        <p class="text-sm text-slate-400 mb-3">
+                            En regresión, predecir \(\hat{y} = X\beta\) es exactamente este producto matriz-vector.
+                            Spark ML hace esto internamente cuando llamas <code class="text-purple-400">model.transform()</code>.
+                        </p>
+                        <div class="math-block">
+                            $$
+                            \hat{\mathbf{y}} = \mathbf{X}\boldsymbol{\beta}, \quad
+                            \text{con } \mathbf{X} \text{ particionada por filas}
+                            $$
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 6: Persistencia y Caching -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-red-400">06.</span> Persistencia y Caching
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Sin Cache (Recomputación)</h4>
+                    <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code>df = spark.read.parquet(<span class="text-green-300">"data.parquet"</span>)
+df_filtered = df.filter(col(<span class="text-green-300">"age"</span>) > <span class="text-yellow-300">18</span>)
+
+<span class="text-slate-500"># Operación 1: Cuenta</span>
+count1 = df_filtered.count()  <span class="text-slate-500"># Lee y filtra</span>
+
+<span class="text-slate-500"># Operación 2: Media</span>
+avg_salary = df_filtered.agg(
+    F.avg(<span class="text-green-300">"salary"</span>)
+).collect()  <span class="text-slate-500"># Lee y filtra OTRA VEZ</span>
+
+<span class="text-slate-500"># Operación 3: Máximo</span>
+max_age = df_filtered.agg(
+    F.max(<span class="text-green-300">"age"</span>)
+).collect()  <span class="text-slate-500"># Lee y filtra OTRA VEZ</span></code></pre>
+                    <div class="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded text-xs text-red-300">
+                        ⚠️ <code>df_filtered</code> se recalcula 3 veces porque Spark no persiste resultados por defecto.
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Con Cache (Almacenamiento)</h4>
+                    <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code>df = spark.read.parquet(<span class="text-green-300">"data.parquet"</span>)
+df_filtered = df.filter(col(<span class="text-green-300">"age"</span>) > <span class="text-yellow-300">18</span>)
+
+<span class="text-slate-500"># Cachear en memoria</span>
+df_filtered.cache()  <span class="text-slate-500"># Marca para persistir</span>
+
+<span class="text-slate-500"># Primera operación: Lee, filtra, y GUARDA en RAM</span>
+count1 = df_filtered.count()
+
+<span class="text-slate-500"># Segunda operación: Lee desde RAM (sin recomputar)</span>
+avg_salary = df_filtered.agg(
+    F.avg(<span class="text-green-300">"salary"</span>)
+).collect()
+
+<span class="text-slate-500"># Tercera operación: Lee desde RAM</span>
+max_age = df_filtered.agg(
+    F.max(<span class="text-green-300">"age"</span>)
+).collect()
+
+<span class="text-slate-500"># Liberar memoria cuando termines</span>
+df_filtered.unpersist()</code></pre>
+                    <div class="mt-4 p-3 bg-green-900/20 border border-green-500/30 rounded text-xs text-green-300">
+                        ✅ <code>df_filtered</code> se calcula 1 sola vez, luego se lee desde memoria (mucho más rápido).
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Niveles de Persistencia</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark <span class="text-purple-400">import</span> StorageLevel
+
+<span class="text-slate-500"># Solo memoria (más rápido, pero puede fallar si no hay RAM)</span>
+df.persist(StorageLevel.MEMORY_ONLY)
+
+<span class="text-slate-500"># Memoria + Disco (si RAM llena, escribe a disco)</span>
+df.persist(StorageLevel.MEMORY_AND_DISK)
+
+<span class="text-slate-500"># Solo disco (para datasets enormes)</span>
+df.persist(StorageLevel.DISK_ONLY)
+
+<span class="text-slate-500"># Memoria serializada (comprime datos, ahorra RAM)</span>
+df.persist(StorageLevel.MEMORY_ONLY_SER)
+
+<span class="text-slate-500"># cache() es equivalente a MEMORY_AND_DISK</span>
+df.cache()  <span class="text-slate-500"># Shortcut</span></code></pre>
+                <div class="mt-4 grid grid-cols-2 gap-3 text-xs">
+                    <div class="p-3 bg-slate-900/50 rounded">
+                        <div class="text-green-400 font-bold mb-1">Cuándo usar cache()</div>
+                        <div class="text-slate-400">
+                            • Reutilizas un DataFrame múltiples veces<br>
+                            • Algoritmos iterativos (ML)<br>
+                            • Datos intermedios costosos de recomputar
+                        </div>
+                    </div>
+                    <div class="p-3 bg-slate-900/50 rounded">
+                        <div class="text-yellow-400 font-bold mb-1">Cuándo NO usar cache()</div>
+                        <div class="text-slate-400">
+                            • Usas el DataFrame una sola vez<br>
+                            • Datos muy grandes y poca RAM<br>
+                            • Transformaciones simples y baratas
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 7: Reto Conceptual -->
+        <section class="border-t border-slate-800 pt-16">
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center justify-center p-3 rounded-full bg-orange-500/10 border border-orange-500/20 mb-4">
+                    <i data-lucide="code-2" class="w-8 h-8 text-orange-400"></i>
+                </div>
+                <h3 class="text-3xl font-bold text-white">
+                    <span class="text-orange-400">07.</span> Reto Conceptual
+                </h3>
+                <p class="text-slate-400 mt-2">Gradiente Descendente Distribuido</p>
+            </div>
+
+            <div class="glass-card p-8 rounded-2xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">📋 Problema</h4>
+                <p class="text-slate-400 mb-4">
+                    Implementa una iteración de gradiente descendente distribuido para regresión lineal:
+                </p>
+                <div class="math-block mb-6">
+                    $$
+                    \begin{aligned}
+                    \text{Objetivo: } & \min_{\boldsymbol{\theta}} J(\boldsymbol{\theta}) = \frac{1}{2n} \sum_{i=1}^{n} (h_{\boldsymbol{\theta}}(\mathbf{x}_i) - y_i)^2 \\[0.5em]
+                    \text{Actualización: } & \boldsymbol{\theta} := \boldsymbol{\theta} - \alpha \nabla J(\boldsymbol{\theta}) \\[0.5em]
+                    \text{Gradiente: } & \nabla J(\boldsymbol{\theta}) = \frac{1}{n} \sum_{i=1}^{n} (h_{\boldsymbol{\theta}}(\mathbf{x}_i) - y_i) \mathbf{x}_i
+                    \end{aligned}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Donde \(h_{\boldsymbol{\theta}}(\mathbf{x}) = \boldsymbol{\theta}^T \mathbf{x}\) es la predicción.
+                    </div>
+                </div>
+
+                <h5 class="font-bold text-white mb-3">Desafío: ¿Cómo calcular ∇J en paralelo?</h5>
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-blue-500/20 text-blue-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">1</div>
+                        <div>
+                            <strong class="text-white">Broadcast θ:</strong>
+                            <span class="text-slate-400">Enviar parámetros actuales a todos los workers.</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-blue-500/20 text-blue-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">2</div>
+                        <div>
+                            <strong class="text-white">Map (por partición):</strong>
+                            <span class="text-slate-400">Calcular gradiente parcial \(\nabla J_i = \sum_{j \in P_i} (h_{\boldsymbol{\theta}}(\mathbf{x}_j) - y_j) \mathbf{x}_j\).</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-blue-500/20 text-blue-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">3</div>
+                        <div>
+                            <strong class="text-white">Reduce:</strong>
+                            <span class="text-slate-400">Agregar gradientes parciales: \(\nabla J = \frac{1}{n} \sum_{i=1}^{k} \nabla J_i\).</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-4 bg-slate-900/50 rounded-lg">
+                        <div class="bg-blue-500/20 text-blue-400 font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs flex-shrink-0">4</div>
+                        <div>
+                            <strong class="text-white">Actualizar θ:</strong>
+                            <span class="text-slate-400">\(\boldsymbol{\theta}_{\text{new}} = \boldsymbol{\theta}_{\text{old}} - \alpha \nabla J\).</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Esqueleto de Código (para completar)</h4>
+                <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.sql <span class="text-purple-400">import</span> functions <span class="text-purple-400">as</span> F
+<span class="text-purple-400">import</span> numpy <span class="text-purple-400">as</span> np
+
+<span class="text-slate-500"># Parámetros iniciales</span>
+theta = np.array([<span class="text-yellow-300">0.0</span>, <span class="text-yellow-300">0.0</span>, <span class="text-yellow-300">0.0</span>])  <span class="text-slate-500"># p=3 features</span>
+alpha = <span class="text-yellow-300">0.01</span>  <span class="text-slate-500"># Learning rate</span>
+
+<span class="text-purple-400">for</span> iteration <span class="text-purple-400">in</span> <span class="text-yellow-300">range</span>(<span class="text-yellow-300">100</span>):
+    <span class="text-slate-500"># TODO 1: Broadcast theta</span>
+    bc_theta = <span class="text-slate-500"># ...</span>
+
+    <span class="text-slate-500"># TODO 2: Calcular gradiente parcial en cada partición</span>
+    <span class="text-purple-400">def</span> <span class="text-blue-400">compute_gradient</span>(features, label):
+        <span class="text-slate-500"># features: Vector de features</span>
+        <span class="text-slate-500"># label: y real</span>
+        <span class="text-slate-500"># Retornar: (error × features)</span>
+        <span class="text-purple-400">pass</span>
+
+    <span class="text-slate-500"># TODO 3: Reduce (agregar gradientes)</span>
+    gradient = <span class="text-slate-500"># ...</span>
+
+    <span class="text-slate-500"># TODO 4: Actualizar theta</span>
+    theta = <span class="text-slate-500"># ...</span>
+
+    <span class="text-blue-400">print</span>(<span class="text-green-300">f"Iteration </span>{iteration}<span class="text-green-300">: theta = </span>{theta}<span class="text-green-300">"</span>)</code></pre>
+            </div>
+
+            <div class="mt-8 p-6 bg-gradient-to-r from-orange-900/20 to-red-900/20 border border-orange-500/20 rounded-xl">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="trophy" class="w-6 h-6 text-yellow-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">🎯 Objetivo de Aprendizaje</h4>
+                        <p class="text-sm text-slate-400">
+                            Este ejercicio demuestra cómo algoritmos iterativos (ML) se ejecutan en Spark.
+                            Cada iteración requiere: broadcast de parámetros, map (computar local), reduce (agregar),
+                            y actualización. Es el núcleo de algoritmos como SGD, Adam, etc.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion_13.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--ml-orange)] transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span class="text-slate-400">Volver al Hub</span>
+                </a>
+
+                <a href="seccion13_2.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--ml-orange)] transition">
+                    <span class="text-slate-400">Siguiente: Pipelines</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
+    </script>
+</body>
+</html>
