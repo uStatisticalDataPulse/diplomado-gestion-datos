@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sección 16: MLOps - Diplomado USTA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mlops: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0c1821 0%, #0e3a4f 50%, #0f5264 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(6, 182, 212, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(6, 182, 212, 0.15);
+        }
+        .glass-card:hover {
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(6, 182, 212, 0.25);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        .concept-card {
+            background: rgba(103, 232, 249, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(103, 232, 249, 0.2);
+        }
+        .btn-mlops {
+            background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%);
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+        }
+        .btn-mlops:hover {
+            background: linear-gradient(135deg, #0891b2 0%, #0d9488 100%);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+        }
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+
+    <!-- Header -->
+    <header class="glass-card sticky top-0 z-50 mb-8">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i data-lucide="rocket" class="w-8 h-8 text-mlops-400"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold text-mlops-300">Sección 16: MLOps</h1>
+                        <p class="text-sm text-gray-400">Machine Learning Operations en Producción</p>
+                    </div>
+                </div>
+                <a href="index.html" class="flex items-center space-x-2 text-mlops-300 hover:text-mlops-200 transition-colors">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span>Inicio</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 pb-12">
+
+        <!-- Introducción -->
+        <section class="mb-12">
+            <div class="glass-card rounded-2xl p-8">
+                <div class="flex items-start space-x-4 mb-6">
+                    <div class="bg-mlops-600 p-3 rounded-lg">
+                        <i data-lucide="cog" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-3xl font-bold text-mlops-300 mb-4">MLOps: Del Notebook a Producción</h2>
+                        <p class="text-gray-300 text-lg leading-relaxed mb-4">
+                            <strong>MLOps</strong> (Machine Learning Operations) es la disciplina que aplica principios de DevOps
+                            al ciclo de vida completo de sistemas de machine learning, desde el desarrollo hasta el despliegue,
+                            monitoreo y mantenimiento en producción. Es el puente entre la experimentación en notebooks y
+                            sistemas ML robustos, escalables y confiables.
+                        </p>
+                        <div class="bg-mlops-900/30 border border-mlops-500/30 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-mlops-300 mb-3 flex items-center">
+                                <i data-lucide="info" class="w-5 h-5 mr-2"></i>
+                                El Problema Fundamental
+                            </h3>
+                            <p class="text-gray-300 mb-4">
+                                Mientras que el software tradicional es <em>determinístico</em> (misma entrada → misma salida),
+                                los sistemas ML son <strong>estocásticos</strong> y dependen de datos que evolucionan en el tiempo:
+                            </p>
+                            <div class="bg-gray-900/50 rounded-lg p-4">
+$$
+\begin{aligned}
+&\text{Software tradicional: } f(x) = y \quad \text{(determinístico)} \\[0.5em]
+&\text{Sistema ML: } f_\theta(x) \sim p(y|x, \theta, \mathcal{D}_{\text{train}}) \quad \text{(estocástico)} \\[0.5em]
+&\text{Con drift: } \mathcal{D}_{\text{train}} \neq \mathcal{D}_{\text{prod}}(t) \quad \Rightarrow \quad \text{Performance decay}
+\end{aligned}
+$$
+                            </div>
+                            <p class="text-gray-400 text-sm mt-3">
+                                Este desacoplamiento entre entrenamiento y producción introduce desafíos únicos que MLOps
+                                busca resolver sistemáticamente.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 1: ¿Qué es MLOps? -->
+        <section class="mb-12">
+            <div class="concept-card rounded-2xl p-8">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-mlops-600 p-2 rounded-lg">
+                        <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-mlops-300">1. ¿Qué es MLOps?</h3>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-xl font-semibold text-mlops-200 mb-3">Definición y Alcance</h4>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            MLOps es la intersección de tres disciplinas:
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6">
+                        <pre class="mermaid">
+graph TD
+    A[MLOps] --> B[Machine Learning]
+    A --> C[DevOps]
+    A --> D[Data Engineering]
+
+    B --> B1[Model Development]
+    B --> B2[Feature Engineering]
+    B --> B3[Hyperparameter Tuning]
+
+    C --> C1[CI/CD]
+    C --> C2[Infrastructure as Code]
+    C --> C3[Monitoring & Alerting]
+
+    D --> D1[Data Pipelines]
+    D --> D2[Data Quality]
+    D --> D3[Data Versioning]
+
+    A --> E[Producción ML Confiable]
+
+    style A fill:#06b6d4,stroke:#22d3ee,color:#fff
+    style E fill:#10b981,stroke:#34d399,color:#fff
+                        </pre>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-mlops-200 mb-3">Comparación: DevOps vs MLOps</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-mlops-500/30">
+                                        <th class="text-left py-3 px-4 text-mlops-300">Aspecto</th>
+                                        <th class="text-left py-3 px-4 text-blue-300">DevOps (Software)</th>
+                                        <th class="text-left py-3 px-4 text-mlops-300">MLOps (ML)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Artefacto Principal</td>
+                                        <td class="py-3 px-4">Código fuente</td>
+                                        <td class="py-3 px-4">Código + Datos + Modelo</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Determinismo</td>
+                                        <td class="py-3 px-4">Determinístico</td>
+                                        <td class="py-3 px-4">Estocástico (depende de datos)</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Testing</td>
+                                        <td class="py-3 px-4">Tests unitarios, integración</td>
+                                        <td class="py-3 px-4">Tests + validación estadística</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Deployment</td>
+                                        <td class="py-3 px-4">Una vez, estable</td>
+                                        <td class="py-3 px-4">Continuo (reentrenamiento)</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Monitoreo</td>
+                                        <td class="py-3 px-4">Latencia, errors, uptime</td>
+                                        <td class="py-3 px-4">+ Data drift, model drift, accuracy</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Degradación</td>
+                                        <td class="py-3 px-4">Por bugs en código</td>
+                                        <td class="py-3 px-4">Por cambios en distribución de datos</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-semibold">Reproducibilidad</td>
+                                        <td class="py-3 px-4">Git commit hash</td>
+                                        <td class="py-3 px-4">Git + data version + environment</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-orange-900/20 border border-orange-500/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-orange-300 mb-3">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 inline mr-2"></i>
+                            La Brecha Notebook-Producción
+                        </h4>
+                        <p class="text-gray-300 mb-4 text-sm">
+                            Solo el <strong>13%</strong> de los modelos ML desarrollados llegan a producción (Gartner 2021).
+                            Las causas principales:
+                        </p>
+                        <ul class="space-y-2 text-gray-300 text-sm">
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2">•</span>
+                                <div>
+                                    <strong>Falta de reproducibilidad:</strong> "Funcionaba en mi notebook" (diferencias en
+                                    environment, datos, seeds)
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2">•</span>
+                                <div>
+                                    <strong>Escalabilidad:</strong> Modelo entrenado con 10K filas no escala a 100M en producción
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2">•</span>
+                                <div>
+                                    <strong>Mantenimiento:</strong> Sin monitoreo, los modelos se degradan silenciosamente
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2">•</span>
+                                <div>
+                                    <strong>Colaboración:</strong> Código no modular, sin versionamiento, experimentos perdidos
+                                </div>
+                            </li>
+                        </ul>
+                        <p class="text-gray-400 text-xs mt-3">
+                            MLOps provee frameworks, herramientas y prácticas para cerrar esta brecha sistemáticamente.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: Ciclo de Vida -->
+        <section class="mb-12">
+            <div class="concept-card rounded-2xl p-8">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-mlops-600 p-2 rounded-lg">
+                        <i data-lucide="repeat" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-mlops-300">2. El Ciclo de Vida de ML en Producción</h3>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-xl font-semibold text-mlops-200 mb-3">Etapas del ML Lifecycle</h4>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            A diferencia del desarrollo de software lineal, ML es un proceso <strong>cíclico</strong>
+                            que requiere reentrenamiento continuo:
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6">
+                        <pre class="mermaid">
+graph LR
+    A[1. Data Collection] --> B[2. Data Preparation]
+    B --> C[3. Feature Engineering]
+    C --> D[4. Model Training]
+    D --> E[5. Model Evaluation]
+    E --> F{Aprobado?}
+    F -->|No| C
+    F -->|Sí| G[6. Model Registry]
+    G --> H[7. Deployment]
+    H --> I[8. Monitoring]
+    I --> J{Drift?}
+    J -->|Sí| A
+    J -->|No| I
+
+    style A fill:#3b82f6,stroke:#60a5fa,color:#fff
+    style D fill:#a855f7,stroke:#c084fc,color:#fff
+    style G fill:#f59e0b,stroke:#fbbf24,color:#000
+    style H fill:#10b981,stroke:#34d399,color:#fff
+    style I fill:#ef4444,stroke:#f87171,color:#fff
+                        </pre>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Etapas 1-4 -->
+                        <div class="bg-gray-900/50 rounded-lg p-6">
+                            <h5 class="text-lg font-semibold text-mlops-300 mb-3">Etapas 1-4: Desarrollo</h5>
+                            <div class="space-y-3 text-sm">
+                                <div>
+                                    <p class="font-semibold text-blue-300">1. Data Collection</p>
+                                    <p class="text-gray-400 text-xs">Ingestión de datos raw desde múltiples fuentes (batch/streaming)</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-blue-300">2. Data Preparation</p>
+                                    <p class="text-gray-400 text-xs">Limpieza, validación, deduplicación, splits train/val/test</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-purple-300">3. Feature Engineering</p>
+                                    <p class="text-gray-400 text-xs">Transformaciones, encoding, agregaciones, feature store</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-purple-300">4. Model Training</p>
+                                    <p class="text-gray-400 text-xs">Entrenamiento distribuido, tuning, experiment tracking</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Etapas 5-8 -->
+                        <div class="bg-gray-900/50 rounded-lg p-6">
+                            <h5 class="text-lg font-semibold text-mlops-300 mb-3">Etapas 5-8: Producción</h5>
+                            <div class="space-y-3 text-sm">
+                                <div>
+                                    <p class="font-semibold text-purple-300">5. Model Evaluation</p>
+                                    <p class="text-gray-400 text-xs">Validación estadística, A/B testing, aprobación humana</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-orange-300">6. Model Registry</p>
+                                    <p class="text-gray-400 text-xs">Catálogo centralizado, versionamiento, metadata, linaje</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-green-300">7. Deployment</p>
+                                    <p class="text-gray-400 text-xs">Canary, blue/green, shadow, batch inference</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-red-300">8. Monitoring</p>
+                                    <p class="text-gray-400 text-xs">Métricas de negocio, drift detection, alertas, rollback</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-mlops-900/30 border border-mlops-500/30 rounded-lg p-6">
+                        <h5 class="text-lg font-semibold text-mlops-200 mb-3">Frecuencia de Reentrenamiento</h5>
+                        <p class="text-gray-300 mb-4 text-sm">
+                            La cadencia de reentrenamiento depende de la velocidad del drift y criticidad del sistema:
+                        </p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead>
+                                    <tr class="border-b border-mlops-500/30">
+                                        <th class="text-left py-2 px-3 text-mlops-300">Escenario</th>
+                                        <th class="text-left py-2 px-3">Frecuencia</th>
+                                        <th class="text-left py-2 px-3">Ejemplo</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3">Datos estacionarios</td>
+                                        <td class="py-2 px-3">Mensual / Trimestral</td>
+                                        <td class="py-2 px-3">Predicción de fraude con tarjetas</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3">Drift moderado</td>
+                                        <td class="py-2 px-3">Semanal</td>
+                                        <td class="py-2 px-3">Recomendaciones de productos</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3">Drift rápido</td>
+                                        <td class="py-2 px-3">Diario</td>
+                                        <td class="py-2 px-3">Trading algorítmico</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 px-3">Online learning</td>
+                                        <td class="py-2 px-3">Tiempo real</td>
+                                        <td class="py-2 px-3">Filtros de spam, bandits</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: Desafíos Únicos -->
+        <section class="mb-12">
+            <div class="concept-card rounded-2xl p-8">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-mlops-600 p-2 rounded-lg">
+                        <i data-lucide="alert-circle" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-mlops-300">3. Desafíos Únicos de ML vs Software Tradicional</h3>
+                </div>
+
+                <div class="space-y-6">
+                    <p class="text-gray-300 leading-relaxed">
+                        Los sistemas ML introducen complejidades que no existen en software tradicional:
+                    </p>
+
+                    <!-- Desafío 1: Data Drift -->
+                    <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-6">
+                        <div class="flex items-center space-x-2 mb-3">
+                            <i data-lucide="trending-down" class="w-5 h-5 text-red-400"></i>
+                            <h5 class="text-lg font-semibold text-red-300">1. Data Drift (Cambio en Distribución de Datos)</h5>
+                        </div>
+                        <p class="text-gray-300 mb-3 text-sm">
+                            Las distribuciones de features cambian en el tiempo, invalidando el modelo entrenado:
+                        </p>
+                        <div class="bg-gray-900/50 rounded p-4">
+$$
+\begin{aligned}
+&P_{\text{train}}(X) \neq P_{\text{prod}}(X, t) \\[0.5em]
+&\text{Ejemplo: } \mathbb{E}_{\text{train}}[\text{age}] = 35 \quad \Rightarrow \quad \mathbb{E}_{\text{prod}}[\text{age}] = 42 \quad (+20\%)
+\end{aligned}
+$$
+                        </div>
+                        <p class="text-gray-400 text-xs mt-3">
+                            <strong>Detección:</strong> Test Kolmogorov-Smirnov, Population Stability Index (PSI),
+                            comparación de estadísticos (media, std, quantiles).
+                        </p>
+                    </div>
+
+                    <!-- Desafío 2: Model Drift -->
+                    <div class="bg-orange-900/20 border border-orange-500/30 rounded-lg p-6">
+                        <div class="flex items-center space-x-2 mb-3">
+                            <i data-lucide="activity" class="w-5 h-5 text-orange-400"></i>
+                            <h5 class="text-lg font-semibold text-orange-300">2. Model Drift (Degradación de Performance)</h5>
+                        </div>
+                        <p class="text-gray-300 mb-3 text-sm">
+                            La relación entre features y target cambia (concept drift):
+                        </p>
+                        <div class="bg-gray-900/50 rounded p-4">
+$$
+\begin{aligned}
+&P_{\text{train}}(Y|X) \neq P_{\text{prod}}(Y|X, t) \\[0.5em]
+&\text{Ejemplo: } \text{AUC}_{\text{train}} = 0.85 \quad \Rightarrow \quad \text{AUC}_{\text{prod}}(t) = 0.72 \quad (-15\%)
+\end{aligned}
+$$
+                        </div>
+                        <p class="text-gray-400 text-xs mt-3">
+                            <strong>Detección:</strong> Monitoreo continuo de métricas (accuracy, precision, recall),
+                            A/B testing periódico contra modelo reciente.
+                        </p>
+                    </div>
+
+                    <!-- Desafío 3: Reproducibilidad -->
+                    <div class="bg-purple-900/20 border border-purple-500/30 rounded-lg p-6">
+                        <div class="flex items-center space-x-2 mb-3">
+                            <i data-lucide="refresh-cw" class="w-5 h-5 text-purple-400"></i>
+                            <h5 class="text-lg font-semibold text-purple-300">3. Reproducibilidad Total</h5>
+                        </div>
+                        <p class="text-gray-300 mb-3 text-sm">
+                            Reproducir exactamente un modelo requiere capturar:
+                        </p>
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <div class="bg-gray-900/50 rounded p-3">
+                                <p class="text-xs font-semibold text-purple-300 mb-2">1. Código</p>
+                                <ul class="text-gray-400 text-xs space-y-1">
+                                    <li>• Git commit hash</li>
+                                    <li>• Dependencies (requirements.txt)</li>
+                                    <li>• Environment (Python, Spark versions)</li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-900/50 rounded p-3">
+                                <p class="text-xs font-semibold text-purple-300 mb-2">2. Datos</p>
+                                <ul class="text-gray-400 text-xs space-y-1">
+                                    <li>• Data version/snapshot</li>
+                                    <li>• Train/val/test splits (seeds)</li>
+                                    <li>• Feature transformations</li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-900/50 rounded p-3">
+                                <p class="text-xs font-semibold text-purple-300 mb-2">3. Hiperparámetros</p>
+                                <ul class="text-gray-400 text-xs space-y-1">
+                                    <li>• Configuración completa</li>
+                                    <li>• Random seeds</li>
+                                    <li>• Hardware specs (GPU)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Desafío 4: Testing -->
+                    <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                        <div class="flex items-center space-x-2 mb-3">
+                            <i data-lucide="check-square" class="w-5 h-5 text-blue-400"></i>
+                            <h5 class="text-lg font-semibold text-blue-300">4. Testing Multi-Dimensional</h5>
+                        </div>
+                        <p class="text-gray-300 mb-3 text-sm">
+                            Tests tradicionales no son suficientes, se requieren múltiples niveles:
+                        </p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead>
+                                    <tr class="border-b border-blue-500/30">
+                                        <th class="text-left py-2 px-3 text-blue-300">Tipo de Test</th>
+                                        <th class="text-left py-2 px-3">Qué Valida</th>
+                                        <th class="text-left py-2 px-3">Ejemplo</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3 font-semibold">Unit Tests</td>
+                                        <td class="py-2 px-3">Transformaciones individuales</td>
+                                        <td class="py-2 px-3 text-xs">assert scaler.mean == 0</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3 font-semibold">Integration Tests</td>
+                                        <td class="py-2 px-3">Pipeline end-to-end</td>
+                                        <td class="py-2 px-3 text-xs">Pipeline produce output shape correcto</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3 font-semibold">Data Tests</td>
+                                        <td class="py-2 px-3">Calidad y schema de datos</td>
+                                        <td class="py-2 px-3 text-xs">assert df.isna().sum() == 0</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3 font-semibold">Model Tests</td>
+                                        <td class="py-2 px-3">Métricas mínimas</td>
+                                        <td class="py-2 px-3 text-xs">assert AUC > 0.80</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 px-3 font-semibold">A/B Tests</td>
+                                        <td class="py-2 px-3">Mejora sobre modelo actual</td>
+                                        <td class="py-2 px-3 text-xs">Significancia estadística (p&lt;0.05)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Desafío 5: Escalabilidad -->
+                    <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-6">
+                        <div class="flex items-center space-x-2 mb-3">
+                            <i data-lucide="zap" class="w-5 h-5 text-green-400"></i>
+                            <h5 class="text-lg font-semibold text-green-300">5. Escalabilidad de Entrenamiento e Inferencia</h5>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-semibold text-green-300 mb-2">Entrenamiento Distribuido</p>
+                                <ul class="text-gray-400 text-xs space-y-1">
+                                    <li>• Datasets de TB no caben en memoria</li>
+                                    <li>• Spark ML para paralelización automática</li>
+                                    <li>• GPU clusters para deep learning</li>
+                                    <li>• Checkpointing para tolerancia a fallos</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-green-300 mb-2">Inferencia a Escala</p>
+                                <ul class="text-gray-400 text-xs space-y-1">
+                                    <li>• Batch: procesar millones de rows/día</li>
+                                    <li>• Real-time: latencia &lt;100ms, 10K req/s</li>
+                                    <li>• Streaming: procesar eventos continuos</li>
+                                    <li>• Edge: deployment en dispositivos IoT</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Navegación a Sub-módulos -->
+        <section>
+            <div class="glass-card rounded-2xl p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-mlops-300 mb-4">Explora los Módulos de MLOps</h2>
+                    <p class="text-gray-400">Domina las herramientas y prácticas para ML en producción</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Módulo 1 -->
+                    <a href="seccion16_1.html" class="glass-card rounded-xl p-6 hover:scale-105 transition-all duration-300 block">
+                        <div class="bg-gradient-to-br from-orange-600 to-yellow-600 w-16 h-16 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                            <i data-lucide="database" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-mlops-300 text-center mb-3">Model Registry & Versioning</h3>
+                        <p class="text-gray-400 text-sm text-center mb-4">
+                            Catálogo centralizado de modelos, versionamiento semántico, metadata tracking, y reproducibilidad completa.
+                        </p>
+                        <div class="flex items-center justify-center space-x-2 text-mlops-400">
+                            <span class="text-sm font-semibold">Explorar</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </div>
+                    </a>
+
+                    <!-- Módulo 2 -->
+                    <a href="seccion16_2.html" class="glass-card rounded-xl p-6 hover:scale-105 transition-all duration-300 block">
+                        <div class="bg-gradient-to-br from-green-600 to-teal-600 w-16 h-16 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                            <i data-lucide="server" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-mlops-300 text-center mb-3">Deployment & Monitoring</h3>
+                        <p class="text-gray-400 text-sm text-center mb-4">
+                            Patrones de deployment (batch/real-time), serving en Spark, detección de drift, y alertas automáticas.
+                        </p>
+                        <div class="flex items-center justify-center space-x-2 text-mlops-400">
+                            <span class="text-sm font-semibold">Explorar</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </div>
+                    </a>
+
+                    <!-- Módulo 3 -->
+                    <a href="seccion16_3.html" class="glass-card rounded-xl p-6 hover:scale-105 transition-all duration-300 block">
+                        <div class="bg-gradient-to-br from-red-600 to-pink-600 w-16 h-16 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                            <i data-lucide="git-merge" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-mlops-300 text-center mb-3">Reto: CI/CD para ML</h3>
+                        <p class="text-gray-400 text-sm text-center mb-4">
+                            Desafío integral: construye pipeline CI/CD completo con tests, validación automática, y rollback.
+                        </p>
+                        <div class="flex items-center justify-center space-x-2 text-mlops-400">
+                            <span class="text-sm font-semibold">Comenzar reto</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="mt-8 text-center">
+                    <a href="index.html" class="btn-mlops text-white px-8 py-3 rounded-lg inline-flex items-center space-x-2 hover:scale-105 transition-all duration-300">
+                        <i data-lucide="home" class="w-5 h-5"></i>
+                        <span class="font-semibold">Volver al Inicio</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#06b6d4',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#22d3ee',
+                lineColor: '#67e8f9',
+                secondaryColor: '#0891b2',
+                tertiaryColor: '#164e63'
+            }
+        });
+    </script>
+</body>
+</html>

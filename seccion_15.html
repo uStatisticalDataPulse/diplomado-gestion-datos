@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sección 15: Tuning de Hiperparámetros - Diplomado USTA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        tuning: {
+                            50: '#faf5ff',
+                            100: '#f3e8ff',
+                            200: '#e9d5ff',
+                            300: '#d8b4fe',
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7e22ce',
+                            800: '#6b21a8',
+                            900: '#581c87',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0c29 0%, #1a0933 50%, #24144d 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(147, 51, 234, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(147, 51, 234, 0.15);
+        }
+        .glass-card:hover {
+            background: rgba(147, 51, 234, 0.08);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(147, 51, 234, 0.25);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        .concept-card {
+            background: rgba(192, 132, 252, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(192, 132, 252, 0.2);
+        }
+        .btn-tuning {
+            background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%);
+            box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+        }
+        .btn-tuning:hover {
+            background: linear-gradient(135deg, #7e22ce 0%, #9333ea 100%);
+            box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
+        }
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #a855f7, transparent);
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+
+    <!-- Header -->
+    <header class="glass-card sticky top-0 z-50 mb-8">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i data-lucide="sliders" class="w-8 h-8 text-tuning-400"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold text-tuning-300">Sección 15: Tuning de Hiperparámetros</h1>
+                        <p class="text-sm text-gray-400">Optimización del Espacio de Configuración</p>
+                    </div>
+                </div>
+                <a href="index.html" class="flex items-center space-x-2 text-tuning-300 hover:text-tuning-200 transition-colors">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span>Inicio</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 pb-12">
+
+        <!-- Introducción -->
+        <section class="mb-12">
+            <div class="glass-card rounded-2xl p-8">
+                <div class="flex items-start space-x-4 mb-6">
+                    <div class="bg-tuning-600 p-3 rounded-lg">
+                        <i data-lucide="settings-2" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-3xl font-bold text-tuning-300 mb-4">Optimización de Hiperparámetros en Spark ML</h2>
+                        <p class="text-gray-300 text-lg leading-relaxed mb-4">
+                            El <strong>tuning</strong> de hiperparámetros es el proceso de búsqueda sistemática en el espacio de configuración
+                            de un modelo de machine learning para encontrar la combinación óptima que maximiza el rendimiento en datos no vistos.
+                            A diferencia de los <em>parámetros del modelo</em> (como pesos en regresión), que se aprenden durante el entrenamiento,
+                            los <strong>hiperparámetros</strong> deben ser especificados antes del entrenamiento.
+                        </p>
+                        <div class="bg-tuning-900/30 border border-tuning-500/30 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold text-tuning-300 mb-3 flex items-center">
+                                <i data-lucide="info" class="w-5 h-5 mr-2"></i>
+                                Definición Formal
+                            </h3>
+                            <p class="text-gray-300 mb-4">
+                                Dado un espacio de hiperparámetros <strong>Θ</strong> y una función de pérdida <strong>L</strong>,
+                                el problema de tuning se formula como:
+                            </p>
+                            <div class="bg-gray-900/50 rounded-lg p-4 font-mono text-sm">
+$$
+\lambda^* = \underset{\lambda \in \Theta}{\text{argmin}} \, \mathbb{E}_{(X,Y) \sim \mathcal{D}_{\text{val}}} \left[ L(f_\lambda(X), Y) \right]
+$$
+                            </div>
+                            <p class="text-gray-400 text-sm mt-3">
+                                Donde <strong>λ</strong> representa una configuración de hiperparámetros, <strong>f<sub>λ</sub></strong>
+                                es el modelo resultante, y la esperanza se toma sobre datos de validación.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 1: Hiperparámetros vs Parámetros -->
+        <section class="mb-12">
+            <div class="concept-card rounded-2xl p-8">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-tuning-600 p-2 rounded-lg">
+                        <i data-lucide="git-compare" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-tuning-300">1. Hiperparámetros vs Parámetros del Modelo</h3>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-xl font-semibold text-tuning-200 mb-3">Distinción Fundamental</h4>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Es crucial entender la diferencia entre estos dos tipos de configuraciones:
+                        </p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Parámetros -->
+                        <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-6">
+                            <div class="flex items-center space-x-2 mb-4">
+                                <i data-lucide="trending-up" class="w-5 h-5 text-green-400"></i>
+                                <h5 class="text-lg font-semibold text-green-300">Parámetros (θ)</h5>
+                            </div>
+                            <ul class="space-y-2 text-gray-300 text-sm">
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2">•</span>
+                                    <span><strong>Aprendidos</strong> durante el entrenamiento</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2">•</span>
+                                    <span>Optimizados por algoritmo (gradiente descendente, etc.)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2">•</span>
+                                    <span>Ejemplos: pesos <strong>w</strong> y sesgos <strong>b</strong> en regresión</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2">•</span>
+                                    <span>Resultado directo del proceso de minimización de pérdida</span>
+                                </li>
+                            </ul>
+                            <div class="mt-4 bg-gray-900/50 rounded p-3">
+                                <code class="text-xs text-green-300">
+                                    θ* = argmin<sub>θ</sub> L(X, y; θ)
+                                </code>
+                            </div>
+                        </div>
+
+                        <!-- Hiperparámetros -->
+                        <div class="bg-tuning-900/20 border border-tuning-500/30 rounded-lg p-6">
+                            <div class="flex items-center space-x-2 mb-4">
+                                <i data-lucide="settings" class="w-5 h-5 text-tuning-400"></i>
+                                <h5 class="text-lg font-semibold text-tuning-300">Hiperparámetros (λ)</h5>
+                            </div>
+                            <ul class="space-y-2 text-gray-300 text-sm">
+                                <li class="flex items-start">
+                                    <span class="text-tuning-400 mr-2">•</span>
+                                    <span><strong>Definidos antes</strong> del entrenamiento</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-tuning-400 mr-2">•</span>
+                                    <span>Controlan el proceso de aprendizaje</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-tuning-400 mr-2">•</span>
+                                    <span>Ejemplos: learning rate, regularización, maxDepth en árboles</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-tuning-400 mr-2">•</span>
+                                    <span>Requieren búsqueda externa al algoritmo de entrenamiento</span>
+                                </li>
+                            </ul>
+                            <div class="mt-4 bg-gray-900/50 rounded p-3">
+                                <code class="text-xs text-tuning-300">
+                                    λ* = argmin<sub>λ</sub> E<sub>val</sub>[L(X, y; θ*(λ))]
+                                </code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6 mt-6">
+                        <h5 class="text-lg font-semibold text-tuning-200 mb-3">Ejemplos Concretos en Spark ML</h5>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-tuning-500/30">
+                                        <th class="text-left py-3 px-4 text-tuning-300">Modelo</th>
+                                        <th class="text-left py-3 px-4 text-green-300">Parámetros (aprendidos)</th>
+                                        <th class="text-left py-3 px-4 text-tuning-300">Hiperparámetros (config)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Regresión Lineal</td>
+                                        <td class="py-3 px-4">Coeficientes β, intercepto b</td>
+                                        <td class="py-3 px-4">regParam, elasticNetParam, maxIter</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Random Forest</td>
+                                        <td class="py-3 px-4">Estructura de árboles, splits</td>
+                                        <td class="py-3 px-4">numTrees, maxDepth, maxBins, subsamplingRate</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Gradient Boosting</td>
+                                        <td class="py-3 px-4">Pesos de árboles débiles</td>
+                                        <td class="py-3 px-4">maxIter, stepSize, maxDepth, subsamplingRate</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-semibold">Red Neuronal</td>
+                                        <td class="py-3 px-4">Pesos W y sesgos b de capas</td>
+                                        <td class="py-3 px-4">layers (arquitectura), maxIter, blockSize, stepSize</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: El Problema de Optimización -->
+        <section class="mb-12">
+            <div class="concept-card rounded-2xl p-8">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-tuning-600 p-2 rounded-lg">
+                        <i data-lucide="target" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-tuning-300">2. El Problema de Optimización en el Espacio de Hiperparámetros</h3>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-xl font-semibold text-tuning-200 mb-3">Formalización Matemática</h4>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            El espacio de hiperparámetros <strong>Θ</strong> es típicamente un producto cartesiano de espacios individuales:
+                        </p>
+                        <div class="bg-gray-900/50 rounded-lg p-6">
+$$
+\Theta = \Theta_1 \times \Theta_2 \times \cdots \times \Theta_n
+$$
+                            <p class="text-gray-400 text-sm mt-4">
+                                Donde cada <strong>Θ<sub>i</sub></strong> puede ser discreto (ej: {10, 50, 100} para numTrees)
+                                o continuo (ej: [0.001, 1.0] para regParam).
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-orange-900/20 border border-orange-500/30 rounded-lg p-6">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-400"></i>
+                            <h5 class="text-lg font-semibold text-orange-300">Desafíos Computacionales</h5>
+                        </div>
+                        <ul class="space-y-3 text-gray-300">
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2 font-bold">1.</span>
+                                <div>
+                                    <strong>Explosión Combinatoria:</strong> Con <em>n</em> hiperparámetros y <em>p<sub>i</sub></em>
+                                    valores candidatos para cada uno, el espacio tiene tamaño:
+                                    <div class="bg-gray-900/50 rounded p-3 mt-2 font-mono text-sm">
+                                        |Θ| = p₁ × p₂ × ... × pₙ
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2 font-bold">2.</span>
+                                <div>
+                                    <strong>Función Objetivo No Diferenciable:</strong> La función E<sub>val</sub>[L(λ)] es típicamente
+                                    no convexa, no diferenciable, y ruidosa (varía con el fold de validación).
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2 font-bold">3.</span>
+                                <div>
+                                    <strong>Costo de Evaluación:</strong> Cada evaluación de la función objetivo requiere
+                                    entrenar un modelo completo sobre todo el dataset (O(N) operaciones distribuidas).
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2 font-bold">4.</span>
+                                <div>
+                                    <strong>Interacciones entre Hiperparámetros:</strong> Los efectos no son aditivos,
+                                    lo que dificulta la optimización por coordenadas.
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xl font-semibold text-tuning-200 mb-3">Visualización del Espacio de Búsqueda</h4>
+                        <div class="bg-gray-900/50 rounded-lg p-6">
+                            <pre class="mermaid">
+graph TD
+    A[Espacio de Hiperparámetros Θ] --> B[Discreto]
+    A --> C[Continuo]
+    A --> D[Mixto]
+
+    B --> B1["numTrees ∈ {10, 50, 100}"]
+    B --> B2["maxDepth ∈ {5, 10, 15, 20}"]
+
+    C --> C1["regParam ∈ [0.001, 10.0]"]
+    C --> C2["learningRate ∈ [0.01, 0.5]"]
+
+    D --> D1["numTrees (discreto)"]
+    D --> D2["subsamplingRate (continuo)"]
+
+    B1 --> E["|Θ| = 3 × 4 = 12 configs"]
+    B2 --> E
+
+    style A fill:#9333ea,stroke:#a855f7,color:#fff
+    style E fill:#7e22ce,stroke:#9333ea,color:#fff
+                            </pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-tuning-900/30 border border-tuning-500/30 rounded-lg p-6">
+                        <h5 class="text-lg font-semibold text-tuning-200 mb-3">Ejemplo Numérico: Complejidad Combinatoria</h5>
+                        <p class="text-gray-300 mb-4">
+                            Considera un Random Forest con 4 hiperparámetros:
+                        </p>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-gray-900/50 rounded p-4">
+                                <p class="text-sm text-gray-400 mb-2">Configuración de búsqueda:</p>
+                                <ul class="space-y-1 text-gray-300 text-sm font-mono">
+                                    <li>• numTrees: [10, 50, 100, 200] → 4 valores</li>
+                                    <li>• maxDepth: [5, 10, 15, 20] → 4 valores</li>
+                                    <li>• maxBins: [16, 32, 64] → 3 valores</li>
+                                    <li>• subsamplingRate: [0.6, 0.8, 1.0] → 3 valores</li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-900/50 rounded p-4 flex items-center justify-center">
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-400 mb-2">Total de configuraciones:</p>
+                                    <p class="text-3xl font-bold text-tuning-300">4 × 4 × 3 × 3 = 144</p>
+                                    <p class="text-xs text-gray-500 mt-2">Con 5-fold CV: 144 × 5 = 720 entrenamientos</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-sm">
+                            Si cada entrenamiento toma 2 minutos en el cluster, el tuning completo requiere
+                            <strong class="text-tuning-300">24 horas</strong> de tiempo de cómputo (sin paralelización).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: Estrategias de Búsqueda -->
+        <section class="mb-12">
+            <div class="concept-card rounded-2xl p-8">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-tuning-600 p-2 rounded-lg">
+                        <i data-lucide="search" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-tuning-300">3. Estrategias de Búsqueda: Grid vs Random vs Bayesian</h3>
+                </div>
+
+                <div class="space-y-6">
+                    <p class="text-gray-300 leading-relaxed">
+                        Existen tres paradigmas principales para explorar el espacio de hiperparámetros, cada uno con
+                        garantías teóricas y trade-offs computacionales diferentes:
+                    </p>
+
+                    <!-- Grid Search -->
+                    <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i data-lucide="grid-3x3" class="w-5 h-5 text-blue-400"></i>
+                            <h5 class="text-lg font-semibold text-blue-300">Grid Search (Búsqueda Exhaustiva)</h5>
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-gray-300 text-sm">
+                                <strong>Estrategia:</strong> Evalúa todas las combinaciones en un grid discreto predefinido.
+                            </p>
+                            <div class="bg-gray-900/50 rounded p-4">
+$$
+\lambda^* = \underset{\lambda \in \Theta_{\text{grid}}}{\text{argmin}} \, CV(\lambda)
+$$
+                                <p class="text-gray-400 text-xs mt-2">
+                                    Donde Θ<sub>grid</sub> = {λ₁, λ₂, ..., λₙ} es el conjunto finito de configuraciones.
+                                </p>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm font-semibold text-green-400 mb-2">Ventajas:</p>
+                                    <ul class="text-gray-300 text-xs space-y-1">
+                                        <li>✓ Paralelizable completamente</li>
+                                        <li>✓ Garantiza encontrar el óptimo en el grid</li>
+                                        <li>✓ Reproducible y determinístico</li>
+                                        <li>✓ Fácil de implementar</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-red-400 mb-2">Desventajas:</p>
+                                    <ul class="text-gray-300 text-xs space-y-1">
+                                        <li>✗ Explosión combinatoria O(p₁×p₂×...×pₙ)</li>
+                                        <li>✗ Ineficiente en dimensiones altas</li>
+                                        <li>✗ Desperdicia recursos en regiones malas</li>
+                                        <li>✗ Requiere discretización de continuos</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Random Search -->
+                    <div class="bg-purple-900/20 border border-purple-500/30 rounded-lg p-6">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i data-lucide="shuffle" class="w-5 h-5 text-purple-400"></i>
+                            <h5 class="text-lg font-semibold text-purple-300">Random Search (Búsqueda Aleatoria)</h5>
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-gray-300 text-sm">
+                                <strong>Estrategia:</strong> Muestrea <em>B</em> configuraciones uniformemente del espacio Θ.
+                            </p>
+                            <div class="bg-gray-900/50 rounded p-4">
+$$
+\lambda_i \sim \mathcal{U}(\Theta), \quad i=1,\ldots,B \qquad \lambda^* = \underset{i \in [1,B]}{\text{argmin}} \, CV(\lambda_i)
+$$
+                            </div>
+                            <div class="bg-yellow-900/20 border border-yellow-600/30 rounded p-4 mt-3">
+                                <p class="text-sm font-semibold text-yellow-300 mb-2">
+                                    <i data-lucide="lightbulb" class="w-4 h-4 inline mr-1"></i>
+                                    Teorema de Bergstra & Bengio (2012)
+                                </p>
+                                <p class="text-gray-300 text-xs">
+                                    Si solo <strong>d</strong> dimensiones (d &lt; n) son realmente importantes, Random Search
+                                    explora esas dimensiones efectivas con mayor densidad que Grid Search con el mismo presupuesto.
+                                </p>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm font-semibold text-green-400 mb-2">Ventajas:</p>
+                                    <ul class="text-gray-300 text-xs space-y-1">
+                                        <li>✓ Mejor en dimensiones altas</li>
+                                        <li>✓ Presupuesto controlable (parámetro B)</li>
+                                        <li>✓ Encuentra buenos resultados más rápido</li>
+                                        <li>✓ Paralelizable</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-red-400 mb-2">Desventajas:</p>
+                                    <ul class="text-gray-300 text-xs space-y-1">
+                                        <li>✗ No garantiza óptimo global</li>
+                                        <li>✗ No reproduce resultados (aleatorio)</li>
+                                        <li>✗ Puede desperdiciar samples</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bayesian Optimization -->
+                    <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-6">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <i data-lucide="brain" class="w-5 h-5 text-green-400"></i>
+                            <h5 class="text-lg font-semibold text-green-300">Bayesian Optimization (Optimización Bayesiana)</h5>
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-gray-300 text-sm">
+                                <strong>Estrategia:</strong> Construye un modelo probabilístico (Gaussian Process) de la función
+                                objetivo y usa funciones de adquisición para elegir el próximo punto a evaluar.
+                            </p>
+                            <div class="bg-gray-900/50 rounded p-4">
+$$
+\begin{aligned}
+&\text{Prior: } f(\lambda) \sim \mathcal{GP}(\mu_0, k) \\[0.3em]
+&\text{Posterior: } f(\lambda) \mid \mathcal{D}_{1:t} \sim \mathcal{GP}(\mu_t, \sigma_t^2) \\[0.3em]
+&\lambda_{t+1} = \underset{\lambda}{\text{argmax}} \, \alpha(\lambda \mid \mathcal{D}_{1:t})
+\end{aligned}
+$$
+                                <p class="text-gray-400 text-xs mt-2">
+                                    Donde α es la función de adquisición (ej: Expected Improvement, Upper Confidence Bound).
+                                </p>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm font-semibold text-green-400 mb-2">Ventajas:</p>
+                                    <ul class="text-gray-300 text-xs space-y-1">
+                                        <li>✓ Muy eficiente en samples</li>
+                                        <li>✓ Balance exploration-exploitation</li>
+                                        <li>✓ Maneja funciones ruidosas</li>
+                                        <li>✓ Mejor para budgets pequeños</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-red-400 mb-2">Desventajas:</p>
+                                    <ul class="text-gray-300 text-xs space-y-1">
+                                        <li>✗ No paralelizable fácilmente</li>
+                                        <li>✗ Complejidad de implementación</li>
+                                        <li>✗ Escala mal a muchas dimensiones</li>
+                                        <li>✗ No nativo en Spark ML (requiere Hyperopt)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-tuning-900/30 border border-tuning-500/30 rounded-lg p-6">
+                        <h5 class="text-lg font-semibold text-tuning-200 mb-3">Comparación Empírica</h5>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-tuning-500/30">
+                                        <th class="text-left py-3 px-4 text-tuning-300">Método</th>
+                                        <th class="text-left py-3 px-4">Samples para 95% óptimo</th>
+                                        <th class="text-left py-3 px-4">Paralelizable</th>
+                                        <th class="text-left py-3 px-4">Uso en Spark ML</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold text-blue-300">Grid Search</td>
+                                        <td class="py-3 px-4">~100-1000</td>
+                                        <td class="py-3 px-4 text-green-400">✓ Totalmente</td>
+                                        <td class="py-3 px-4">CrossValidator + ParamGridBuilder</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold text-purple-300">Random Search</td>
+                                        <td class="py-3 px-4">~50-200</td>
+                                        <td class="py-3 px-4 text-green-400">✓ Totalmente</td>
+                                        <td class="py-3 px-4">Custom con randint/uniform</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-semibold text-green-300">Bayesian Opt</td>
+                                        <td class="py-3 px-4">~20-50</td>
+                                        <td class="py-3 px-4 text-yellow-400">△ Limitado</td>
+                                        <td class="py-3 px-4">Hyperopt (externo)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Navegación a Sub-módulos -->
+        <section>
+            <div class="glass-card rounded-2xl p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-tuning-300 mb-4">Explora los Módulos de Tuning</h2>
+                    <p class="text-gray-400">Profundiza en cada técnica de optimización de hiperparámetros</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Módulo 1 -->
+                    <a href="seccion15_1.html" class="glass-card rounded-xl p-6 hover:scale-105 transition-all duration-300 block">
+                        <div class="bg-gradient-to-br from-blue-600 to-purple-600 w-16 h-16 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                            <i data-lucide="grid-3x3" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-tuning-300 text-center mb-3">Grid & Random Search</h3>
+                        <p class="text-gray-400 text-sm text-center mb-4">
+                            Fundamentos matemáticos, análisis de complejidad, y comparación empírica de estrategias de búsqueda.
+                        </p>
+                        <div class="flex items-center justify-center space-x-2 text-tuning-400">
+                            <span class="text-sm font-semibold">Explorar</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </div>
+                    </a>
+
+                    <!-- Módulo 2 -->
+                    <a href="seccion15_2.html" class="glass-card rounded-xl p-6 hover:scale-105 transition-all duration-300 block">
+                        <div class="bg-gradient-to-br from-tuning-600 to-pink-600 w-16 h-16 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                            <i data-lucide="sliders" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-tuning-300 text-center mb-3">ParamGrid & Evaluadores</h3>
+                        <p class="text-gray-400 text-sm text-center mb-4">
+                            API de Spark ML para tuning: construcción de grids, evaluadores, cross-validation, y análisis de resultados.
+                        </p>
+                        <div class="flex items-center justify-center space-x-2 text-tuning-400">
+                            <span class="text-sm font-semibold">Explorar</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </div>
+                    </a>
+
+                    <!-- Módulo 3 -->
+                    <a href="seccion15_3.html" class="glass-card rounded-xl p-6 hover:scale-105 transition-all duration-300 block">
+                        <div class="bg-gradient-to-br from-orange-600 to-red-600 w-16 h-16 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                            <i data-lucide="rocket" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-tuning-300 text-center mb-3">Reto: Pipeline Completo</h3>
+                        <p class="text-gray-400 text-sm text-center mb-4">
+                            Desafío integral: construye y optimiza un pipeline end-to-end con validación rigurosa.
+                        </p>
+                        <div class="flex items-center justify-center space-x-2 text-tuning-400">
+                            <span class="text-sm font-semibold">Comenzar reto</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="mt-8 text-center">
+                    <a href="index.html" class="btn-tuning text-white px-8 py-3 rounded-lg inline-flex items-center space-x-2 hover:scale-105 transition-all duration-300">
+                        <i data-lucide="home" class="w-5 h-5"></i>
+                        <span class="font-semibold">Volver al Inicio</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#9333ea',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#a855f7',
+                lineColor: '#c084fc',
+                secondaryColor: '#7e22ce',
+                tertiaryColor: '#581c87'
+            }
+        });
+    </script>
+</body>
+</html>

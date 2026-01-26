@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regularización L1/L2 | Regresión</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --reg-green: #10b981;
+            --bg-deep: #050505;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+        }
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+        .math-block {
+            background: rgba(30, 30, 40, 0.8);
+            border-left: 4px solid #3b82f6;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="seccion_14.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">SECCIÓN 14</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-lg">MÓDULO 2<span class="text-blue-400">.Regularization()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">CONTROLANDO LA COMPLEJIDAD DEL MODELO</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro -->
+        <section class="text-center space-y-4">
+            <h2 class="text-4xl font-black text-white">Regularización L1 y L2</h2>
+            <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+                Aprende a prevenir overfitting penalizando coeficientes grandes. Ridge, Lasso, y Elastic Net desde su geometría matemática.
+            </p>
+        </section>
+
+        <!-- Bloque 1: El Problema del Overfitting -->
+        <section>
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-red-400">01.</span> El Problema del Overfitting
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Modelo Sin Regularización</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    J(\boldsymbol{\beta}) = \frac{1}{2n} \sum_{i=1}^{n} (y_i - \boldsymbol{\beta}^T \mathbf{x}_i)^2
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        <strong class="text-red-400">Problema 1:</strong> Si \(p > n\) (más features que datos), existen infinitas soluciones.
+                        <br><strong class="text-red-400">Problema 2:</strong> Coeficientes \(\beta_i\) pueden ser extremadamente grandes e inestables.
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-4 text-sm text-slate-400">
+                        <strong class="text-red-400">Síntoma: Coeficientes Inestables</strong>
+                        <pre class="mt-3 text-xs bg-slate-900 p-2 rounded text-red-300">
+β = [2.3, -145.7, 892.1, -3210.5, ...]
+
+Pequeño cambio en datos →
+β' = [1.8, 523.4, -1072.3, 4891.2, ...]
+                        </pre>
+                        <div class="mt-3">
+                            Los coeficientes varían salvajemente. El modelo "memoriza" ruido en vez de aprender patrones generalizables.
+                        </div>
+                    </div>
+
+                    <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4 text-sm text-slate-400">
+                        <strong class="text-green-400">Solución: Regularización</strong>
+                        <pre class="mt-3 text-xs bg-slate-900 p-2 rounded text-green-300">
+β_regularizado = [1.2, -3.4, 5.6, -2.1, ...]
+
+Pequeño cambio en datos →
+β' = [1.1, -3.2, 5.8, -2.3, ...]
+                        </pre>
+                        <div class="mt-3">
+                            Coeficientes más pequeños y estables. Penalizar ||β|| controla complejidad.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: Ridge Regression (L2) -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-blue-400">02.</span> Ridge Regression (Regularización L2)
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Matemática: Penalización Cuadrática</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    J_{\text{Ridge}}(\boldsymbol{\beta}) = \frac{1}{2n} \sum_{i=1}^{n} (y_i - \boldsymbol{\beta}^T \mathbf{x}_i)^2 + \lambda \sum_{j=1}^{p} \beta_j^2
+                    $$
+                    $$
+                    = \underbrace{\frac{1}{2n} ||\mathbf{y} - X\boldsymbol{\beta}||^2}_{\text{Ajuste a datos (MSE)}} + \underbrace{\lambda ||\boldsymbol{\beta}||_2^2}_{\text{Penalización L2}}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Donde: \(||\boldsymbol{\beta}||_2^2 = \sum_{j=1}^{p} \beta_j^2\) (norma L2 al cuadrado)
+                    </div>
+                </div>
+
+                <div class="math-block mb-6">
+                    <div class="text-white mb-3">Gradiente:</div>
+                    $$
+                    \nabla J_{\text{Ridge}} = \frac{1}{n} X^T (X\boldsymbol{\beta} - \mathbf{y}) + 2\lambda \boldsymbol{\beta}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        El término \(2\lambda \boldsymbol{\beta}\) "empuja" los coeficientes hacia 0.
+                    </div>
+                </div>
+
+                <div class="math-block">
+                    <div class="text-white mb-3">Solución Analítica:</div>
+                    $$
+                    \hat{\boldsymbol{\beta}}_{\text{Ridge}} = (X^T X + \lambda I)^{-1} X^T \mathbf{y}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Ventaja: \(X^T X + \lambda I\) <strong>siempre es invertible</strong> (incluso si \(p > n\)).
+                        El término \(\lambda I\) garantiza que la matriz sea positiva definida.
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="font-bold text-white mb-4">Geometría: Restricción Esférica</h4>
+                    <div class="bg-slate-900/50 p-6 rounded-xl mb-4">
+                        <div class="text-xs font-tech text-slate-300 text-center">
+                            <pre>
+        β₂
+         ↑
+         |     ⊙ (Círculo: ||β||₂ ≤ t)
+         |    /|\
+         |   / | \
+         |  /  |  \
+         | /   ★   \  ← Solución Ridge
+         |/____│____\___→ β₁
+               |
+         Elipses = Contornos de MSE
+                            </pre>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400">
+                        Ridge busca el punto donde las elipses de MSE tocan el círculo de restricción \(||\boldsymbol{\beta}||_2 \leq t\).
+                        Como es un círculo, nunca toca los ejes → <strong>coeficientes se encogen pero nunca llegan exactamente a 0</strong>.
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="font-bold text-white mb-4">Código: Ridge en PySpark</h4>
+                    <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+
+ridge = LinearRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"label"</span>,
+    regParam=<span class="text-yellow-300">0.1</span>,  <span class="text-slate-500"># λ (lambda)</span>
+    elasticNetParam=<span class="text-yellow-300">0.0</span>  <span class="text-slate-500"># 0 = Ridge (L2 puro)</span>
+)
+
+model = ridge.fit(train_df)
+
+<span class="text-slate-500"># Coeficientes "encogidos"</span>
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"β Ridge: </span>{model.coefficients}<span class="text-green-300">"</span>)
+<span class="text-slate-500"># β Ridge: [1.2, -0.8, 2.3, ...]</span>
+<span class="text-slate-500"># (más pequeños que sin regularización)</span></code></pre>
+                    <div class="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                        💡 <strong>Efecto:</strong> Todos los β disminuyen, pero ninguno es exactamente 0.
+                        Ridge no hace selección de features.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: Lasso Regression (L1) -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-purple-400">03.</span> Lasso Regression (Regularización L1)
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Matemática: Penalización Absoluta</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    J_{\text{Lasso}}(\boldsymbol{\beta}) = \frac{1}{2n} \sum_{i=1}^{n} (y_i - \boldsymbol{\beta}^T \mathbf{x}_i)^2 + \lambda \sum_{j=1}^{p} |\beta_j|
+                    $$
+                    $$
+                    = \underbrace{\frac{1}{2n} ||\mathbf{y} - X\boldsymbol{\beta}||^2}_{\text{MSE}} + \underbrace{\lambda ||\boldsymbol{\beta}||_1}_{\text{Penalización L1}}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Donde: \(||\boldsymbol{\beta}||_1 = \sum_{j=1}^{p} |\beta_j|\) (norma L1, suma de valores absolutos)
+                    </div>
+                </div>
+
+                <div class="p-4 bg-yellow-900/20 border border-yellow-500/30 rounded text-sm text-yellow-300 mb-6">
+                    <strong>⚠️ No hay solución analítica</strong> para Lasso (debido al valor absoluto).
+                    Se requiere optimización iterativa (e.g., coordinate descent, proximal gradient).
+                </div>
+
+                <div class="math-block">
+                    <div class="text-white mb-3">Subgradiente (en lugar de gradiente):</div>
+                    $$
+                    \partial J_{\text{Lasso}} = \frac{1}{n} X^T (X\boldsymbol{\beta} - \mathbf{y}) + \lambda \cdot \text{sign}(\boldsymbol{\beta})
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Donde: \(\text{sign}(\beta_j) = \begin{cases} +1 & \text{si } \beta_j > 0 \\ -1 & \text{si } \beta_j < 0 \\ [-1, 1] & \text{si } \beta_j = 0 \end{cases}\)
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="font-bold text-white mb-4">Geometría: Restricción en Forma de Diamante</h4>
+                    <div class="bg-slate-900/50 p-6 rounded-xl mb-4">
+                        <div class="text-xs font-tech text-slate-300 text-center">
+                            <pre>
+        β₂
+         ↑
+         |      /\   (Diamante: ||β||₁ ≤ t)
+         |     /  \
+         |    /    \
+         |   /      \
+         |  ★        \  ← Solución Lasso
+         | /          \
+         |/____________\___→ β₁
+
+         Elipses = Contornos de MSE
+                            </pre>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400">
+                        Lasso busca donde las elipses tocan el diamante. Los <strong>vértices del diamante están en los ejes</strong>
+                        → alta probabilidad de que la solución tenga algunos \(\beta_j = 0\) exactamente.
+                        <br><br>
+                        <strong class="text-purple-400">Resultado:</strong> Lasso hace <em>selección automática de features</em>.
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="font-bold text-white mb-4">Código: Lasso en PySpark</h4>
+                    <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+
+lasso = LinearRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"label"</span>,
+    regParam=<span class="text-yellow-300">0.1</span>,  <span class="text-slate-500"># λ (lambda)</span>
+    elasticNetParam=<span class="text-yellow-300">1.0</span>  <span class="text-slate-500"># 1 = Lasso (L1 puro)</span>
+)
+
+model = lasso.fit(train_df)
+
+<span class="text-slate-500"># Coeficientes con algunos exactamente 0</span>
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"β Lasso: </span>{model.coefficients}<span class="text-green-300">"</span>)
+<span class="text-slate-500"># β Lasso: [0.0, -0.8, 2.3, 0.0, 1.5, 0.0, ...]</span>
+<span class="text-slate-500">#            ↑                ↑         ↑</span>
+<span class="text-slate-500">#         Features eliminadas</span>
+
+<span class="text-slate-500"># Contar features no-cero</span>
+non_zero = <span class="text-yellow-300">sum</span>(<span class="text-yellow-300">1</span> <span class="text-purple-400">for</span> c <span class="text-purple-400">in</span> model.coefficients <span class="text-purple-400">if</span> <span class="text-yellow-300">abs</span>(c) > <span class="text-yellow-300">1e-6</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Features seleccionadas: </span>{non_zero}<span class="text-green-300">/</span>{<span class="text-yellow-300">len</span>(model.coefficients)}<span class="text-green-300">"</span>)</code></pre>
+                    <div class="mt-4 p-3 bg-purple-900/20 border border-purple-500/30 rounded text-xs text-purple-300">
+                        💡 <strong>Ventaja:</strong> Lasso puede reducir 100 features a 15 automáticamente.
+                        Modelo más interpretable y eficiente.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 4: Elastic Net -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-green-400">04.</span> Elastic Net: Combinación L1 + L2
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Lo Mejor de Ambos Mundos</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    J_{\text{ElasticNet}}(\boldsymbol{\beta}) = \frac{1}{2n} ||\mathbf{y} - X\boldsymbol{\beta}||^2 + \lambda \left[\alpha ||\boldsymbol{\beta}||_1 + \frac{(1-\alpha)}{2} ||\boldsymbol{\beta}||_2^2\right]
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        <strong>Parámetros:</strong><br>
+                        • \(\lambda\) (regParam): Fuerza de regularización total<br>
+                        • \(\alpha\) (elasticNetParam): Balance entre L1 y L2
+                        <br><br>
+                        Casos especiales:<br>
+                        • \(\alpha = 0\): Ridge puro (solo L2)<br>
+                        • \(\alpha = 1\): Lasso puro (solo L1)<br>
+                        • \(\alpha = 0.5\): 50% L1 + 50% L2
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 text-xs">
+                        <strong class="text-blue-400">Ridge (α=0)</strong>
+                        <div class="text-slate-400 mt-2">
+                            ✓ Encoge todos los β<br>
+                            ✗ No elimina features<br>
+                            ✗ Si features correlacionadas, distribuye peso entre ellas
+                        </div>
+                    </div>
+
+                    <div class="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4 text-xs">
+                        <strong class="text-purple-400">Lasso (α=1)</strong>
+                        <div class="text-slate-400 mt-2">
+                            ✓ Selecciona features<br>
+                            ✓ Sparse β<br>
+                            ✗ Si features muy correlacionadas, elige una al azar
+                        </div>
+                    </div>
+
+                    <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-4 text-xs">
+                        <strong class="text-green-400">Elastic Net (α=0.5)</strong>
+                        <div class="text-slate-400 mt-2">
+                            ✓ Selecciona features<br>
+                            ✓ Maneja correlaciones<br>
+                            ✓ Más estable que Lasso
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Cuándo Usar Cada Regularización</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-slate-300">
+                        <thead class="border-b border-slate-700">
+                            <tr>
+                                <th class="text-left py-3 px-4">Escenario</th>
+                                <th class="text-left py-3 px-4">Recomendación</th>
+                                <th class="text-left py-3 px-4">Por qué</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xs">
+                            <tr class="border-b border-slate-800">
+                                <td class="py-3 px-4">Muchas features, pocas relevantes</td>
+                                <td class="py-3 px-4 text-purple-400">Lasso (α=1)</td>
+                                <td class="py-3 px-4">Elimina automáticamente las irrelevantes</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-3 px-4">Todas las features son importantes</td>
+                                <td class="py-3 px-4 text-blue-400">Ridge (α=0)</td>
+                                <td class="py-3 px-4">Mantiene todas, solo encoge</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-3 px-4">Features muy correlacionadas</td>
+                                <td class="py-3 px-4 text-green-400">Elastic Net (α=0.5)</td>
+                                <td class="py-3 px-4">Lasso es inestable, EN balancea</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-3 px-4">p &gt;&gt; n (más features que datos)</td>
+                                <td class="py-3 px-4 text-green-400">Elastic Net (α=0.7)</td>
+                                <td class="py-3 px-4">Lasso puede seleccionar máx n features</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4">No sabes qué usar</td>
+                                <td class="py-3 px-4 text-yellow-400">Cross-Validation</td>
+                                <td class="py-3 px-4">Prueba α ∈ {0, 0.25, 0.5, 0.75, 1}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 5: Cross-Validation -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-yellow-400">05.</span> Selección de λ con Cross-Validation
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Grid Search + k-Fold CV</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.tuning <span class="text-purple-400">import</span> ParamGridBuilder, CrossValidator
+<span class="text-purple-400">from</span> pyspark.ml.evaluation <span class="text-purple-400">import</span> RegressionEvaluator
+<span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+
+<span class="text-slate-500"># Modelo base</span>
+lr = LinearRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"label"</span>
+)
+
+<span class="text-slate-500"># Grid de hiperparámetros</span>
+paramGrid = ParamGridBuilder() \
+    .addGrid(lr.regParam, [<span class="text-yellow-300">0.001</span>, <span class="text-yellow-300">0.01</span>, <span class="text-yellow-300">0.1</span>, <span class="text-yellow-300">1.0</span>, <span class="text-yellow-300">10.0</span>]) \
+    .addGrid(lr.elasticNetParam, [<span class="text-yellow-300">0.0</span>, <span class="text-yellow-300">0.25</span>, <span class="text-yellow-300">0.5</span>, <span class="text-yellow-300">0.75</span>, <span class="text-yellow-300">1.0</span>]) \
+    .build()
+
+<span class="text-slate-500"># Total: 5 × 5 = 25 combinaciones</span>
+
+<span class="text-slate-500"># Evaluador (RMSE)</span>
+evaluator = RegressionEvaluator(
+    labelCol=<span class="text-green-300">"label"</span>,
+    predictionCol=<span class="text-green-300">"prediction"</span>,
+    metricName=<span class="text-green-300">"rmse"</span>
+)
+
+<span class="text-slate-500"># Cross-Validator (5-fold)</span>
+cv = CrossValidator(
+    estimator=lr,
+    estimatorParamMaps=paramGrid,
+    evaluator=evaluator,
+    numFolds=<span class="text-yellow-300">5</span>,  <span class="text-slate-500"># k-fold</span>
+    parallelism=<span class="text-yellow-300">4</span>   <span class="text-slate-500"># Entrenar 4 modelos en paralelo</span>
+)
+
+<span class="text-slate-500"># Entrenar (prueba todas las combinaciones)</span>
+cv_model = cv.fit(train_df)
+
+<span class="text-slate-500"># Mejor modelo</span>
+best_model = cv_model.bestModel
+
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Mejor λ (regParam): </span>{best_model.getRegParam()}<span class="text-green-300">"</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Mejor α (elasticNetParam): </span>{best_model.getElasticNetParam()}<span class="text-green-300">"</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"RMSE validación: </span>{cv_model.avgMetrics[<span class="text-yellow-300">0</span>]:.4f}<span class="text-green-300">"</span>)
+
+<span class="text-slate-500"># Predecir en test set</span>
+test_predictions = best_model.transform(test_df)
+test_rmse = evaluator.evaluate(test_predictions)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"RMSE test: </span>{test_rmse:.4f}<span class="text-green-300">"</span>)</code></pre>
+
+                <div class="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded text-sm text-green-300">
+                    <strong>Resultado ejemplo:</strong><br>
+                    Mejor λ: 0.1<br>
+                    Mejor α: 0.75 (75% Lasso + 25% Ridge)<br>
+                    RMSE validación: 2345.12<br>
+                    RMSE test: 2387.45
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Visualización: Curva de Regularización</h4>
+                <div class="bg-slate-900/50 p-6 rounded-xl">
+                    <div class="text-xs font-tech text-slate-300">
+                        <pre>
+    Error
+      ↑
+      |
+  10k │     Underfitting
+      │         ╱
+      │        ╱
+      │       ╱
+   5k │      ╱     Óptimo (λ=0.1)
+      │     ╱         ★
+      │    ╱           ╲   Overfitting
+      │   ╱             ╲
+   2k │__╱_______________╲___________
+      |                   ╲
+      └──────────────────────────────→ λ
+      0    0.001  0.01  0.1   1.0  10.0
+
+      — Training Error
+      ··· Validation Error
+                        </pre>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400 mt-4">
+                    <strong class="text-white">λ pequeño:</strong> Poca regularización → overfitting (memoriza ruido)<br>
+                    <strong class="text-white">λ grande:</strong> Mucha regularización → underfitting (modelo muy simple)<br>
+                    <strong class="text-green-400">λ óptimo:</strong> Balance (minimiza validation error)
+                </p>
+            </div>
+        </section>
+
+        <!-- Bloque 6: Comparación Visual -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-orange-400">06.</span> Comparación Visual: Sin Reg vs Ridge vs Lasso
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl">
+                <h4 class="text-xl font-bold text-white mb-4">Path de Coeficientes vs λ</h4>
+
+                <div class="bg-slate-900/50 p-6 rounded-xl mb-6">
+                    <div class="text-xs font-tech text-slate-300">
+                        <pre>
+    |β_j|
+      ↑
+  100 │β₁ ────────╲
+      │β₂ ──────╲  ╲╲
+      │β₃ ────╲  ╲╲  ╲╲╲
+   50 │β₄ ──╲  ╲╲  ╲╲  ╲╲╲        RIDGE
+      │    ╲╲  ╲╲  ╲╲  ╲╲╲╲      (todos → 0, pero nunca exactamente 0)
+      │     ╲╲  ╲╲  ╲╲  ╲╲╲╲╲
+    0 └───────────────────────────→ λ
+            0.01  0.1   1.0  10.0
+
+    |β_j|
+      ↑
+  100 │β₁ ────────╲
+      │β₂ ────────╲╲___0
+      │β₃ ──────╲___0              LASSO
+   50 │β₄ ────╲___0                (algunos → 0 exactamente)
+      │β₅ __╲___0
+      │β₆ ___0
+    0 └───────────────────────────→ λ
+            0.01  0.1   1.0  10.0
+                        </pre>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-blue-900/20 border border-blue-500/30 rounded text-sm">
+                        <strong class="text-blue-400">Ridge:</strong>
+                        <div class="text-slate-400 mt-2">
+                            • Todos los coeficientes disminuyen gradualmente<br>
+                            • Nunca llegan exactamente a 0<br>
+                            • Path continuo y suave<br>
+                            • <strong>No hace selección de features</strong>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-purple-900/20 border border-purple-500/30 rounded text-sm">
+                        <strong class="text-purple-400">Lasso:</strong>
+                        <div class="text-slate-400 mt-2">
+                            • Coeficientes llegan a 0 en orden<br>
+                            • Features menos importantes → 0 primero<br>
+                            • Path con "quiebres" (no diferenciable en 0)<br>
+                            • <strong>Hace selección automática</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 7: Regularización en Logística -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-pink-400">07.</span> Regularización en Regresión Logística
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl">
+                <h4 class="text-xl font-bold text-white mb-4">Mismo Principio, Diferente Función de Costo</h4>
+
+                <div class="math-block mb-6">
+                    $$
+                    J_{\text{Logística}}(\boldsymbol{\beta}) = \underbrace{-\frac{1}{n} \sum_{i=1}^{n} [y_i \log p_i + (1-y_i) \log(1-p_i)]}_{\text{Cross-Entropy}} + \lambda \cdot \text{Penalty}(\boldsymbol{\beta})
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        La regularización se aplica igual (L1, L2, o Elastic Net), pero sobre la función de cross-entropy en vez de MSE.
+                    </div>
+                </div>
+
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.classification <span class="text-purple-400">import</span> LogisticRegression
+
+<span class="text-slate-500"># Logística con Elastic Net</span>
+lr_log = LogisticRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"label"</span>,
+    regParam=<span class="text-yellow-300">0.01</span>,       <span class="text-slate-500"># λ</span>
+    elasticNetParam=<span class="text-yellow-300">0.5</span>  <span class="text-slate-500"># α = 0.5 (50% L1 + 50% L2)</span>
+)
+
+model = lr_log.fit(train_df)
+
+<span class="text-slate-500"># Efecto: Previene overfitting en clasificación</span>
+<span class="text-slate-500"># Especialmente útil con clases desbalanceadas</span></code></pre>
+
+                <div class="mt-6 p-4 bg-purple-900/20 border border-purple-500/30 rounded text-sm text-purple-300">
+                    💡 <strong>Aplicación común:</strong> En clasificación de texto con 10,000+ features (bag-of-words),
+                    Lasso elimina palabras irrelevantes automáticamente, mejorando interpretabilidad y velocidad.
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion14_1.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-blue-500 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span class="text-slate-400">Anterior: Lineal y Logística</span>
+                </a>
+
+                <a href="seccion_14.html" class="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-600 transition text-slate-400 hover:text-white">
+                    Volver al Hub
+                </a>
+
+                <a href="seccion14_3.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-yellow-500 transition">
+                    <span class="text-slate-400">Siguiente: Reto Bias-Variance</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
+    </script>
+</body>
+</html>

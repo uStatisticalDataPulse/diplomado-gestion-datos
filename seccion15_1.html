@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Search y Random Search - Sección 15 - Diplomado USTA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        tuning: {
+                            50: '#faf5ff',
+                            100: '#f3e8ff',
+                            200: '#e9d5ff',
+                            300: '#d8b4fe',
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7e22ce',
+                            800: '#6b21a8',
+                            900: '#581c87',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0c29 0%, #1a0933 50%, #24144d 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(147, 51, 234, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(147, 51, 234, 0.15);
+        }
+        .concept-block {
+            background: rgba(192, 132, 252, 0.08);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #a855f7;
+            transition: all 0.3s ease;
+        }
+        .concept-block:hover {
+            background: rgba(192, 132, 252, 0.12);
+            border-left-color: #c084fc;
+            transform: translateX(4px);
+        }
+        .code-block {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #a855f7, transparent);
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+
+    <!-- Header -->
+    <header class="glass-card sticky top-0 z-50 mb-8">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i data-lucide="grid-3x3" class="w-8 h-8 text-tuning-400"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold text-tuning-300">Grid Search y Random Search</h1>
+                        <p class="text-sm text-gray-400">Fundamentos Matemáticos de Búsqueda de Hiperparámetros</p>
+                    </div>
+                </div>
+                <a href="seccion_15.html" class="flex items-center space-x-2 text-tuning-300 hover:text-tuning-200 transition-colors">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    <span>Volver</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 pb-12">
+
+        <!-- Bloque 1: Fundamentos Matemáticos -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-tuning-600 p-3 rounded-lg">
+                        <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-tuning-300">1. Fundamentos Matemáticos del Espacio de Búsqueda</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">Definición Formal del Espacio de Hiperparámetros</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            El espacio de hiperparámetros <strong>Θ</strong> se define como el producto cartesiano de los dominios
+                            individuales de cada hiperparámetro:
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+\Theta = \Theta_1 \times \Theta_2 \times \cdots \times \Theta_n = \prod_{i=1}^{n} \Theta_i
+$$
+                            <p class="text-gray-400 text-sm mt-4 mb-4">
+                                Donde cada <strong>Θ<sub>i</sub></strong> puede ser:
+                            </p>
+                            <ul class="text-gray-300 text-sm space-y-2 ml-4">
+                                <li><strong>Discreto finito:</strong> Θ<sub>i</sub> = {v₁, v₂, ..., v<sub>pᵢ</sub>}
+                                    (ej: numTrees ∈ {10, 50, 100})</li>
+                                <li><strong>Continuo acotado:</strong> Θ<sub>i</sub> = [a, b] ⊂ ℝ
+                                    (ej: regParam ∈ [0.001, 10.0])</li>
+                                <li><strong>Categórico:</strong> Θ<sub>i</sub> = {cat₁, cat₂, ...}
+                                    (ej: kernel ∈ {linear, rbf, poly})</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-blue-300 mb-3">
+                            <i data-lucide="calculator" class="w-5 h-5 inline mr-2"></i>
+                            Cardinalidad del Espacio (Espacios Discretos)
+                        </h4>
+                        <p class="text-gray-300 mb-4">
+                            Para espacios completamente discretos, la cardinalidad (número total de configuraciones) es:
+                        </p>
+                        <div class="code-block rounded-lg p-4">
+$$
+|\Theta| = \prod_{i=1}^{n} |\Theta_i| = p_1 \times p_2 \times \cdots \times p_n
+$$
+                        </div>
+                        <div class="mt-4 bg-gray-900/50 rounded p-4">
+                            <p class="text-sm font-semibold text-blue-300 mb-2">Ejemplo Concreto: Random Forest</p>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs text-gray-400 mb-2">Configuración:</p>
+                                    <ul class="text-sm text-gray-300 space-y-1 font-mono">
+                                        <li>numTrees: [10, 50, 100, 200] → |Θ₁| = 4</li>
+                                        <li>maxDepth: [5, 10, 15, 20] → |Θ₂| = 4</li>
+                                        <li>maxBins: [16, 32, 64] → |Θ₃| = 3</li>
+                                        <li>subsamplingRate: [0.6, 0.8, 1.0] → |Θ₄| = 3</li>
+                                    </ul>
+                                </div>
+                                <div class="flex items-center justify-center">
+                                    <div class="text-center">
+                                        <p class="text-xs text-gray-400 mb-2">Cardinalidad total:</p>
+                                        <p class="text-3xl font-bold text-tuning-300">|Θ| = 144</p>
+                                        <p class="text-xs text-gray-500 mt-2">4 × 4 × 3 × 3 configuraciones</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-orange-900/20 border border-orange-500/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-orange-300 mb-3">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 inline mr-2"></i>
+                            La Maldición de la Dimensionalidad en Tuning
+                        </h4>
+                        <p class="text-gray-300 mb-4">
+                            El espacio de búsqueda crece <strong>exponencialmente</strong> con el número de hiperparámetros.
+                            Con <em>n</em> hiperparámetros y <em>p</em> valores por hiperparámetro (promedio):
+                        </p>
+                        <div class="code-block rounded-lg p-4">
+$$
+|\Theta| \approx p^n \quad \Rightarrow \quad \text{Complejidad: } O(p^n)
+$$
+                        </div>
+                        <div class="mt-4 overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-orange-500/30">
+                                        <th class="text-left py-2 px-3 text-orange-300">Dimensiones (n)</th>
+                                        <th class="text-left py-2 px-3">p=3</th>
+                                        <th class="text-left py-2 px-3">p=5</th>
+                                        <th class="text-left py-2 px-3">p=10</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3 font-semibold">n = 2</td>
+                                        <td class="py-2 px-3">9</td>
+                                        <td class="py-2 px-3">25</td>
+                                        <td class="py-2 px-3">100</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3 font-semibold">n = 3</td>
+                                        <td class="py-2 px-3">27</td>
+                                        <td class="py-2 px-3">125</td>
+                                        <td class="py-2 px-3">1,000</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-2 px-3 font-semibold">n = 4</td>
+                                        <td class="py-2 px-3">81</td>
+                                        <td class="py-2 px-3">625</td>
+                                        <td class="py-2 px-3 text-red-400">10,000</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 px-3 font-semibold">n = 5</td>
+                                        <td class="py-2 px-3">243</td>
+                                        <td class="py-2 px-3 text-orange-400">3,125</td>
+                                        <td class="py-2 px-3 text-red-400">100,000</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-gray-400 text-xs mt-3">
+                            Con 5-fold CV, cada celda se multiplica por 5. Ej: 3,125 configs × 5 folds = <strong class="text-orange-300">15,625 entrenamientos</strong>.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Función Objetivo a Optimizar</h4>
+                        <p class="text-gray-300 mb-4">
+                            El objetivo del tuning es encontrar la configuración óptima que minimiza el error esperado en validación:
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+\begin{aligned}
+\lambda^* &= \underset{\lambda \in \Theta}{\text{argmin}} \, \mathbb{E}_{(X,Y) \sim \mathcal{D}_{\text{val}}} \left[ L(f_\lambda(X), Y) \right] \\[0.8em]
+&= \underset{\lambda \in \Theta}{\text{argmin}} \, \int L(f_\lambda(x), y) \, p(x, y) \, dx \, dy
+\end{aligned}
+$$
+                            <p class="text-gray-400 text-sm mt-4">
+                                Donde:
+                            </p>
+                            <ul class="text-gray-300 text-sm space-y-1 ml-4 mt-2">
+                                <li>• <strong>λ</strong>: configuración de hiperparámetros (ej: {numTrees=100, maxDepth=10})</li>
+                                <li>• <strong>f<sub>λ</sub></strong>: modelo entrenado con configuración λ</li>
+                                <li>• <strong>L</strong>: función de pérdida (MSE, cross-entropy, etc.)</li>
+                                <li>• <strong>𝒟<sub>val</sub></strong>: distribución de datos de validación</li>
+                            </ul>
+                        </div>
+                        <div class="bg-yellow-900/20 border border-yellow-600/30 rounded p-4 mt-4">
+                            <p class="text-sm text-yellow-300 font-semibold mb-2">
+                                <i data-lucide="lightbulb" class="w-4 h-4 inline mr-1"></i>
+                                Observación Crítica
+                            </p>
+                            <p class="text-gray-300 text-sm">
+                                Esta función objetivo es:
+                            </p>
+                            <ul class="text-gray-300 text-sm space-y-1 ml-4 mt-2">
+                                <li>• <strong>No convexa:</strong> múltiples mínimos locales</li>
+                                <li>• <strong>No diferenciable:</strong> no podemos usar gradientes</li>
+                                <li>• <strong>Ruidosa:</strong> varía por el fold de validación</li>
+                                <li>• <strong>Costosa de evaluar:</strong> requiere entrenar modelo completo</li>
+                            </ul>
+                            <p class="text-gray-300 text-sm mt-2">
+                                Por eso necesitamos métodos de búsqueda especializados (Grid, Random, Bayesian).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 2: Grid Search -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-blue-600 p-3 rounded-lg">
+                        <i data-lucide="grid-3x3" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-blue-300">2. Grid Search: Búsqueda Exhaustiva</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">Definición y Algoritmo</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Grid Search evalúa <strong>exhaustivamente</strong> todas las combinaciones posibles en un grid
+                            discreto predefinido del espacio de hiperparámetros.
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+\begin{aligned}
+&\text{Entrada: } \Theta_{\text{grid}} = \{(\lambda_1^{(1)}, \lambda_2^{(1)}, \ldots, \lambda_n^{(1)}), \ldots, (\lambda_1^{(N)}, \lambda_2^{(N)}, \ldots, \lambda_n^{(N)})\} \\[0.5em]
+&\text{Para cada } \lambda_i \in \Theta_{\text{grid}}: \\[0.3em]
+&\quad\quad \text{1. Entrenar modelo } f_{\lambda_i} \text{ con configuración } \lambda_i \\[0.3em]
+&\quad\quad \text{2. Evaluar error } CV(\lambda_i) = \frac{1}{K} \sum_{k=1}^{K} L(f_{\lambda_i}^{(-k)}, D_k) \\[0.3em]
+&\text{Salida: } \lambda^* = \underset{\lambda_i \in \Theta_{\text{grid}}}{\text{argmin}} \, CV(\lambda_i)
+\end{aligned}
+$$
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-blue-200 mb-3">Visualización 2D: Grid Search</h4>
+                        <div class="bg-gray-900/50 rounded-lg p-6">
+                            <pre class="mermaid">
+graph LR
+    A["Grid 4x4<br/>(16 configs)"] --> B["λ₁ = numTrees"]
+    A --> C["λ₂ = maxDepth"]
+
+    B --> B1["10"]
+    B --> B2["50"]
+    B --> B3["100"]
+    B --> B4["200"]
+
+    C --> C1["5"]
+    C --> C2["10"]
+    C --> C3["15"]
+    C --> C4["20"]
+
+    B1 -.-> D["(10, 5)"]
+    B1 -.-> E["(10, 10)"]
+    B2 -.-> F["(50, 15)"]
+    B3 -.-> G["(100, 20)"]
+
+    D --> H["CV = 0.23"]
+    E --> I["CV = 0.19"]
+    F --> J["CV = 0.15"]
+    G --> K["CV = 0.12 ⭐"]
+
+    style A fill:#3b82f6,stroke:#60a5fa,color:#fff
+    style G fill:#10b981,stroke:#34d399,color:#fff
+    style K fill:#10b981,stroke:#34d399,color:#fff
+                            </pre>
+                            <p class="text-gray-400 text-sm text-center mt-4">
+                                Grid Search evalúa todas las 16 combinaciones y selecciona la mejor: (100, 20) con CV=0.12
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-6">
+                            <h4 class="text-lg font-semibold text-green-300 mb-3">
+                                <i data-lucide="check-circle" class="w-5 h-5 inline mr-2"></i>
+                                Ventajas
+                            </h4>
+                            <ul class="space-y-3 text-gray-300 text-sm">
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2 font-bold">1.</span>
+                                    <div>
+                                        <strong>Garantía de Optimalidad:</strong> Encuentra el mejor punto <em>dentro del grid</em>.
+                                        <div class="code-block rounded p-2 mt-1 text-xs">
+                                            λ* = argmin<sub>λ∈Θ<sub>grid</sub></sub> CV(λ)
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2 font-bold">2.</span>
+                                    <div>
+                                        <strong>Paralelización Perfecta:</strong> Todas las evaluaciones son independientes,
+                                        permitiendo paralelización completa en cluster Spark.
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2 font-bold">3.</span>
+                                    <div>
+                                        <strong>Reproducibilidad:</strong> Determinístico, siempre produce los mismos resultados
+                                        (dado el mismo grid y datos).
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2 font-bold">4.</span>
+                                    <div>
+                                        <strong>Interpretabilidad:</strong> Fácil visualizar superficie de error completa.
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-6">
+                            <h4 class="text-lg font-semibold text-red-300 mb-3">
+                                <i data-lucide="x-circle" class="w-5 h-5 inline mr-2"></i>
+                                Desventajas
+                            </h4>
+                            <ul class="space-y-3 text-gray-300 text-sm">
+                                <li class="flex items-start">
+                                    <span class="text-red-400 mr-2 font-bold">1.</span>
+                                    <div>
+                                        <strong>Explosión Combinatoria:</strong> Complejidad O(p<sup>n</sup>) inmanejable en dimensiones altas.
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-red-400 mr-2 font-bold">2.</span>
+                                    <div>
+                                        <strong>Ineficiencia en Regiones Malas:</strong> Gasta recursos evaluando configuraciones
+                                        claramente subóptimas.
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-red-400 mr-2 font-bold">3.</span>
+                                    <div>
+                                        <strong>Discretización Forzada:</strong> Hiperparámetros continuos deben discretizarse,
+                                        posiblemente perdiendo el óptimo real.
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-red-400 mr-2 font-bold">4.</span>
+                                    <div>
+                                        <strong>Mala Escalabilidad:</strong> Agregar 1 dimensión multiplica el costo por <em>p</em>.
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Análisis de Complejidad Temporal</h4>
+                        <p class="text-gray-300 mb-4">
+                            La complejidad total de Grid Search con K-fold cross-validation es:
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+\begin{aligned}
+T_{\text{GridSearch}} &= |\Theta_{\text{grid}}| \times K \times T_{\text{train}} \\[0.5em]
+&= \left(\prod_{i=1}^{n} p_i\right) \times K \times T_{\text{train}} \\[0.5em]
+&\approx p^n \times K \times T_{\text{train}}
+\end{aligned}
+$$
+                            <p class="text-gray-400 text-sm mt-4">
+                                Donde:
+                            </p>
+                            <ul class="text-gray-300 text-sm space-y-1 ml-4 mt-2">
+                                <li>• <strong>|Θ<sub>grid</sub>|</strong>: cardinalidad del grid (∏pᵢ)</li>
+                                <li>• <strong>K</strong>: número de folds en cross-validation (típicamente 3-10)</li>
+                                <li>• <strong>T<sub>train</sub></strong>: tiempo de entrenar el modelo una vez</li>
+                                <li>• <strong>p</strong>: promedio de valores por hiperparámetro</li>
+                                <li>• <strong>n</strong>: número de hiperparámetros</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-900/50 rounded p-4 mt-4">
+                            <p class="text-sm font-semibold text-blue-300 mb-2">Ejemplo Numérico:</p>
+                            <p class="text-gray-300 text-sm">
+                                • Grid 5×5×4 = 100 configs, 5-fold CV, T<sub>train</sub> = 3 minutos<br/>
+                                • Tiempo total sin paralelización: 100 × 5 × 3 = <strong class="text-red-400">1,500 minutos (25 horas)</strong><br/>
+                                • Con 20 executors paralelos: 1,500 / 20 = <strong class="text-green-400">75 minutos (1.25 horas)</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 3: Random Search -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-purple-600 p-3 rounded-lg">
+                        <i data-lucide="shuffle" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-purple-300">3. Random Search: Búsqueda Aleatoria Eficiente</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">Motivación y Definición</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Random Search muestrea <strong>B</strong> configuraciones uniformemente del espacio de hiperparámetros
+                            (continuo o discreto), donde <strong>B</strong> es el <em>presupuesto</em> de evaluaciones.
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+\begin{aligned}
+&\text{Entrada: } \Theta, \, B \text{ (presupuesto de evaluaciones)} \\[0.5em]
+&\text{Para } i = 1 \text{ hasta } B: \\[0.3em]
+&\quad\quad \text{1. Muestrear } \lambda_i \sim \mathcal{U}(\Theta) \text{ uniformemente} \\[0.3em]
+&\quad\quad \text{2. Evaluar } CV(\lambda_i) = \frac{1}{K} \sum_{k=1}^{K} L(f_{\lambda_i}^{(-k)}, D_k) \\[0.5em]
+&\text{Salida: } \lambda^* = \underset{i \in [1,B]}{\text{argmin}} \, CV(\lambda_i)
+\end{aligned}
+$$
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-yellow-300 mb-3">
+                            <i data-lucide="lightbulb" class="w-5 h-5 inline mr-2"></i>
+                            Teorema de Bergstra & Bengio (2012)
+                        </h4>
+                        <p class="text-gray-300 mb-4">
+                            <strong>Intuición clave:</strong> Si solo <strong>d</strong> de las <strong>n</strong> dimensiones
+                            son realmente importantes (d &lt; n), Random Search explora esas dimensiones efectivas con mayor
+                            resolución que Grid Search con el mismo número de evaluaciones.
+                        </p>
+                        <div class="code-block rounded-lg p-4 mb-4">
+$$
+\begin{aligned}
+&\text{Grid Search con } B \text{ evals: } B^{1/n} \text{ puntos por dimensión} \\[0.5em]
+&\text{Random Search con } B \text{ evals: } B \text{ puntos en dimensiones importantes}
+\end{aligned}
+$$
+                        </div>
+                        <div class="bg-gray-900/50 rounded p-4">
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">Ejemplo Ilustrativo:</p>
+                            <p class="text-gray-300 text-sm">
+                                Supón <strong>n=9</strong> hiperparámetros, pero solo <strong>d=2</strong> son importantes.
+                                Con <strong>B=100</strong> evaluaciones:
+                            </p>
+                            <ul class="text-gray-300 text-sm space-y-1 ml-4 mt-2">
+                                <li>• <strong>Grid Search:</strong> 100<sup>1/9</sup> ≈ 1.78 puntos por dimensión →
+                                    ~<strong>3 valores</strong> en las 2 dimensiones importantes (grid 3×3×...)</li>
+                                <li>• <strong>Random Search:</strong> 100 samples aleatorios →
+                                    ~<strong>100 valores únicos</strong> en las 2 dimensiones importantes</li>
+                            </ul>
+                            <p class="text-green-400 text-sm mt-2 font-semibold">
+                                → Random Search explora 33× más densamente las dimensiones críticas
+                            </p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-purple-200 mb-3">Visualización Comparativa: Grid vs Random</h4>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-gray-900/50 rounded-lg p-4">
+                                <p class="text-sm font-semibold text-blue-300 mb-3 text-center">Grid Search (9 puntos)</p>
+                                <div class="bg-gray-800 rounded p-4 font-mono text-xs text-center">
+                                    <pre class="text-blue-300">
+●   ●   ●
+●   ●   ●
+●   ●   ●
+</pre>
+                                </div>
+                                <p class="text-gray-400 text-xs mt-2 text-center">
+                                    3×3 grid regular<br/>
+                                    (solo 3 valores únicos por dimensión)
+                                </p>
+                            </div>
+                            <div class="bg-gray-900/50 rounded-lg p-4">
+                                <p class="text-sm font-semibold text-purple-300 mb-3 text-center">Random Search (9 puntos)</p>
+                                <div class="bg-gray-800 rounded p-4 font-mono text-xs text-center">
+                                    <pre class="text-purple-300">
+    ●       ●
+  ●     ●
+        ●   ●
+● ●         ●
+</pre>
+                                </div>
+                                <p class="text-gray-400 text-xs mt-2 text-center">
+                                    Muestreo aleatorio<br/>
+                                    (9 valores únicos por dimensión)
+                                </p>
+                            </div>
+                        </div>
+                        <p class="text-gray-300 text-sm mt-4 text-center">
+                            Random Search tiene mayor probabilidad de encontrar el óptimo cuando las dimensiones tienen
+                            importancia heterogénea.
+                        </p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-6">
+                            <h4 class="text-lg font-semibold text-green-300 mb-3">
+                                <i data-lucide="check-circle" class="w-5 h-5 inline mr-2"></i>
+                                Ventajas
+                            </h4>
+                            <ul class="space-y-3 text-gray-300 text-sm">
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2 font-bold">1.</span>
+                                    <div>
+                                        <strong>Mejor en Alta Dimensionalidad:</strong> Escala mejor que Grid Search (lineal vs exponencial).
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2 font-bold">2.</span>
+                                    <div>
+                                        <strong>Presupuesto Controlable:</strong> Parámetro <em>B</em> permite ajustar tiempo/precisión.
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2 font-bold">3.</span>
+                                    <div>
+                                        <strong>Maneja Continuos Naturalmente:</strong> No requiere discretización manual.
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2 font-bold">4.</span>
+                                    <div>
+                                        <strong>Paralelizable:</strong> Todas las evaluaciones son independientes.
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-green-400 mr-2 font-bold">5.</span>
+                                    <div>
+                                        <strong>Convergencia Rápida:</strong> Encuentra buenos modelos antes que Grid Search.
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-6">
+                            <h4 class="text-lg font-semibold text-red-300 mb-3">
+                                <i data-lucide="x-circle" class="w-5 h-5 inline mr-2"></i>
+                                Desventajas
+                            </h4>
+                            <ul class="space-y-3 text-gray-300 text-sm">
+                                <li class="flex items-start">
+                                    <span class="text-red-400 mr-2 font-bold">1.</span>
+                                    <div>
+                                        <strong>No Determinístico:</strong> Resultados varían entre ejecuciones (excepto con seed fijo).
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-red-400 mr-2 font-bold">2.</span>
+                                    <div>
+                                        <strong>Sin Garantías de Optimalidad:</strong> Probabilístico, no garantiza encontrar el mejor.
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-red-400 mr-2 font-bold">3.</span>
+                                    <div>
+                                        <strong>Puede Desperdiciar Samples:</strong> Muestrea regiones ya exploradas por azar.
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-red-400 mr-2 font-bold">4.</span>
+                                    <div>
+                                        <strong>Difícil Visualización:</strong> No produce grid regular para graficar superficie.
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Análisis de Complejidad</h4>
+                        <p class="text-gray-300 mb-4">
+                            Random Search con presupuesto <strong>B</strong> tiene complejidad:
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+T_{\text{RandomSearch}} = B \times K \times T_{\text{train}}
+$$
+                            <p class="text-gray-400 text-sm mt-4">
+                                Nota: <strong>Independiente de n</strong> (número de hiperparámetros), a diferencia de Grid Search O(p<sup>n</sup>).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 4: Probabilidad de Encontrar Óptimo -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-tuning-600 p-3 rounded-lg">
+                        <i data-lucide="percent" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-tuning-300">4. Análisis Probabilístico: ¿Cuántos Samples Necesito?</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">Probabilidad de Encontrar Región Óptima</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Supongamos que la región óptima ocupa una fracción <strong>ε</strong> del espacio total (ε ∈ (0, 1)).
+                            Con Random Search de <strong>B</strong> samples, la probabilidad de <em>al menos un sample</em>
+                            caer en la región óptima es:
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+\begin{aligned}
+P(\text{encontrar óptimo}) &= 1 - P(\text{ningún sample en región óptima}) \\[0.5em]
+&= 1 - (1 - \varepsilon)^B \\[0.5em]
+&\approx 1 - e^{-\varepsilon B} \quad \text{(para } \varepsilon \text{ pequeño)}
+\end{aligned}
+$$
+                        </div>
+                    </div>
+
+                    <div class="bg-tuning-900/30 border border-tuning-500/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Calculadora de Probabilidad</h4>
+                        <p class="text-gray-300 mb-4 text-sm">
+                            ¿Cuántos samples <strong>B</strong> necesito para encontrar región óptima (fracción ε) con probabilidad ≥ 95%?
+                        </p>
+                        <div class="code-block rounded-lg p-4 mb-4">
+$$
+\begin{aligned}
+1 - (1 - \varepsilon)^B &\geq 0.95 \\[0.3em]
+(1 - \varepsilon)^B &\leq 0.05 \\[0.3em]
+B \log(1 - \varepsilon) &\leq \log(0.05) \\[0.3em]
+B &\geq \frac{\log(0.05)}{\log(1 - \varepsilon)} = \frac{-2.996}{\log(1 - \varepsilon)}
+\end{aligned}
+$$
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-tuning-500/30">
+                                        <th class="text-left py-3 px-4 text-tuning-300">Fracción Óptima (ε)</th>
+                                        <th class="text-left py-3 px-4">Interpretación</th>
+                                        <th class="text-left py-3 px-4">Samples para 95% (B)</th>
+                                        <th class="text-left py-3 px-4">Samples para 99% (B)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">ε = 0.10</td>
+                                        <td class="py-3 px-4 text-xs">10% del espacio es "bueno"</td>
+                                        <td class="py-3 px-4 text-green-400">29</td>
+                                        <td class="py-3 px-4">44</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">ε = 0.05</td>
+                                        <td class="py-3 px-4 text-xs">5% del espacio es "bueno"</td>
+                                        <td class="py-3 px-4 text-yellow-400">59</td>
+                                        <td class="py-3 px-4">90</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">ε = 0.01</td>
+                                        <td class="py-3 px-4 text-xs">1% del espacio es "bueno"</td>
+                                        <td class="py-3 px-4 text-orange-400">299</td>
+                                        <td class="py-3 px-4">459</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-semibold">ε = 0.001</td>
+                                        <td class="py-3 px-4 text-xs">0.1% del espacio es "bueno"</td>
+                                        <td class="py-3 px-4 text-red-400">2,995</td>
+                                        <td class="py-3 px-4">4,603</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-gray-400 text-xs mt-3">
+                            <strong>Conclusión:</strong> Si la región óptima es razonablemente grande (ε ≥ 5%), Random Search
+                            con 50-100 samples tiene alta probabilidad de encontrarla.
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Gráfica de Convergencia</h4>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-sm text-gray-400 mb-2">P(encontrar) vs Samples (B):</p>
+                                <div class="bg-gray-800 rounded p-4 font-mono text-xs">
+                                    <pre class="text-gray-300">
+1.0 |                  ████████████
+    |              ████
+0.8 |          ████
+    |       ███
+0.6 |     ██
+    |   ██
+0.4 |  █
+    | █
+0.2 |█
+    |
+0.0 +--------------------------------
+    0    50   100  150  200  250  300
+            Samples (B)
+</pre>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2 text-center">ε = 0.05 (5% óptimo)</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 mb-2">Ejemplo para diferentes ε:</p>
+                                <div class="space-y-2">
+                                    <div class="bg-green-900/20 border-l-4 border-green-500 p-3">
+                                        <p class="text-xs text-green-300 font-semibold">ε = 0.10 → B = 29</p>
+                                        <p class="text-xs text-gray-400">Convergencia rápida</p>
+                                    </div>
+                                    <div class="bg-yellow-900/20 border-l-4 border-yellow-500 p-3">
+                                        <p class="text-xs text-yellow-300 font-semibold">ε = 0.05 → B = 59</p>
+                                        <p class="text-xs text-gray-400">Moderado</p>
+                                    </div>
+                                    <div class="bg-orange-900/20 border-l-4 border-orange-500 p-3">
+                                        <p class="text-xs text-orange-300 font-semibold">ε = 0.01 → B = 299</p>
+                                        <p class="text-xs text-gray-400">Convergencia lenta</p>
+                                    </div>
+                                    <div class="bg-red-900/20 border-l-4 border-red-500 p-3">
+                                        <p class="text-xs text-red-300 font-semibold">ε = 0.001 → B = 2995</p>
+                                        <p class="text-xs text-gray-400">Muy costoso</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 5: Cross-Validation -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-green-600 p-3 rounded-lg">
+                        <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-green-300">5. Cross-Validation: Estimando el Error de Generalización</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">K-Fold Cross-Validation</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Para evaluar cada configuración λ, necesitamos estimar su error de generalización. K-fold CV
+                            divide los datos de entrenamiento en <strong>K</strong> particiones (folds) y entrena
+                            <strong>K</strong> modelos, cada uno usando K-1 folds para entrenar y 1 para validar.
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+CV(\lambda) = \frac{1}{K} \sum_{k=1}^{K} L(f_\lambda^{(-k)}, D_k)
+$$
+                            <p class="text-gray-400 text-sm mt-4">
+                                Donde:
+                            </p>
+                            <ul class="text-gray-300 text-sm space-y-1 ml-4 mt-2">
+                                <li>• <strong>f<sub>λ</sub><sup>(-k)</sup></strong>: modelo entrenado con config λ sin fold k</li>
+                                <li>• <strong>D<sub>k</sub></strong>: k-ésimo fold (datos de validación)</li>
+                                <li>• <strong>L</strong>: función de pérdida (MSE, log-loss, etc.)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Visualización de 5-Fold CV</h4>
+                        <pre class="mermaid">
+graph TD
+    A[Dataset Completo] --> B[Fold 1]
+    A --> C[Fold 2]
+    A --> D[Fold 3]
+    A --> E[Fold 4]
+    A --> F[Fold 5]
+
+    B --> G[Iter 1: Val]
+    C --> G
+    D --> G
+    E --> G
+    F --> G
+
+    G --> H[Modelo₁ → Error₁]
+
+    B --> I[Iter 2: Train]
+    C --> J[Iter 2: Val]
+    D --> I
+    E --> I
+    F --> I
+
+    I --> K[Modelo₂ → Error₂]
+    J --> K
+
+    H --> L["CV = (E₁+E₂+E₃+E₄+E₅)/5"]
+    K --> L
+
+    style A fill:#9333ea,stroke:#a855f7,color:#fff
+    style L fill:#10b981,stroke:#34d399,color:#fff
+                        </pre>
+                        <p class="text-gray-400 text-sm text-center mt-4">
+                            Cada fold actúa como validación exactamente una vez. El error promedio es el estimador CV.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Sesgo-Varianza del Estimador CV</h4>
+                        <p class="text-gray-300 mb-4">
+                            El estimador CV(λ) es en sí una variable aleatoria (depende de los folds). Su calidad se analiza mediante:
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+\begin{aligned}
+\text{Sesgo:} \quad &\mathbb{E}[CV(\lambda)] - \text{Error}_{\text{true}}(\lambda) \\[0.5em]
+\text{Varianza:} \quad &\text{Var}[CV(\lambda)] = \mathbb{E}\left[\left(CV(\lambda) - \mathbb{E}[CV(\lambda)]\right)^2\right]
+\end{aligned}
+$$
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6 mt-4">
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                                <h5 class="text-sm font-semibold text-blue-300 mb-2">Mayor K (K=10, K=n):</h5>
+                                <ul class="text-gray-300 text-xs space-y-1">
+                                    <li>• <strong>Sesgo:</strong> Bajo (más datos de entrenamiento)</li>
+                                    <li>• <strong>Varianza:</strong> Alta (folds más correlacionados)</li>
+                                    <li>• <strong>Costo:</strong> Alto (K entrenamientos)</li>
+                                </ul>
+                            </div>
+                            <div class="bg-orange-900/20 border border-orange-500/30 rounded-lg p-4">
+                                <h5 class="text-sm font-semibold text-orange-300 mb-2">Menor K (K=3, K=5):</h5>
+                                <ul class="text-gray-300 text-xs space-y-1">
+                                    <li>• <strong>Sesgo:</strong> Alto (menos datos de entrenamiento)</li>
+                                    <li>• <strong>Varianza:</strong> Baja (folds menos correlacionados)</li>
+                                    <li>• <strong>Costo:</strong> Bajo (menos entrenamientos)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-4">
+                            <strong>Trade-off típico:</strong> K=5 o K=10 balancean sesgo, varianza y costo computacional.
+                        </p>
+                    </div>
+
+                    <div class="bg-tuning-900/30 border border-tuning-500/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">TrainValidationSplit: Alternativa Más Rápida</h4>
+                        <p class="text-gray-300 mb-4 text-sm">
+                            En lugar de K-fold CV, se puede usar una sola división train/val (típicamente 80/20):
+                        </p>
+                        <div class="code-block rounded-lg p-4">
+$$
+\text{Val-Error}(\lambda) = L(f_\lambda^{\text{train}}, D_{\text{val}})
+$$
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <p class="text-sm font-semibold text-green-400 mb-2">Ventajas:</p>
+                                <ul class="text-gray-300 text-xs space-y-1">
+                                    <li>✓ <strong>K veces más rápido</strong> que K-fold CV</li>
+                                    <li>✓ Suficiente para datasets grandes</li>
+                                    <li>✓ Menor varianza (un solo split)</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-red-400 mb-2">Desventajas:</p>
+                                <ul class="text-gray-300 text-xs space-y-1">
+                                    <li>✗ Mayor sesgo (menos datos para entrenar)</li>
+                                    <li>✗ Estimador menos robusto</li>
+                                    <li>✗ Sensible a la partición elegida</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 text-xs mt-3">
+                            <strong>Regla práctica:</strong> Usa TrainValidationSplit si N &gt; 100K y el tiempo es crítico;
+                            usa CrossValidator si necesitas estimador robusto.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 6: Código Completo -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-tuning-600 p-3 rounded-lg">
+                        <i data-lucide="code" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-tuning-300">6. Implementación Completa: Grid Search en Spark ML</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Implementación paso a paso de Grid Search con 5-fold cross-validation para Random Forest:
+                        </p>
+                    </div>
+
+                    <div class="code-block rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-sm font-semibold text-tuning-300">Python + PySpark</span>
+                            <span class="text-xs text-gray-500">Grid Search + CrossValidator</span>
+                        </div>
+                        <pre class="text-gray-300 text-sm overflow-x-auto"><code>from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
+from pyspark.ml.feature import VectorAssembler
+
+# ============================================================
+# PASO 1: Preparar datos
+# ============================================================
+# Supongamos df_train con columnas: feature1, feature2, ..., label
+
+assembler = VectorAssembler(
+    inputCols=["feature1", "feature2", "feature3", "feature4"],  # Características
+    outputCol="features"
+)
+
+df_assembled = assembler.transform(df_train)
+
+# ============================================================
+# PASO 2: Definir modelo base
+# ============================================================
+rf = RandomForestClassifier(
+    featuresCol="features",
+    labelCol="label",
+    seed=42  # Para reproducibilidad
+)
+
+# ============================================================
+# PASO 3: Construir grid de hiperparámetros
+# ============================================================
+# Definimos espacio de búsqueda: Θ = Θ₁ × Θ₂ × Θ₃ × Θ₄
+paramGrid = ParamGridBuilder() \
+    .addGrid(rf.numTrees, [10, 50, 100, 200]) \          # |Θ₁| = 4
+    .addGrid(rf.maxDepth, [5, 10, 15, 20]) \              # |Θ₂| = 4
+    .addGrid(rf.maxBins, [16, 32, 64]) \                  # |Θ₃| = 3
+    .addGrid(rf.subsamplingRate, [0.6, 0.8, 1.0]) \       # |Θ₄| = 3
+    .build()
+
+# Tamaño del espacio: |Θ| = 4 × 4 × 3 × 3 = 144 configs
+
+print(f"Total de configuraciones a evaluar: {len(paramGrid)}")
+# Output: Total de configuraciones a evaluar: 144
+
+# ============================================================
+# PASO 4: Definir evaluador
+# ============================================================
+# Métrica: AUC-ROC (área bajo curva ROC)
+evaluator = BinaryClassificationEvaluator(
+    labelCol="label",
+    rawPredictionCol="rawPrediction",
+    metricName="areaUnderROC"  # Maximizar AUC
+)
+
+# ============================================================
+# PASO 5: Configurar CrossValidator
+# ============================================================
+# K-fold CV con K=5, paralelización en 4 partitions
+cv = CrossValidator(
+    estimator=rf,                    # Modelo a tunear
+    estimatorParamMaps=paramGrid,    # Grid de hiperparámetros
+    evaluator=evaluator,             # Métrica de evaluación
+    numFolds=5,                      # K=5 folds
+    parallelism=4,                   # 4 configs en paralelo
+    seed=42                          # Reproducibilidad
+)
+
+# Complejidad: 144 configs × 5 folds = 720 entrenamientos
+# Con parallelism=4: 720 / 4 = 180 tareas secuenciales
+
+# ============================================================
+# PASO 6: Ejecutar Grid Search (¡esto puede tomar tiempo!)
+# ============================================================
+print("Iniciando Grid Search con 5-fold CV...")
+print("Esto entrenará 720 modelos (144 configs × 5 folds)")
+
+cvModel = cv.fit(df_assembled)
+
+print("Grid Search completado!")
+
+# ============================================================
+# PASO 7: Extraer mejor modelo y parámetros
+# ============================================================
+# Mejor modelo encontrado
+bestModel = cvModel.bestModel
+
+# Extraer hiperparámetros óptimos
+print("\n========== RESULTADOS ==========")
+print(f"Mejor numTrees: {bestModel.getNumTrees}")
+print(f"Mejor maxDepth: {bestModel.getMaxDepth()}")
+print(f"Mejor maxBins: {bestModel.getMaxBins()}")
+print(f"Mejor subsamplingRate: {bestModel.getSubsamplingRate()}")
+
+# Mejor AUC en validación (promedio de 5 folds)
+best_auc = max(cvModel.avgMetrics)
+print(f"\nMejor AUC (CV): {best_auc:.4f}")
+
+# ============================================================
+# PASO 8: Analizar todos los resultados
+# ============================================================
+# cvModel.avgMetrics contiene AUC promedio para cada config
+results = []
+for idx, (params, auc) in enumerate(zip(paramGrid, cvModel.avgMetrics)):
+    config = {
+        "config_id": idx,
+        "numTrees": params[rf.numTrees],
+        "maxDepth": params[rf.maxDepth],
+        "maxBins": params[rf.maxBins],
+        "subsamplingRate": params[rf.subsamplingRate],
+        "avg_auc": auc
+    }
+    results.append(config)
+
+# Convertir a DataFrame para análisis
+import pandas as pd
+results_df = pd.DataFrame(results)
+
+# Top 5 configuraciones
+print("\nTop 5 configuraciones:")
+print(results_df.nlargest(5, "avg_auc"))
+
+# ============================================================
+# PASO 9: Evaluar en test set
+# ============================================================
+df_test_assembled = assembler.transform(df_test)
+
+predictions = bestModel.transform(df_test_assembled)
+test_auc = evaluator.evaluate(predictions)
+
+print(f"\nAUC en Test Set: {test_auc:.4f}")
+
+# ============================================================
+# PASO 10: Análisis de sensibilidad (opcional)
+# ============================================================
+# Ver cómo cada hiperparámetro afecta el rendimiento
+print("\n========== SENSIBILIDAD POR HIPERPARÁMETRO ==========")
+
+for param_name in ["numTrees", "maxDepth", "maxBins", "subsamplingRate"]:
+    print(f"\n{param_name}:")
+    sensitivity = results_df.groupby(param_name)["avg_auc"].agg(["mean", "std"])
+    print(sensitivity)
+
+# Ejemplo Output:
+#             mean       std
+# numTrees
+# 10          0.8234    0.0123
+# 50          0.8567    0.0089
+# 100         0.8623    0.0076  ← Mejor promedio
+# 200         0.8619    0.0081
+
+# ============================================================
+# OBSERVACIONES FINALES
+# ============================================================
+# 1. Grid Search garantiza encontrar el óptimo DENTRO del grid
+# 2. Con 144 configs × 5 folds = 720 entrenamientos
+# 3. Paralelización (parallelism=4) reduce tiempo 4x
+# 4. El mejor modelo se puede usar directamente: bestModel.transform(...)
+# 5. Considerar Random Search si el espacio es > 500 configs</code></pre>
+                    </div>
+
+                    <div class="bg-tuning-900/30 border border-tuning-500/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">
+                            <i data-lucide="zap" class="w-5 h-5 inline mr-2"></i>
+                            Optimizaciones para Grid Search en Producción
+                        </h4>
+                        <ul class="space-y-3 text-gray-300 text-sm">
+                            <li class="flex items-start">
+                                <span class="text-tuning-400 mr-2">1.</span>
+                                <div>
+                                    <strong>Coarse-to-Fine:</strong> Primero grid grueso (3 valores/dim), luego refinar región óptima.
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-tuning-400 mr-2">2.</span>
+                                <div>
+                                    <strong>Early Stopping:</strong> Si una config es claramente mala en fold 1-2, abortar.
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-tuning-400 mr-2">3.</span>
+                                <div>
+                                    <strong>Caching:</strong> Persistir df_assembled en memoria para evitar recomputación.
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-tuning-400 mr-2">4.</span>
+                                <div>
+                                    <strong>Samplear datos:</strong> Para exploración inicial, usar 20-30% de datos.
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-tuning-400 mr-2">5.</span>
+                                <div>
+                                    <strong>Guardar checkpoints:</strong> Serializar cvModel para no perder progreso.
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navegación -->
+        <div class="flex justify-between items-center mt-12">
+            <a href="seccion_15.html" class="flex items-center space-x-2 text-tuning-300 hover:text-tuning-200 transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span>Volver al Hub</span>
+            </a>
+            <a href="seccion15_2.html" class="flex items-center space-x-2 text-tuning-300 hover:text-tuning-200 transition-colors">
+                <span>Siguiente: ParamGrid & Evaluadores</span>
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </a>
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#9333ea',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#a855f7',
+                lineColor: '#c084fc',
+                secondaryColor: '#7e22ce',
+                tertiaryColor: '#581c87'
+            }
+        });
+    </script>
+</body>
+</html>

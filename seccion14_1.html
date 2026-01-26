@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regresión Lineal y Logística | Regresión</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --reg-green: #10b981;
+            --bg-deep: #050505;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+        }
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: var(--reg-green);
+            transform: translateY(-2px);
+        }
+        .math-block {
+            background: rgba(30, 30, 40, 0.8);
+            border-left: 4px solid var(--reg-green);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="seccion_14.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">SECCIÓN 14</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-lg">MÓDULO 1<span class="text-green-400">.LinearLogistic()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">MATEMÁTICA DE LA PREDICCIÓN</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro -->
+        <section class="text-center space-y-4">
+            <h2 class="text-4xl font-black text-white">Regresión Lineal y Logística</h2>
+            <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+                Derivación matemática completa desde función de costo hasta implementación distribuida en Spark ML.
+            </p>
+        </section>
+
+        <!-- Bloque 1: Regresión Lineal - Derivación -->
+        <section>
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-green-400">01.</span> Regresión Lineal: Derivación Completa
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Función de Costo (Mean Squared Error)</h4>
+
+                <div class="math-block mb-6">
+                    <div class="text-white mb-3">Modelo:</div>
+                    $$
+                    \hat{y}_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_p x_{ip} = \beta^T \mathbf{x}_i
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        En notación matricial: \(\hat{\mathbf{y}} = X\boldsymbol{\beta}\), donde \(X \in \mathbb{R}^{n \times p}\), \(\boldsymbol{\beta} \in \mathbb{R}^p\)
+                    </div>
+                </div>
+
+                <div class="math-block mb-6">
+                    <div class="text-white mb-3">Función de costo (minimizar):</div>
+                    $$
+                    \begin{aligned}
+                    J(\boldsymbol{\beta}) &= \frac{1}{2n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 \\[0.5em]
+                    &= \frac{1}{2n} \sum_{i=1}^{n} (y_i - \boldsymbol{\beta}^T \mathbf{x}_i)^2 \\[0.5em]
+                    &= \frac{1}{2n} ||X\boldsymbol{\beta} - \mathbf{y}||^2
+                    \end{aligned}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        El factor \(\frac{1}{2}\) simplifica la derivada. El \(\frac{1}{n}\) normaliza por cantidad de datos.
+                    </div>
+                </div>
+
+                <div class="math-block mb-6">
+                    <div class="text-white mb-3">Gradiente (derivar respecto a β):</div>
+                    $$
+                    \begin{aligned}
+                    \nabla J(\boldsymbol{\beta}) &= \frac{\partial J}{\partial \boldsymbol{\beta}} \\[0.5em]
+                    &= \frac{1}{n} X^T (X\boldsymbol{\beta} - \mathbf{y}) \\[0.5em]
+                    &= \frac{1}{n} \sum_{i=1}^{n} ((\boldsymbol{\beta}^T \mathbf{x}_i) - y_i) \mathbf{x}_i
+                    \end{aligned}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Este gradiente se puede calcular distribuido: cada partición computa su suma parcial, luego se agregan.
+                    </div>
+                </div>
+
+                <div class="math-block">
+                    <div class="text-white mb-3">Solución analítica (Normal Equations):</div>
+                    $$
+                    \begin{aligned}
+                    \nabla J(\boldsymbol{\beta}) &= 0 \\[0.5em]
+                    X^T X \boldsymbol{\beta} &= X^T \mathbf{y} \\[0.5em]
+                    \hat{\boldsymbol{\beta}} &= (X^T X)^{-1} X^T \mathbf{y}
+                    \end{aligned}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        <strong class="text-yellow-400">Problema:</strong> Requiere invertir \(X^T X\) (matriz \(p \times p\)).
+                        Si \(p\) es grande o \(X^T X\) es singular, falla numéricamente.
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="font-bold text-white mb-4">Solver: Normal Equations</h4>
+                    <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+
+lr = LinearRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"label"</span>,
+    solver=<span class="text-green-300">"normal"</span>  <span class="text-slate-500"># Usa (X^T X)^{-1} X^T y</span>
+)
+
+model = lr.fit(train_df)
+
+<span class="text-slate-500"># Coeficientes aprendidos</span>
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"β: </span>{model.coefficients}<span class="text-green-300">"</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"β₀: </span>{model.intercept}<span class="text-green-300">"</span>)</code></pre>
+                    <div class="mt-4 p-3 bg-green-900/20 border border-green-500/30 rounded text-xs text-green-300">
+                        ✅ <strong>Mejor si:</strong> p &lt; 4096, datos caben en memoria, X^T X invertible
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="font-bold text-white mb-4">Solver: L-BFGS (Iterativo)</h4>
+                    <pre class="font-tech text-xs bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+
+lr = LinearRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"label"</span>,
+    solver=<span class="text-green-300">"l-bfgs"</span>,  <span class="text-slate-500"># Quasi-Newton (default)</span>
+    maxIter=<span class="text-yellow-300">100</span>,
+    tol=<span class="text-yellow-300">1e-6</span>
+)
+
+model = lr.fit(train_df)
+
+<span class="text-slate-500"># Converge iterativamente usando ∇J</span></code></pre>
+                    <div class="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                        ✅ <strong>Mejor si:</strong> p &gt; 4096, Big Data, necesitas regularización
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: Interpretación Geométrica -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-blue-400">02.</span> Interpretación Geométrica
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Proyección Ortogonal</h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-sm text-slate-400 mb-4">
+                            La regresión lineal encuentra la <strong class="text-white">proyección</strong> de \(\mathbf{y}\)
+                            sobre el espacio columna de \(X\).
+                        </p>
+
+                        <div class="math-block mb-4">
+                            $$
+                            \begin{aligned}
+                            \text{Col}(X) &= \{\mathbf{v} : \mathbf{v} = X\boldsymbol{\beta} \text{ para algún } \boldsymbol{\beta}\} \\[0.5em]
+                            \hat{\mathbf{y}} &= \text{Proj}_{\text{Col}(X)}(\mathbf{y}) \\[0.5em]
+                            &= X\hat{\boldsymbol{\beta}}
+                            \end{aligned}
+                            $$
+                        </div>
+
+                        <div class="text-xs text-slate-400 bg-slate-900/50 p-4 rounded">
+                            <strong class="text-white">Residuales:</strong>
+                            $$
+                            \mathbf{e} = \mathbf{y} - \hat{\mathbf{y}}
+                            $$
+                            Son <strong>perpendiculares</strong> al espacio Col(X):
+                            $$
+                            X^T \mathbf{e} = X^T (\mathbf{y} - X\hat{\boldsymbol{\beta}}) = \mathbf{0}
+                            $$
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/50 p-6 rounded-xl">
+                        <div class="text-xs font-tech text-slate-300 leading-relaxed">
+                            <pre>
+        y (vector real)
+         ↑
+         |\\
+         | \\  e (residual)
+         |  \\
+         |   \\
+         |    ŷ (proyección)
+         |   /
+         |  /
+         | /
+         |/________________→ Col(X)
+                            </pre>
+                        </div>
+                        <div class="mt-4 text-xs text-slate-400">
+                            <strong class="text-white">Intuición:</strong> ŷ es el punto en Col(X) más cercano a y.
+                            El error e es mínimo cuando e ⊥ Col(X).
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: Regresión Logística -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-purple-400">03.</span> Regresión Logística: De Probabilidades a Log-Odds
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Derivación Paso a Paso</h4>
+
+                <div class="space-y-6">
+                    <div class="math-block">
+                        <div class="text-white mb-3">Paso 1: Modelo de Probabilidad</div>
+                        $$
+                        \begin{aligned}
+                        P(y=1|\mathbf{x}) &= \sigma(\boldsymbol{\beta}^T \mathbf{x}) \\[0.5em]
+                        \text{donde } \sigma(z) &= \frac{1}{1 + e^{-z}} \quad \text{(función sigmoide)}
+                        \end{aligned}
+                        $$
+                        <div class="text-xs text-slate-400 mt-3">
+                            La sigmoide mapea \((-\infty, +\infty) \to (0, 1)\), ideal para probabilidades.
+                        </div>
+                    </div>
+
+                    <div class="math-block">
+                        <div class="text-white mb-3">Paso 2: Log-Likelihood</div>
+                        $$
+                        \begin{aligned}
+                        \mathcal{L}(\boldsymbol{\beta}) &= \prod_{i=1}^{n} P(y_i|\mathbf{x}_i) \\[0.5em]
+                        &= \prod_{i=1}^{n} [\sigma(\boldsymbol{\beta}^T \mathbf{x}_i)]^{y_i} [1-\sigma(\boldsymbol{\beta}^T \mathbf{x}_i)]^{1-y_i} \\[0.5em]
+                        \ell(\boldsymbol{\beta}) &= \log \mathcal{L}(\boldsymbol{\beta}) \\[0.5em]
+                        &= \sum_{i=1}^{n} [y_i \log p_i + (1-y_i) \log (1-p_i)]
+                        \end{aligned}
+                        $$
+                        <div class="text-xs text-slate-400 mt-3">
+                            Donde \(p_i = \sigma(\boldsymbol{\beta}^T \mathbf{x}_i)\)
+                        </div>
+                    </div>
+
+                    <div class="math-block">
+                        <div class="text-white mb-3">Paso 3: Función de Costo (Cross-Entropy)</div>
+                        $$
+                        \begin{aligned}
+                        J(\boldsymbol{\beta}) &= -\frac{1}{n} \ell(\boldsymbol{\beta}) \\[0.5em]
+                        &= -\frac{1}{n} \sum_{i=1}^{n} [y_i \log(\sigma(\boldsymbol{\beta}^T \mathbf{x}_i)) + (1-y_i) \log(1-\sigma(\boldsymbol{\beta}^T \mathbf{x}_i))]
+                        \end{aligned}
+                        $$
+                        <div class="text-xs text-slate-400 mt-3">
+                            Minimizar J(β) ≡ Maximizar likelihood
+                        </div>
+                    </div>
+
+                    <div class="math-block">
+                        <div class="text-white mb-3">Paso 4: Gradiente</div>
+                        $$
+                        \begin{aligned}
+                        \nabla J(\boldsymbol{\beta}) &= \frac{1}{n} X^T (\boldsymbol{\sigma} - \mathbf{y}) \\[0.5em]
+                        \text{donde } \boldsymbol{\sigma} &= [\sigma(\boldsymbol{\beta}^T \mathbf{x}_1), \ldots, \sigma(\boldsymbol{\beta}^T \mathbf{x}_n)]^T
+                        \end{aligned}
+                        $$
+                        <div class="text-xs text-slate-400 mt-3">
+                            Sorprendentemente similar al gradiente de regresión lineal! Solo cambia \(X\boldsymbol{\beta}\) por \(\boldsymbol{\sigma}\).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Código: Regresión Logística en PySpark</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml.classification <span class="text-purple-400">import</span> LogisticRegression
+
+<span class="text-slate-500"># Clasificación binaria</span>
+lr_log = LogisticRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"label"</span>,  <span class="text-slate-500"># 0 o 1</span>
+    maxIter=<span class="text-yellow-300">100</span>,
+    regParam=<span class="text-yellow-300">0.01</span>,  <span class="text-slate-500"># Regularización L2 (Ridge)</span>
+    elasticNetParam=<span class="text-yellow-300">0.0</span>  <span class="text-slate-500"># 0=Ridge, 1=Lasso</span>
+)
+
+model = lr_log.fit(train_df)
+
+<span class="text-slate-500"># Predecir probabilidades</span>
+predictions = model.transform(test_df)
+
+predictions.select(<span class="text-green-300">"features"</span>, <span class="text-green-300">"label"</span>, <span class="text-green-300">"probability"</span>, <span class="text-green-300">"prediction"</span>).show(<span class="text-yellow-300">5</span>)
+
+<span class="text-slate-500"># +--------+-----+--------------------+----------+</span>
+<span class="text-slate-500"># |features|label|probability         |prediction|</span>
+<span class="text-slate-500"># +--------+-----+--------------------+----------+</span>
+<span class="text-slate-500"># |[2.0,..]|1    |[0.15, 0.85]        |1.0       |  # P(y=1) = 0.85</span>
+<span class="text-slate-500"># |[1.5,..]|0    |[0.92, 0.08]        |0.0       |  # P(y=1) = 0.08</span>
+<span class="text-slate-500"># +--------+-----+--------------------+----------+</span></code></pre>
+            </div>
+        </section>
+
+        <!-- Bloque 4: Métricas de Evaluación -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-yellow-400">04.</span> Métricas de Evaluación
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Regresión Lineal</h4>
+
+                    <div class="space-y-4">
+                        <div class="math-block text-sm">
+                            <strong>RMSE (Root Mean Squared Error):</strong>
+                            $$
+                            \text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}
+                            $$
+                            <div class="text-xs text-slate-400 mt-2">
+                                Unidades: mismas que y. Penaliza errores grandes.
+                            </div>
+                        </div>
+
+                        <div class="math-block text-sm">
+                            <strong>R² (Coeficiente de Determinación):</strong>
+                            $$
+                            R^2 = 1 - \frac{SS_{\text{res}}}{SS_{\text{tot}}} = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}
+                            $$
+                            <div class="text-xs text-slate-400 mt-2">
+                                Rango: [0, 1]. R²=1 → ajuste perfecto. R²=0 → modelo no mejor que media.
+                            </div>
+                        </div>
+
+                        <div class="math-block text-sm">
+                            <strong>MAE (Mean Absolute Error):</strong>
+                            $$
+                            \text{MAE} = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|
+                            $$
+                            <div class="text-xs text-slate-400 mt-2">
+                                Más robusto a outliers que RMSE.
+                            </div>
+                        </div>
+                    </div>
+
+                    <pre class="font-tech text-xs bg-slate-900 p-3 rounded text-slate-300 mt-4"><code><span class="text-purple-400">from</span> pyspark.ml.evaluation <span class="text-purple-400">import</span> RegressionEvaluator
+
+evaluator = RegressionEvaluator(
+    labelCol=<span class="text-green-300">"label"</span>,
+    predictionCol=<span class="text-green-300">"prediction"</span>
+)
+
+rmse = evaluator.evaluate(
+    predictions,
+    {evaluator.metricName: <span class="text-green-300">"rmse"</span>}
+)
+r2 = evaluator.evaluate(
+    predictions,
+    {evaluator.metricName: <span class="text-green-300">"r2"</span>}
+)
+
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"RMSE: </span>{rmse:.2f}<span class="text-green-300">"</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"R²: </span>{r2:.4f}<span class="text-green-300">"</span>)</code></pre>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4">Regresión Logística</h4>
+
+                    <div class="mb-4">
+                        <h5 class="text-sm font-bold text-white mb-2">Matriz de Confusión</h5>
+                        <table class="w-full text-xs text-center border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="p-2"></th>
+                                    <th class="p-2 text-blue-400" colspan="2">Predicción</th>
+                                </tr>
+                                <tr class="border-b border-slate-700">
+                                    <th class="p-2"></th>
+                                    <th class="p-2">Neg (0)</th>
+                                    <th class="p-2">Pos (1)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-slate-800">
+                                    <td class="p-2 text-blue-400 font-bold">Real Neg (0)</td>
+                                    <td class="p-2 bg-green-900/20">TN</td>
+                                    <td class="p-2 bg-red-900/20">FP</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 text-blue-400 font-bold">Real Pos (1)</td>
+                                    <td class="p-2 bg-red-900/20">FN</td>
+                                    <td class="p-2 bg-green-900/20">TP</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div class="math-block">
+                            $$
+                            \text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+                            $$
+                        </div>
+                        <div class="math-block">
+                            $$
+                            \text{Precision} = \frac{TP}{TP + FP}
+                            $$
+                        </div>
+                        <div class="math-block">
+                            $$
+                            \text{Recall (Sensitivity)} = \frac{TP}{TP + FN}
+                            $$
+                        </div>
+                        <div class="math-block">
+                            $$
+                            \text{F1-Score} = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
+                            $$
+                        </div>
+                    </div>
+
+                    <pre class="font-tech text-xs bg-slate-900 p-3 rounded text-slate-300 mt-4"><code><span class="text-purple-400">from</span> pyspark.ml.evaluation <span class="text-purple-400">import</span> BinaryClassificationEvaluator
+
+evaluator = BinaryClassificationEvaluator(
+    labelCol=<span class="text-green-300">"label"</span>,
+    rawPredictionCol=<span class="text-green-300">"rawPrediction"</span>
+)
+
+auc = evaluator.evaluate(
+    predictions,
+    {evaluator.metricName: <span class="text-green-300">"areaUnderROC"</span>}
+)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"AUC-ROC: </span>{auc:.4f}<span class="text-green-300">"</span>)</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 5: Solvers Comparación -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-red-400">05.</span> Solvers en Spark: Cuándo Usar Cada Uno
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-slate-300">
+                        <thead class="border-b border-slate-700">
+                            <tr>
+                                <th class="text-left py-3 px-4">Solver</th>
+                                <th class="text-left py-3 px-4">Método</th>
+                                <th class="text-left py-3 px-4">Complejidad</th>
+                                <th class="text-left py-3 px-4">Mejor para</th>
+                                <th class="text-left py-3 px-4">Limitaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xs">
+                            <tr class="border-b border-slate-800">
+                                <td class="py-3 px-4 text-green-400 font-bold">normal</td>
+                                <td class="py-3 px-4">(X^T X)^{-1} X^T y</td>
+                                <td class="py-3 px-4">O(np² + p³)</td>
+                                <td class="py-3 px-4">p &lt; 4096, datos pequeños</td>
+                                <td class="py-3 px-4">Falla si X^T X singular, no regularización</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-3 px-4 text-blue-400 font-bold">l-bfgs</td>
+                                <td class="py-3 px-4">Quasi-Newton</td>
+                                <td class="py-3 px-4">O(np × iter)</td>
+                                <td class="py-3 px-4">p &gt; 4096, Big Data, regularización</td>
+                                <td class="py-3 px-4">Requiere tuning de maxIter, tol</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-3 px-4 text-purple-400 font-bold">auto</td>
+                                <td class="py-3 px-4">Elige automático</td>
+                                <td class="py-3 px-4">Depende</td>
+                                <td class="py-3 px-4">No sabes qué usar</td>
+                                <td class="py-3 px-4">Menos control</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 p-4 bg-orange-900/20 border border-orange-500/30 rounded text-xs text-orange-300">
+                    💡 <strong>Recomendación:</strong> Usa <code>solver='auto'</code> por defecto.
+                    Spark elige 'normal' si p &lt; 4096 y sin regularización, caso contrario 'l-bfgs'.
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 6: Ejemplo Completo -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-purple-400">06.</span> Ejemplo Completo: Predicción de Salarios
+            </h3>
+
+            <div class="glass-card p-8 rounded-2xl">
+                <h4 class="text-xl font-bold text-white mb-4">Pipeline End-to-End</h4>
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300"><code><span class="text-purple-400">from</span> pyspark.ml <span class="text-purple-400">import</span> Pipeline
+<span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> VectorAssembler, StandardScaler
+<span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+<span class="text-purple-400">from</span> pyspark.ml.evaluation <span class="text-purple-400">import</span> RegressionEvaluator
+
+<span class="text-slate-500"># Dataset: salario ~ edad + educacion_años + experiencia</span>
+df = spark.read.csv(<span class="text-green-300">"salarios.csv"</span>, header=<span class="text-yellow-300">True</span>, inferSchema=<span class="text-yellow-300">True</span>)
+
+<span class="text-slate-500"># Split</span>
+train_df, test_df = df.randomSplit([<span class="text-yellow-300">0.8</span>, <span class="text-yellow-300">0.2</span>], seed=<span class="text-yellow-300">42</span>)
+
+<span class="text-slate-500"># Pipeline</span>
+assembler = VectorAssembler(
+    inputCols=[<span class="text-green-300">"edad"</span>, <span class="text-green-300">"educacion_años"</span>, <span class="text-green-300">"experiencia"</span>],
+    outputCol=<span class="text-green-300">"features_raw"</span>
+)
+
+scaler = StandardScaler(
+    inputCol=<span class="text-green-300">"features_raw"</span>,
+    outputCol=<span class="text-green-300">"features"</span>,
+    withMean=<span class="text-yellow-300">True</span>,
+    withStd=<span class="text-yellow-300">True</span>
+)
+
+lr = LinearRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"salario"</span>,
+    maxIter=<span class="text-yellow-300">100</span>
+)
+
+pipeline = Pipeline(stages=[assembler, scaler, lr])
+
+<span class="text-slate-500"># Entrenar</span>
+model = pipeline.fit(train_df)
+
+<span class="text-slate-500"># Predecir</span>
+predictions = model.transform(test_df)
+
+<span class="text-slate-500"># Evaluar</span>
+evaluator = RegressionEvaluator(labelCol=<span class="text-green-300">"salario"</span>, predictionCol=<span class="text-green-300">"prediction"</span>)
+rmse = evaluator.evaluate(predictions, {evaluator.metricName: <span class="text-green-300">"rmse"</span>})
+r2 = evaluator.evaluate(predictions, {evaluator.metricName: <span class="text-green-300">"r2"</span>})
+
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"RMSE: $</span>{rmse:.2f}<span class="text-green-300">"</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"R²: </span>{r2:.4f}<span class="text-green-300">"</span>)
+
+<span class="text-slate-500"># Coeficientes</span>
+lr_model = model.stages[<span class="text-yellow-300">2</span>]  <span class="text-slate-500"># LinearRegression es la 3ra etapa</span>
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"β (edad, educacion, experiencia): </span>{lr_model.coefficients}<span class="text-green-300">"</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"β₀ (intercept): </span>{lr_model.intercept:.2f}<span class="text-green-300">"</span>)
+
+<span class="text-slate-500"># Interpretación: Por cada año adicional de educación, el salario aumenta β₁ (todo lo demás constante)</span></code></pre>
+
+                <div class="mt-6 p-4 bg-green-900/20 border border-green-500/30 rounded text-sm text-green-300">
+                    <strong>Resultado ejemplo:</strong><br>
+                    RMSE: $5,234.12<br>
+                    R²: 0.7856<br>
+                    β: [850.23, 3200.45, 1100.67] → [edad, educacion, experiencia]<br>
+                    <br>
+                    <strong>Interpretación:</strong> Cada año adicional de educación incrementa el salario en ~$3,200 (manteniendo edad y experiencia constantes).
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion_14.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-green-500 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span class="text-slate-400">Volver al Hub</span>
+                </a>
+
+                <a href="seccion14_2.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-green-500 transition">
+                    <span class="text-slate-400">Siguiente: Regularización L1/L2</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParamGridBuilder y Evaluadores - Sección 15 - Diplomado USTA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        tuning: {
+                            50: '#faf5ff',
+                            100: '#f3e8ff',
+                            200: '#e9d5ff',
+                            300: '#d8b4fe',
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7e22ce',
+                            800: '#6b21a8',
+                            900: '#581c87',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0c29 0%, #1a0933 50%, #24144d 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(147, 51, 234, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(147, 51, 234, 0.15);
+        }
+        .concept-block {
+            background: rgba(192, 132, 252, 0.08);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #a855f7;
+            transition: all 0.3s ease;
+        }
+        .concept-block:hover {
+            background: rgba(192, 132, 252, 0.12);
+            border-left-color: #c084fc;
+            transform: translateX(4px);
+        }
+        .code-block {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #a855f7, transparent);
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+
+    <!-- Header -->
+    <header class="glass-card sticky top-0 z-50 mb-8">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i data-lucide="sliders" class="w-8 h-8 text-tuning-400"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold text-tuning-300">ParamGridBuilder y Evaluadores</h1>
+                        <p class="text-sm text-gray-400">API de Spark ML para Tuning Avanzado</p>
+                    </div>
+                </div>
+                <a href="seccion_15.html" class="flex items-center space-x-2 text-tuning-300 hover:text-tuning-200 transition-colors">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    <span>Volver</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 pb-12">
+
+        <!-- Bloque 1: ParamGridBuilder -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-tuning-600 p-3 rounded-lg">
+                        <i data-lucide="grid-2x2" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-tuning-300">1. ParamGridBuilder: Construcción del Espacio de Búsqueda</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">API y Funcionamiento</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            <code class="bg-gray-800 px-2 py-1 rounded text-tuning-300">ParamGridBuilder</code> es la clase de Spark ML
+                            para construir el producto cartesiano de hiperparámetros. Permite especificar valores discretos para cada
+                            hiperparámetro y genera automáticamente todas las combinaciones.
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-sm font-semibold text-tuning-300">Sintaxis Base</span>
+                                <span class="text-xs text-gray-500">Python + PySpark</span>
+                            </div>
+                            <pre class="text-gray-300 text-sm overflow-x-auto"><code>from pyspark.ml.tuning import ParamGridBuilder
+
+# Crear builder
+builder = ParamGridBuilder()
+
+# Agregar grids para cada hiperparámetro (método encadenado)
+paramGrid = builder \
+    .addGrid(estimator.param1, [value1, value2, ...]) \  # Grid para param1
+    .addGrid(estimator.param2, [value1, value2, ...]) \  # Grid para param2
+    .build()  # Construir producto cartesiano
+
+# Resultado: Lista de ParamMaps (diccionarios de configuración)
+# Tamaño: len(paramGrid) = len(values_param1) × len(values_param2) × ...</code></pre>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Ejemplo Completo: Regresión Logística</h4>
+                        <div class="code-block rounded-lg p-6">
+                            <pre class="text-gray-300 text-sm overflow-x-auto"><code>from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.tuning import ParamGridBuilder
+
+# Definir modelo
+lr = LogisticRegression(featuresCol="features", labelCol="label")
+
+# Construir grid de hiperparámetros
+paramGrid = ParamGridBuilder() \
+    .addGrid(lr.regParam, [0.001, 0.01, 0.1, 1.0, 10.0]) \        # Regularización: 5 valores
+    .addGrid(lr.elasticNetParam, [0.0, 0.25, 0.5, 0.75, 1.0]) \   # Elastic Net: 5 valores
+    .addGrid(lr.maxIter, [50, 100, 200]) \                        # Iteraciones: 3 valores
+    .build()
+
+# Tamaño del grid
+print(f"Total configs: {len(paramGrid)}")  # Output: 75 (5 × 5 × 3)
+
+# Inspeccionar primera configuración
+print(paramGrid[0])
+# Output: {Param(parent='LogisticRegression_...', name='regParam', ...): 0.001,
+#          Param(parent='LogisticRegression_...', name='elasticNetParam', ...): 0.0,
+#          Param(parent='LogisticRegression_...', name='maxIter', ...): 50}
+
+# ============================================================
+# Conexión Matemática: Producto Cartesiano
+# ============================================================
+# Θ = Θ_regParam × Θ_elasticNet × Θ_maxIter
+# |Θ| = |{0.001, 0.01, 0.1, 1.0, 10.0}| × |{0.0, 0.25, 0.5, 0.75, 1.0}| × |{50, 100, 200}|
+#     = 5 × 5 × 3 = 75 configuraciones</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-blue-300 mb-3">
+                            <i data-lucide="info" class="w-5 h-5 inline mr-2"></i>
+                            Tipos de Valores Soportados
+                        </h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-blue-500/30">
+                                        <th class="text-left py-3 px-4 text-blue-300">Tipo</th>
+                                        <th class="text-left py-3 px-4">Ejemplo</th>
+                                        <th class="text-left py-3 px-4">Uso</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Enteros</td>
+                                        <td class="py-3 px-4 font-mono text-xs">[10, 50, 100, 200]</td>
+                                        <td class="py-3 px-4">numTrees, maxIter, maxBins</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Flotantes</td>
+                                        <td class="py-3 px-4 font-mono text-xs">[0.01, 0.1, 1.0]</td>
+                                        <td class="py-3 px-4">regParam, stepSize, subsamplingRate</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4 font-semibold">Cadenas</td>
+                                        <td class="py-3 px-4 font-mono text-xs">["gini", "entropy"]</td>
+                                        <td class="py-3 px-4">impurity (criterio de split)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-semibold">Listas/Tuplas</td>
+                                        <td class="py-3 px-4 font-mono text-xs">[[10,5], [20,10,5]]</td>
+                                        <td class="py-3 px-4">layers (arquitectura de red neuronal)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Estrategias para Seleccionar Valores del Grid</h4>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-gray-900/50 rounded-lg p-6">
+                                <h5 class="text-sm font-semibold text-green-300 mb-3">1. Escala Logarítmica (regParam, stepSize)</h5>
+                                <p class="text-gray-300 text-xs mb-3">
+                                    Para parámetros que varían órdenes de magnitud, usar escala log:
+                                </p>
+                                <div class="code-block rounded p-3">
+                                    <pre class="text-xs text-gray-300"><code># Malo: escala lineal
+[0.1, 0.2, 0.3, 0.4, 0.5]  # Muy concentrado
+
+# Bueno: escala logarítmica
+[0.001, 0.01, 0.1, 1.0, 10.0]  # Cubre 4 órdenes
+
+# En Python
+import numpy as np
+np.logspace(-3, 1, 5)  # [0.001, 0.01, 0.1, 1, 10]</code></pre>
+                                </div>
+                            </div>
+                            <div class="bg-gray-900/50 rounded-lg p-6">
+                                <h5 class="text-sm font-semibold text-purple-300 mb-3">2. Escala Lineal (numTrees, maxDepth)</h5>
+                                <p class="text-gray-300 text-xs mb-3">
+                                    Para parámetros enteros con rango acotado:
+                                </p>
+                                <div class="code-block rounded p-3">
+                                    <pre class="text-xs text-gray-300"><code># Bueno: espaciado uniforme
+numTrees: [10, 50, 100, 200]
+maxDepth: [5, 10, 15, 20, 25]
+
+# En Python
+list(range(5, 30, 5))  # [5, 10, 15, 20, 25]</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-orange-900/20 border border-orange-500/30 rounded-lg p-4 mt-4">
+                            <p class="text-sm text-orange-300 font-semibold mb-2">
+                                <i data-lucide="lightbulb" class="w-4 h-4 inline mr-1"></i>
+                                Regla Práctica: Coarse-to-Fine
+                            </p>
+                            <ol class="text-gray-300 text-xs space-y-1 ml-4">
+                                <li><strong>1. Grid grueso:</strong> Pocos valores (3-4 por dim), amplio rango → identificar región óptima</li>
+                                <li><strong>2. Grid fino:</strong> Más valores (5-7 por dim), rango estrecho alrededor del óptimo</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 2: Evaluadores -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-green-600 p-3 rounded-lg">
+                        <i data-lucide="bar-chart-3" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-green-300">2. Evaluadores: Cuantificando el Rendimiento</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">Tipos de Evaluadores en Spark ML</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Los evaluadores son objetos que calculan una métrica de rendimiento sobre predicciones.
+                            CrossValidator usa el evaluador para seleccionar la mejor configuración:
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+\lambda^* = \underset{\lambda \in \Theta}{\text{argmax}} \, \text{Evaluator.evaluate}(\text{predictions}_\lambda)
+$$
+                            <p class="text-gray-400 text-sm mt-4">
+                                (Nota: CrossValidator <em>maximiza</em> la métrica del evaluador, por eso usamos argmax)
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-4">Catálogo de Evaluadores</h4>
+
+                        <!-- BinaryClassificationEvaluator -->
+                        <div class="mb-6 pb-6 border-b border-gray-700">
+                            <h5 class="text-md font-semibold text-blue-300 mb-3">
+                                <i data-lucide="git-branch" class="w-4 h-4 inline mr-2"></i>
+                                BinaryClassificationEvaluator
+                            </h5>
+                            <p class="text-gray-300 text-sm mb-3">
+                                Para clasificación binaria (2 clases). Métricas disponibles:
+                            </p>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs font-semibold text-blue-300 mb-2">areaUnderROC (default):</p>
+                                    <div class="code-block rounded p-3">
+$$
+\text{AUC-ROC} = \int_{0}^{1} \text{TPR}(t) \, d[\text{FPR}(t)]
+$$
+                                        <p class="text-gray-400 text-xs mt-2">
+                                            Área bajo curva ROC. Mide separabilidad: AUC=1 perfecto, AUC=0.5 azar.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-blue-300 mb-2">areaUnderPR:</p>
+                                    <div class="code-block rounded p-3">
+$$
+\text{AUC-PR} = \int_{0}^{1} \text{Precision}(r) \, dr
+$$
+                                        <p class="text-gray-400 text-xs mt-2">
+                                            Área bajo curva Precision-Recall. Mejor para datasets desbalanceados.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="code-block rounded-lg p-4 mt-3">
+                                <pre class="text-xs text-gray-300"><code>from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+evaluator = BinaryClassificationEvaluator(
+    labelCol="label",                # Columna de etiquetas verdaderas
+    rawPredictionCol="rawPrediction", # Scores del modelo (antes de threshold)
+    metricName="areaUnderROC"        # "areaUnderROC" o "areaUnderPR"
+)
+
+auc = evaluator.evaluate(predictions)
+print(f"AUC-ROC: {auc:.4f}")</code></pre>
+                            </div>
+                        </div>
+
+                        <!-- MulticlassClassificationEvaluator -->
+                        <div class="mb-6 pb-6 border-b border-gray-700">
+                            <h5 class="text-md font-semibold text-purple-300 mb-3">
+                                <i data-lucide="layers" class="w-4 h-4 inline mr-2"></i>
+                                MulticlassClassificationEvaluator
+                            </h5>
+                            <p class="text-gray-300 text-sm mb-3">
+                                Para clasificación multiclase (3+ clases). Métricas disponibles:
+                            </p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs">
+                                    <thead>
+                                        <tr class="border-b border-purple-500/30">
+                                            <th class="text-left py-2 px-3 text-purple-300">Métrica</th>
+                                            <th class="text-left py-2 px-3">Fórmula</th>
+                                            <th class="text-left py-2 px-3">Interpretación</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-300">
+                                        <tr class="border-b border-gray-700">
+                                            <td class="py-2 px-3 font-semibold">accuracy</td>
+                                            <td class="py-2 px-3">$\frac{TP + TN}{N}$</td>
+                                            <td class="py-2 px-3">% predicciones correctas</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-700">
+                                            <td class="py-2 px-3 font-semibold">f1</td>
+                                            <td class="py-2 px-3">$\frac{2 \cdot P \cdot R}{P + R}$</td>
+                                            <td class="py-2 px-3">Media armónica de precision/recall</td>
+                                        </tr>
+                                        <tr class="border-b border-gray-700">
+                                            <td class="py-2 px-3 font-semibold">weightedPrecision</td>
+                                            <td class="py-2 px-3">$\sum_i w_i P_i$</td>
+                                            <td class="py-2 px-3">Precision ponderada por clase</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-3 font-semibold">weightedRecall</td>
+                                            <td class="py-2 px-3">$\sum_i w_i R_i$</td>
+                                            <td class="py-2 px-3">Recall ponderado por clase</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="code-block rounded-lg p-4 mt-3">
+                                <pre class="text-xs text-gray-300"><code>from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+
+evaluator = MulticlassClassificationEvaluator(
+    labelCol="label",
+    predictionCol="prediction",  # Clase predicha (no raw scores)
+    metricName="f1"              # "f1", "accuracy", "weightedPrecision", etc.
+)
+
+f1_score = evaluator.evaluate(predictions)
+print(f"F1-Score: {f1_score:.4f}")</code></pre>
+                            </div>
+                        </div>
+
+                        <!-- RegressionEvaluator -->
+                        <div>
+                            <h5 class="text-md font-semibold text-orange-300 mb-3">
+                                <i data-lucide="trending-up" class="w-4 h-4 inline mr-2"></i>
+                                RegressionEvaluator
+                            </h5>
+                            <p class="text-gray-300 text-sm mb-3">
+                                Para regresión (predicción de valores continuos). Métricas:
+                            </p>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="code-block rounded p-3">
+                                    <p class="text-xs font-semibold text-orange-300 mb-2">rmse (default):</p>
+$$
+\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}
+$$
+                                    <p class="text-gray-400 text-xs mt-2">Root Mean Squared Error. Penaliza errores grandes.</p>
+                                </div>
+                                <div class="code-block rounded p-3">
+                                    <p class="text-xs font-semibold text-orange-300 mb-2">mae:</p>
+$$
+\text{MAE} = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|
+$$
+                                    <p class="text-gray-400 text-xs mt-2">Mean Absolute Error. Más robusto a outliers.</p>
+                                </div>
+                                <div class="code-block rounded p-3">
+                                    <p class="text-xs font-semibold text-orange-300 mb-2">r2:</p>
+$$
+R^2 = 1 - \frac{\sum (y_i - \hat{y}_i)^2}{\sum (y_i - \bar{y})^2}
+$$
+                                    <p class="text-gray-400 text-xs mt-2">Coeficiente de determinación. R²=1 ajuste perfecto.</p>
+                                </div>
+                                <div class="code-block rounded p-3">
+                                    <p class="text-xs font-semibold text-orange-300 mb-2">mse:</p>
+$$
+\text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+$$
+                                    <p class="text-gray-400 text-xs mt-2">Mean Squared Error. Cuadrado del RMSE.</p>
+                                </div>
+                            </div>
+                            <div class="code-block rounded-lg p-4 mt-3">
+                                <pre class="text-xs text-gray-300"><code>from pyspark.ml.evaluation import RegressionEvaluator
+
+evaluator = RegressionEvaluator(
+    labelCol="price",            # Valor real
+    predictionCol="prediction",  # Valor predicho
+    metricName="rmse"            # "rmse", "mae", "r2", "mse"
+)
+
+rmse = evaluator.evaluate(predictions)
+print(f"RMSE: {rmse:.2f}")</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-yellow-300 mb-3">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 inline mr-2"></i>
+                            Importante: Maximización vs Minimización
+                        </h4>
+                        <p class="text-gray-300 text-sm mb-4">
+                            CrossValidator <strong>siempre maximiza</strong> la métrica del evaluador. Esto es intuitivo para
+                            métricas como AUC, F1, R² (mayor = mejor), pero contra-intuitivo para errores como RMSE, MSE (menor = mejor).
+                        </p>
+                        <div class="bg-gray-900/50 rounded p-4">
+                            <p class="text-sm font-semibold text-yellow-300 mb-2">Solución: Spark invierte automáticamente</p>
+                            <ul class="text-gray-300 text-xs space-y-2">
+                                <li>• Para <strong>RMSE/MSE/MAE</strong>: CrossValidator maximiza <code>-RMSE</code> internamente
+                                    (equivalente a minimizar RMSE)</li>
+                                <li>• Para <strong>AUC/F1/R²</strong>: CrossValidator maximiza directamente</li>
+                                <li>• El usuario no necesita hacer nada, Spark maneja esto transparentemente</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 3: Pipeline Tuning -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-tuning-600 p-3 rounded-lg">
+                        <i data-lucide="git-merge" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-tuning-300">3. Tuning de Pipelines Completos</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">Optimizando Múltiples Stages Simultáneamente</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Una de las capacidades más poderosas de Spark ML es tunear <strong>todo el pipeline</strong> de una vez,
+                            incluyendo transformadores (feature engineering) y estimadores (modelos). Esto permite encontrar la
+                            combinación óptima de preprocesamiento + modelo.
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Arquitectura de Pipeline Tuning</h4>
+                        <pre class="mermaid">
+graph LR
+    A[Raw Data] --> B[VectorAssembler]
+    B --> C[StandardScaler]
+    C --> D[PCA]
+    D --> E[RandomForest]
+    E --> F[Predictions]
+
+    G[ParamGrid] -.-> C
+    G -.-> D
+    G -.-> E
+
+    H[CrossValidator] --> G
+    H --> I[Best Pipeline Model]
+
+    style A fill:#9333ea,stroke:#a855f7,color:#fff
+    style G fill:#f59e0b,stroke:#fbbf24,color:#000
+    style H fill:#10b981,stroke:#34d399,color:#fff
+    style I fill:#ef4444,stroke:#f87171,color:#fff
+                        </pre>
+                        <p class="text-gray-400 text-sm text-center mt-4">
+                            CrossValidator optimiza hiperparámetros de múltiples stages (Scaler, PCA, RF) simultáneamente
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Ejemplo Completo: Pipeline con PCA + Random Forest</h4>
+                        <div class="code-block rounded-lg p-6">
+                            <pre class="text-gray-300 text-sm overflow-x-auto"><code>from pyspark.ml import Pipeline
+from pyspark.ml.feature import VectorAssembler, StandardScaler, PCA
+from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
+
+# ============================================================
+# PASO 1: Construir Pipeline con múltiples stages
+# ============================================================
+# Stage 1: Ensamblar features
+assembler = VectorAssembler(
+    inputCols=["f1", "f2", "f3", "f4", "f5"],
+    outputCol="raw_features"
+)
+
+# Stage 2: Estandarizar (media 0, std 1)
+scaler = StandardScaler(
+    inputCol="raw_features",
+    outputCol="scaled_features",
+    withMean=True,
+    withStd=True
+)
+
+# Stage 3: Reducción dimensional con PCA
+pca = PCA(
+    inputCol="scaled_features",
+    outputCol="features"
+    # k será tuneable (número de componentes principales)
+)
+
+# Stage 4: Modelo Random Forest
+rf = RandomForestClassifier(
+    featuresCol="features",
+    labelCol="label",
+    seed=42
+)
+
+# Construir pipeline
+pipeline = Pipeline(stages=[assembler, scaler, pca, rf])
+
+# ============================================================
+# PASO 2: Definir grid tuneable para MÚLTIPLES stages
+# ============================================================
+paramGrid = ParamGridBuilder() \
+    .addGrid(pca.k, [3, 5, 7]) \                          # PCA: 3 valores (Stage 3)
+    .addGrid(rf.numTrees, [50, 100, 200]) \               # RF: 3 valores (Stage 4)
+    .addGrid(rf.maxDepth, [10, 15, 20]) \                 # RF: 3 valores (Stage 4)
+    .addGrid(rf.subsamplingRate, [0.7, 0.85, 1.0]) \      # RF: 3 valores (Stage 4)
+    .build()
+
+# Tamaño del grid: 3 × 3 × 3 × 3 = 81 configuraciones
+print(f"Configuraciones a evaluar: {len(paramGrid)}")
+
+# ============================================================
+# PASO 3: Configurar evaluador
+# ============================================================
+evaluator = BinaryClassificationEvaluator(
+    labelCol="label",
+    metricName="areaUnderROC"
+)
+
+# ============================================================
+# PASO 4: CrossValidator para pipeline completo
+# ============================================================
+cv = CrossValidator(
+    estimator=pipeline,          # ← Pipeline completo (no solo modelo)
+    estimatorParamMaps=paramGrid,
+    evaluator=evaluator,
+    numFolds=5,
+    parallelism=8,
+    seed=42
+)
+
+# ============================================================
+# PASO 5: Entrenar (tunea TODOS los stages)
+# ============================================================
+print("Iniciando tuning de pipeline completo...")
+print("Esto optimizará: PCA (k) + RF (numTrees, maxDepth, subsamplingRate)")
+
+cvModel = cv.fit(df_train)
+
+# ============================================================
+# PASO 6: Extraer mejor pipeline
+# ============================================================
+bestPipeline = cvModel.bestModel  # Es un PipelineModel (no solo RF)
+
+# Extraer componentes del mejor pipeline
+best_pca = bestPipeline.stages[2]     # Stage 3: PCA
+best_rf = bestPipeline.stages[3]      # Stage 4: RandomForest
+
+print("\n========== MEJOR CONFIGURACIÓN ==========")
+print(f"PCA k (componentes): {best_pca.getK()}")
+print(f"RF numTrees: {best_rf.getNumTrees}")
+print(f"RF maxDepth: {best_rf.getMaxDepth()}")
+print(f"RF subsamplingRate: {best_rf.getSubsamplingRate()}")
+
+# Mejor AUC
+best_auc = max(cvModel.avgMetrics)
+print(f"\nMejor AUC (CV): {best_auc:.4f}")
+
+# ============================================================
+# PASO 7: Usar pipeline completo para predicciones
+# ============================================================
+# El bestPipeline contiene TODAS las transformaciones + modelo
+predictions = bestPipeline.transform(df_test)
+
+# Evaluar en test
+test_auc = evaluator.evaluate(predictions)
+print(f"AUC en Test: {test_auc:.4f}")
+
+# ============================================================
+# OBSERVACIÓN CRÍTICA
+# ============================================================
+# Al tunear el pipeline completo:
+# 1. Cada configuración entrena TODO el pipeline (assembler → scaler → PCA → RF)
+# 2. PCA con k=3 puede funcionar mejor con RF(numTrees=200, maxDepth=10)
+# 3. PCA con k=7 puede funcionar mejor con RF(numTrees=50, maxDepth=20)
+# 4. El tuning encuentra la MEJOR COMBINACIÓN CONJUNTA de todos los hiperparámetros</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-tuning-900/30 border border-tuning-500/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Ventajas del Pipeline Tuning</h4>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-sm font-semibold text-green-400 mb-2">Beneficios Técnicos:</p>
+                                <ul class="text-gray-300 text-sm space-y-2">
+                                    <li class="flex items-start">
+                                        <span class="text-green-400 mr-2">✓</span>
+                                        <div>
+                                            <strong>Optimización Holística:</strong> Encuentra combinación óptima de
+                                            preprocesamiento + modelo (no secuencial)
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-green-400 mr-2">✓</span>
+                                        <div>
+                                            <strong>Evita Data Leakage:</strong> Scaler y PCA se ajustan solo en train folds,
+                                            no en val fold
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-green-400 mr-2">✓</span>
+                                        <div>
+                                            <strong>Reproducibilidad:</strong> Todo el pipeline queda encapsulado en bestModel
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-blue-400 mb-2">Casos de Uso:</p>
+                                <ul class="text-gray-300 text-sm space-y-2">
+                                    <li class="flex items-start">
+                                        <span class="text-blue-400 mr-2">•</span>
+                                        Tunear dimensionalidad PCA + parámetros del modelo
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-blue-400 mr-2">•</span>
+                                        Optimizar grado de PolynomialExpansion + regParam
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-blue-400 mr-2">•</span>
+                                        Seleccionar features (ChiSqSelector k) + modelo
+                                    </li>
+                                    <li class="flex items-start">
+                                        <span class="text-blue-400 mr-2">•</span>
+                                        Comparar diferentes transformaciones (con/sin PCA)
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 4: Extracción de Resultados -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-blue-600 p-3 rounded-lg">
+                        <i data-lucide="database" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-blue-300">4. Extracción y Análisis de Resultados</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">Atributos de CrossValidatorModel</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Después de <code>cv.fit()</code>, el objeto <code>cvModel</code> contiene información detallada
+                            sobre todas las configuraciones evaluadas.
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+                            <pre class="text-gray-300 text-sm overflow-x-auto"><code># Entrenar CrossValidator
+cvModel = cv.fit(df_train)
+
+# ============================================================
+# Atributos principales del cvModel
+# ============================================================
+
+# 1. bestModel: Mejor modelo encontrado (ya entrenado en TODO el dataset)
+bestModel = cvModel.bestModel
+
+# 2. avgMetrics: Lista con métrica promedio de CV para cada config
+avg_metrics = cvModel.avgMetrics  # Lista de floats, len = |paramGrid|
+
+# 3. stdMetrics: Desviación estándar de la métrica para cada config (si collectSubModels=True)
+# std_metrics = cvModel.stdMetrics  # Requiere collectSubModels=True en CrossValidator
+
+# 4. getEstimatorParamMaps: Grid de configuraciones evaluadas
+param_maps = cvModel.getEstimatorParamMaps()  # Lista de ParamMaps
+
+# ============================================================
+# Encontrar índice de mejor configuración
+# ============================================================
+best_idx = avg_metrics.index(max(avg_metrics))
+best_params = param_maps[best_idx]
+best_avg_metric = avg_metrics[best_idx]
+
+print(f"Mejor configuración (índice {best_idx}):")
+print(f"Parámetros: {best_params}")
+print(f"Métrica promedio (CV): {best_avg_metric:.4f}")</code></pre>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Análisis Completo de Resultados</h4>
+                        <div class="code-block rounded-lg p-6">
+                            <pre class="text-gray-300 text-sm overflow-x-auto"><code>import pandas as pd
+import matplotlib.pyplot as plt
+
+# ============================================================
+# Convertir resultados a DataFrame para análisis
+# ============================================================
+results = []
+for idx, (params, avg_metric) in enumerate(zip(cvModel.getEstimatorParamMaps(), cvModel.avgMetrics)):
+    config = {"config_id": idx, "avg_metric": avg_metric}
+
+    # Extraer cada hiperparámetro del ParamMap
+    for param, value in params.items():
+        param_name = param.name  # Nombre del parámetro (ej: "numTrees")
+        config[param_name] = value
+
+    results.append(config)
+
+results_df = pd.DataFrame(results)
+
+# ============================================================
+# Top 10 configuraciones
+# ============================================================
+print("========== TOP 10 CONFIGURACIONES ==========")
+top10 = results_df.nlargest(10, "avg_metric")
+print(top10)
+
+# ============================================================
+# Estadísticas por hiperparámetro individual
+# ============================================================
+print("\n========== IMPACTO POR HIPERPARÁMETRO ==========")
+
+for col in results_df.columns:
+    if col not in ["config_id", "avg_metric"]:
+        print(f"\n{col}:")
+        stats = results_df.groupby(col)["avg_metric"].agg(["mean", "std", "min", "max"])
+        print(stats.sort_values("mean", ascending=False))
+
+# Ejemplo Output:
+#             mean       std       min       max
+# numTrees
+# 200         0.8623    0.0076    0.8456    0.8712  ← Mejor promedio
+# 100         0.8589    0.0081    0.8423    0.8689
+# 50          0.8534    0.0093    0.8312    0.8656
+# 10          0.8234    0.0123    0.8012    0.8445
+
+# ============================================================
+# Visualización: Heatmap 2D (si grid es 2D)
+# ============================================================
+# Supongamos grid con solo numTrees y maxDepth
+if "numTrees" in results_df.columns and "maxDepth" in results_df.columns:
+    pivot = results_df.pivot(index="maxDepth", columns="numTrees", values="avg_metric")
+
+    plt.figure(figsize=(10, 6))
+    plt.imshow(pivot, cmap="viridis", aspect="auto")
+    plt.colorbar(label="AUC-ROC")
+    plt.xlabel("numTrees")
+    plt.ylabel("maxDepth")
+    plt.title("Heatmap de Rendimiento: Grid Search")
+    plt.xticks(range(len(pivot.columns)), pivot.columns)
+    plt.yticks(range(len(pivot.index)), pivot.index)
+    plt.show()
+
+# ============================================================
+# Identificar configuraciones Pareto-óptimas
+# ============================================================
+# Configs que no son dominadas por ninguna otra en todas las métricas
+# (útil si tienes múltiples métricas: AUC, tiempo, complejidad)</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Ejemplo de Heatmap de Rendimiento</h4>
+                        <div class="bg-gray-800 rounded p-4">
+                            <p class="text-sm text-gray-400 mb-2 text-center">Grid Search: numTrees vs maxDepth</p>
+                            <div class="font-mono text-xs text-center">
+                                <pre class="text-gray-300">
+         numTrees →
+maxDepth ↓    50      100     200
+    5      0.8234   0.8345   0.8412
+   10      0.8456   0.8567   0.8623  ← max
+   15      0.8389   0.8512   0.8589
+   20      0.8312   0.8445   0.8534
+
+🔥 Mejor: (numTrees=200, maxDepth=10) → AUC=0.8623
+</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 5: TrainValidationSplit -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-orange-600 p-3 rounded-lg">
+                        <i data-lucide="split" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-orange-300">5. TrainValidationSplit: Alternativa Rápida</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">Comparación con CrossValidator</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            <code class="bg-gray-800 px-2 py-1 rounded text-orange-300">TrainValidationSplit</code> es una
+                            alternativa más rápida a CrossValidator que usa una sola división train/val en lugar de K-fold CV.
+                        </p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                                <h5 class="text-md font-semibold text-blue-300 mb-3">CrossValidator (K-fold CV)</h5>
+                                <div class="code-block rounded p-4 mb-3">
+$$
+CV(\lambda) = \frac{1}{K} \sum_{k=1}^{K} L(f_\lambda^{(-k)}, D_k)
+$$
+                                </div>
+                                <ul class="text-gray-300 text-sm space-y-2">
+                                    <li>• <strong>K entrenamientos</strong> por configuración</li>
+                                    <li>• Estimador más robusto (menos varianza)</li>
+                                    <li>• <strong>Más costoso</strong> (K veces más lento)</li>
+                                    <li>• Recomendado para datasets pequeños/medianos</li>
+                                </ul>
+                            </div>
+                            <div class="bg-orange-900/20 border border-orange-500/30 rounded-lg p-6">
+                                <h5 class="text-md font-semibold text-orange-300 mb-3">TrainValidationSplit</h5>
+                                <div class="code-block rounded p-4 mb-3">
+$$
+\text{Val}(\lambda) = L(f_\lambda^{\text{train}}, D_{\text{val}})
+$$
+                                </div>
+                                <ul class="text-gray-300 text-sm space-y-2">
+                                    <li>• <strong>1 entrenamiento</strong> por configuración</li>
+                                    <li>• Más rápido (K veces más que CV)</li>
+                                    <li>• Mayor varianza (depende del split)</li>
+                                    <li>• Recomendado para datasets grandes (&gt;100K)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Implementación con TrainValidationSplit</h4>
+                        <div class="code-block rounded-lg p-6">
+                            <pre class="text-gray-300 text-sm overflow-x-auto"><code>from pyspark.ml.tuning import TrainValidationSplit, ParamGridBuilder
+from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+# ============================================================
+# Configuración (similar a CrossValidator)
+# ============================================================
+rf = RandomForestClassifier(featuresCol="features", labelCol="label", seed=42)
+
+paramGrid = ParamGridBuilder() \
+    .addGrid(rf.numTrees, [50, 100, 200]) \
+    .addGrid(rf.maxDepth, [10, 15, 20]) \
+    .build()
+
+evaluator = BinaryClassificationEvaluator(
+    labelCol="label",
+    metricName="areaUnderROC"
+)
+
+# ============================================================
+# TrainValidationSplit en lugar de CrossValidator
+# ============================================================
+tvs = TrainValidationSplit(
+    estimator=rf,
+    estimatorParamMaps=paramGrid,
+    evaluator=evaluator,
+    trainRatio=0.8,          # 80% train, 20% val (parámetro clave)
+    parallelism=4,
+    seed=42
+)
+
+# Complejidad: 9 configs × 1 split = 9 entrenamientos
+# (vs CrossValidator con K=5: 9 × 5 = 45 entrenamientos)
+
+# ============================================================
+# Entrenar
+# ============================================================
+print("Iniciando TrainValidationSplit...")
+print(f"Configuraciones: {len(paramGrid)}")
+print("Split: 80% train / 20% val")
+
+tvsModel = tvs.fit(df_train)
+
+# ============================================================
+# Extraer resultados (API idéntica a CrossValidator)
+# ============================================================
+bestModel = tvsModel.bestModel
+avg_metrics = tvsModel.validationMetrics  # Nota: "validationMetrics", no "avgMetrics"
+
+best_idx = avg_metrics.index(max(avg_metrics))
+best_auc = avg_metrics[best_idx]
+
+print(f"\nMejor AUC (validación): {best_auc:.4f}")
+print(f"Mejor numTrees: {bestModel.getNumTrees}")
+print(f"Mejor maxDepth: {bestModel.getMaxDepth()}")
+
+# ============================================================
+# Evaluación en test
+# ============================================================
+predictions = bestModel.transform(df_test)
+test_auc = evaluator.evaluate(predictions)
+print(f"AUC en test: {test_auc:.4f}")
+
+# ============================================================
+# Comparación de tiempos (ejemplo hipotético)
+# ============================================================
+# TrainValidationSplit: 15 minutos (9 entrenamientos)
+# CrossValidator (K=5): 75 minutos (45 entrenamientos)
+# → 5x más rápido con TrainValidationSplit</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-tuning-900/30 border border-tuning-500/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">¿Cuándo usar cada uno?</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-tuning-500/30">
+                                        <th class="text-left py-3 px-4 text-tuning-300">Escenario</th>
+                                        <th class="text-left py-3 px-4">Recomendación</th>
+                                        <th class="text-left py-3 px-4">Razón</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-300">
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4">N &lt; 10K</td>
+                                        <td class="py-3 px-4 font-semibold text-blue-300">CrossValidator</td>
+                                        <td class="py-3 px-4 text-xs">Dataset pequeño necesita estimador robusto</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4">10K &lt; N &lt; 100K</td>
+                                        <td class="py-3 px-4 font-semibold text-blue-300">CrossValidator (K=5)</td>
+                                        <td class="py-3 px-4 text-xs">Balance entre robustez y tiempo</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4">N &gt; 100K</td>
+                                        <td class="py-3 px-4 font-semibold text-orange-300">TrainValidationSplit</td>
+                                        <td class="py-3 px-4 text-xs">Dataset grande, single split suficiente</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3 px-4">Grid muy grande (&gt;500 configs)</td>
+                                        <td class="py-3 px-4 font-semibold text-orange-300">TrainValidationSplit</td>
+                                        <td class="py-3 px-4 text-xs">Reduce tiempo drásticamente</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4">Producción final</td>
+                                        <td class="py-3 px-4 font-semibold text-blue-300">CrossValidator</td>
+                                        <td class="py-3 px-4 text-xs">Mayor confianza en el estimador</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 6: Visualización -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-pink-600 p-3 rounded-lg">
+                        <i data-lucide="bar-chart-4" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-pink-300">6. Visualización Avanzada de Resultados</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-tuning-200 mb-4">Análisis Visual del Grid Search</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Visualizar los resultados ayuda a entender el landscape del espacio de hiperparámetros y
+                            detectar patrones de interacción.
+                        </p>
+                    </div>
+
+                    <div class="code-block rounded-lg p-6">
+                        <pre class="text-gray-300 text-sm overflow-x-auto"><code>import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# Supongamos results_df ya construido (ver Bloque 4)
+
+# ============================================================
+# 1. Distribución de Métricas
+# ============================================================
+plt.figure(figsize=(10, 6))
+plt.hist(results_df["avg_metric"], bins=30, color="#a855f7", alpha=0.7, edgecolor="black")
+plt.axvline(max(results_df["avg_metric"]), color="red", linestyle="--",
+            label=f"Mejor: {max(results_df['avg_metric']):.4f}")
+plt.xlabel("AUC-ROC (Cross-Validation)")
+plt.ylabel("Frecuencia")
+plt.title("Distribución de Rendimiento: Grid Search")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.show()
+
+# ============================================================
+# 2. Boxplot por Hiperparámetro
+# ============================================================
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+for idx, param in enumerate(["numTrees", "maxDepth", "maxBins", "subsamplingRate"]):
+    if param in results_df.columns:
+        ax = axes[idx // 2, idx % 2]
+        results_df.boxplot(column="avg_metric", by=param, ax=ax)
+        ax.set_title(f"Impacto de {param}")
+        ax.set_xlabel(param)
+        ax.set_ylabel("AUC-ROC")
+        ax.get_figure().suptitle("")  # Remover título general
+
+plt.tight_layout()
+plt.show()
+
+# ============================================================
+# 3. Heatmap de Interacciones (2D)
+# ============================================================
+# Ejemplo: numTrees vs maxDepth
+if "numTrees" in results_df.columns and "maxDepth" in results_df.columns:
+    pivot = results_df.pivot_table(
+        values="avg_metric",
+        index="maxDepth",
+        columns="numTrees",
+        aggfunc="mean"  # Promedio si hay múltiples valores
+    )
+
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(pivot, annot=True, fmt=".4f", cmap="viridis", cbar_kws={"label": "AUC-ROC"})
+    plt.title("Heatmap: numTrees vs maxDepth")
+    plt.xlabel("numTrees")
+    plt.ylabel("maxDepth")
+    plt.show()
+
+# ============================================================
+# 4. Parallel Coordinates Plot (multidimensional)
+# ============================================================
+from pandas.plotting import parallel_coordinates
+
+# Seleccionar top 20 configs
+top20 = results_df.nlargest(20, "avg_metric").copy()
+top20["rank"] = range(1, 21)
+
+# Normalizar valores para visualización
+for col in ["numTrees", "maxDepth", "maxBins", "subsamplingRate"]:
+    if col in top20.columns:
+        top20[f"{col}_norm"] = (top20[col] - top20[col].min()) / (top20[col].max() - top20[col].min())
+
+plt.figure(figsize=(12, 6))
+parallel_coordinates(
+    top20,
+    class_column="rank",
+    cols=[f"{c}_norm" for c in ["numTrees", "maxDepth", "maxBins", "subsamplingRate"] if c in top20.columns],
+    colormap="viridis"
+)
+plt.title("Parallel Coordinates: Top 20 Configuraciones")
+plt.ylabel("Valor Normalizado [0, 1]")
+plt.legend(loc="upper right", fontsize=8)
+plt.show()
+
+# ============================================================
+# 5. Scatter Matrix (pairwise relationships)
+# ============================================================
+from pandas.plotting import scatter_matrix
+
+scatter_matrix(
+    results_df[["numTrees", "maxDepth", "avg_metric"]],
+    figsize=(10, 10),
+    diagonal="kde",
+    alpha=0.5,
+    c=results_df["avg_metric"],
+    cmap="viridis"
+)
+plt.suptitle("Scatter Matrix: Relaciones entre Hiperparámetros")
+plt.show()</code></pre>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-tuning-200 mb-3">Insights de la Visualización</h4>
+                        <ul class="space-y-3 text-gray-300 text-sm">
+                            <li class="flex items-start">
+                                <span class="text-pink-400 mr-2">1.</span>
+                                <div>
+                                    <strong>Distribución de métricas:</strong> Si es bimodal, sugiere dos regímenes distintos
+                                    (ej: modelos simples vs complejos)
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-pink-400 mr-2">2.</span>
+                                <div>
+                                    <strong>Boxplots:</strong> Identificar hiperparámetros con mayor impacto (mayor spread)
+                                    vs irrelevantes (métricas similares)
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-pink-400 mr-2">3.</span>
+                                <div>
+                                    <strong>Heatmaps:</strong> Detectar interacciones no lineales (ej: maxDepth=20 solo funciona
+                                    bien con numTrees&gt;100)
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-pink-400 mr-2">4.</span>
+                                <div>
+                                    <strong>Parallel coords:</strong> Visualizar patrones en top configs (ej: todas tienen
+                                    subsamplingRate&gt;0.8)
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navegación -->
+        <div class="flex justify-between items-center mt-12">
+            <a href="seccion15_1.html" class="flex items-center space-x-2 text-tuning-300 hover:text-tuning-200 transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span>Anterior: Grid & Random Search</span>
+            </a>
+            <a href="seccion15_3.html" class="flex items-center space-x-2 text-tuning-300 hover:text-tuning-200 transition-colors">
+                <span>Siguiente: Reto Completo</span>
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </a>
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#9333ea',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#a855f7',
+                lineColor: '#c084fc',
+                secondaryColor: '#7e22ce',
+                tertiaryColor: '#581c87'
+            }
+        });
+    </script>
+</body>
+</html>

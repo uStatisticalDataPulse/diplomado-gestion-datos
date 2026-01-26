@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reto: Bias-Variance | Regresión</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --challenge-yellow: #F59E0B;
+            --bg-deep: #050505;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
+        }
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: #F59E0B;
+            transform: translateY(-2px);
+        }
+        .math-block {
+            background: rgba(30, 30, 40, 0.8);
+            border-left: 4px solid #F59E0B;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="seccion_14.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">SECCIÓN 14</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-lg">RETO FINAL<span class="text-yellow-400">.BiasVariance()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">DIAGNOSTICANDO Y CORRIGIENDO OVERFITTING</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-2 bg-yellow-900/20 border border-yellow-500/30 rounded-full text-xs font-mono text-yellow-400 font-bold">
+            <i data-lucide="trophy" class="w-4 h-4"></i>
+            ENGINEERING CHALLENGE
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro -->
+        <section class="text-center space-y-6">
+            <div class="inline-flex items-center justify-center p-4 rounded-full bg-yellow-500/10 border border-yellow-500/20 mb-4">
+                <i data-lucide="alert-triangle" class="w-10 h-10 text-yellow-400"></i>
+            </div>
+            <h2 class="text-5xl font-black text-white tracking-tight">Reto: Diagnosticando Overfitting</h2>
+            <p class="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                Detecta, diagnostica y corrige overfitting en predicción de precios de viviendas.
+                <br>Usa curvas de aprendizaje, regularización L1/L2, y análisis de residuales.
+            </p>
+        </section>
+
+        <!-- Contexto del Problema -->
+        <section>
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-yellow-400">01.</span> Contexto del Problema
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">📊 Dataset: Precios de Viviendas</h4>
+                <p class="text-slate-400 mb-6">
+                    Tienes un dataset con 10,000 viviendas y 100 features (área, habitaciones, ubicación, edad, etc.).
+                    Tu objetivo es predecir el precio de venta.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-slate-900/50 p-4 rounded">
+                        <h5 class="font-bold text-white mb-3 text-sm">Estadísticas del Dataset</h5>
+                        <table class="w-full text-xs text-slate-300">
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2">Total filas</td>
+                                <td class="text-right text-blue-400">10,000</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2">Features</td>
+                                <td class="text-right text-blue-400">100</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2">Train/Test split</td>
+                                <td class="text-right text-blue-400">80% / 20%</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2">Precio medio</td>
+                                <td class="text-right text-blue-400">$250,000</td>
+                            </tr>
+                        </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bg-red-900/20 border border-red-500/30 rounded p-4">
+                        <h5 class="font-bold text-red-400 mb-3 text-sm">⚠️ Problema Detectado</h5>
+                        <div class="text-xs text-slate-400 space-y-2">
+                            <div class="p-2 bg-slate-900/50 rounded">
+                                <strong class="text-white">Training RMSE:</strong> $5,000 (R² = 0.99)
+                            </div>
+                            <div class="p-2 bg-slate-900/50 rounded">
+                                <strong class="text-white">Test RMSE:</strong> $50,000 (R² = 0.45)
+                            </div>
+                            <div class="mt-3 text-red-300">
+                                <strong>Gap enorme → OVERFITTING</strong><br>
+                                El modelo memoriza el training set pero falla en datos nuevos.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-yellow-900/20 border border-yellow-500/30 rounded text-sm text-yellow-300">
+                    <strong>🎯 Tu Misión:</strong> Reducir el gap training-test de 90% a menos de 20%, manteniendo un test RMSE &lt; $15,000.
+                </div>
+            </div>
+        </section>
+
+        <!-- Fase 1: Entrenar Modelo Overfitted -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-red-400">02.</span> Fase 1: Entrenar Modelo Overfitted (Intencionalmente)
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Crear el Problema</h4>
+                <p class="text-sm text-slate-400 mb-6">
+                    Primero, vamos a crear un modelo <strong>intencionalmente overfitted</strong> para entender el problema.
+                </p>
+
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300 mb-6"><code><span class="text-purple-400">from</span> pyspark.ml <span class="text-purple-400">import</span> Pipeline
+<span class="text-purple-400">from</span> pyspark.ml.feature <span class="text-purple-400">import</span> VectorAssembler, StandardScaler, PolynomialExpansion
+<span class="text-purple-400">from</span> pyspark.ml.regression <span class="text-purple-400">import</span> LinearRegression
+<span class="text-purple-400">from</span> pyspark.ml.evaluation <span class="text-purple-400">import</span> RegressionEvaluator
+
+<span class="text-slate-500"># Cargar datos</span>
+df = spark.read.csv(<span class="text-green-300">"housing_prices.csv"</span>, header=<span class="text-yellow-300">True</span>, inferSchema=<span class="text-yellow-300">True</span>)
+
+<span class="text-slate-500"># Split 80/20</span>
+train_df, test_df = df.randomSplit([<span class="text-yellow-300">0.8</span>, <span class="text-yellow-300">0.2</span>], seed=<span class="text-yellow-300">42</span>)
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># ESTRATEGIA DE OVERFITTING:</span>
+<span class="text-slate-500"># 1. Muchas features polinómicas (grado 5!)</span>
+<span class="text-slate-500"># 2. Sin regularización (regParam = 0)</span>
+<span class="text-slate-500"># ======================================</span>
+
+assembler = VectorAssembler(
+    inputCols=[<span class="text-slate-500"># todas las 100 features</span>],
+    outputCol=<span class="text-green-300">"features_raw"</span>
+)
+
+<span class="text-slate-500"># Expansión polinómica grado 5 (explosión de features)</span>
+poly = PolynomialExpansion(
+    degree=<span class="text-yellow-300">5</span>,  <span class="text-slate-500"># ¡Demasiado!</span>
+    inputCol=<span class="text-green-300">"features_raw"</span>,
+    outputCol=<span class="text-green-300">"features_poly"</span>
+)
+
+scaler = StandardScaler(
+    inputCol=<span class="text-green-300">"features_poly"</span>,
+    outputCol=<span class="text-green-300">"features"</span>
+)
+
+<span class="text-slate-500"># Sin regularización</span>
+lr_overfit = LinearRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"precio"</span>,
+    regParam=<span class="text-yellow-300">0.0</span>,  <span class="text-slate-500"># ❌ Sin penalización</span>
+    maxIter=<span class="text-yellow-300">100</span>
+)
+
+pipeline = Pipeline(stages=[assembler, poly, scaler, lr_overfit])
+
+<span class="text-slate-500"># Entrenar</span>
+model_overfit = pipeline.fit(train_df)
+
+<span class="text-slate-500"># Evaluar</span>
+evaluator = RegressionEvaluator(labelCol=<span class="text-green-300">"precio"</span>, predictionCol=<span class="text-green-300">"prediction"</span>)
+
+train_pred = model_overfit.transform(train_df)
+test_pred = model_overfit.transform(test_df)
+
+train_rmse = evaluator.evaluate(train_pred, {evaluator.metricName: <span class="text-green-300">"rmse"</span>})
+test_rmse = evaluator.evaluate(test_pred, {evaluator.metricName: <span class="text-green-300">"rmse"</span>})
+
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Training RMSE: $</span>{train_rmse:.2f}<span class="text-green-300">"</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Test RMSE: $</span>{test_rmse:.2f}<span class="text-green-300">"</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Gap: </span>{((test_rmse - train_rmse) / train_rmse * <span class="text-yellow-300">100</span>):.1f}<span class="text-green-300">%"</span>)</code></pre>
+
+                <div class="p-4 bg-red-900/20 border border-red-500/30 rounded text-sm text-red-300">
+                    <strong>Resultado Esperado (Overfitting):</strong><br>
+                    Training RMSE: $5,234.12<br>
+                    Test RMSE: $52,891.45<br>
+                    Gap: <strong>910.6%</strong> ← ¡Modelo inútil en producción!
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Tarea 1: ¿Por qué está overfitting?</h4>
+                <div class="text-sm text-slate-400 space-y-3">
+                    <div class="p-3 bg-slate-900/50 rounded">
+                        <strong class="text-yellow-400">Analiza los coeficientes:</strong>
+                        <pre class="mt-2 text-xs font-tech text-slate-300"><code>lr_model = model_overfit.stages[<span class="text-yellow-300">3</span>]  <span class="text-slate-500"># LinearRegression es stage 3</span>
+coefs = lr_model.coefficients
+
+<span class="text-slate-500"># TODO: Calcular estadísticas de coeficientes</span>
+<span class="text-slate-500"># - Media: np.mean(coefs)</span>
+<span class="text-slate-500"># - Desviación estándar: np.std(coefs)</span>
+<span class="text-slate-500"># - Max absoluto: np.max(np.abs(coefs))</span>
+
+<span class="text-slate-500"># ¿Son muy grandes? ¿Muy variables?</span></code></pre>
+                    </div>
+                    <div class="p-3 bg-slate-900/50 rounded">
+                        <strong class="text-blue-400">Cuenta features:</strong>
+                        Con 100 features originales y expansión polinómica grado 5, ¿cuántas features finales tienes?<br>
+                        Fórmula: \(\binom{n+d}{d}\) donde \(n=100\), \(d=5\)
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fase 2: Curvas de Aprendizaje -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-blue-400">03.</span> Fase 2: Diagnosticar con Curvas de Aprendizaje
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Learning Curves: Training vs Validation Error</h4>
+
+                <div class="math-block mb-6">
+                    <div class="text-white mb-3">Concepto:</div>
+                    $$
+                    \begin{aligned}
+                    \text{Training Error}(m) &= \frac{1}{m} \sum_{i=1}^{m} (y_i - \hat{y}_i)^2 \\[0.5em]
+                    \text{Validation Error}(m) &= \text{Error en datos no vistos}
+                    \end{aligned}
+                    $$
+                    <div class="text-xs text-slate-400 mt-3">
+                        Graficar ambos errores vs tamaño del training set \(m\). Permite diagnosticar bias vs variance.
+                    </div>
+                </div>
+
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300 mb-6"><code><span class="text-purple-400">import</span> matplotlib.pyplot <span class="text-purple-400">as</span> plt
+<span class="text-purple-400">import</span> numpy <span class="text-purple-400">as</span> np
+
+<span class="text-slate-500"># Tamaños de training set a probar</span>
+train_sizes = [<span class="text-yellow-300">0.1</span>, <span class="text-yellow-300">0.2</span>, <span class="text-yellow-300">0.3</span>, <span class="text-yellow-300">0.4</span>, <span class="text-yellow-300">0.5</span>, <span class="text-yellow-300">0.6</span>, <span class="text-yellow-300">0.7</span>, <span class="text-yellow-300">0.8</span>, <span class="text-yellow-300">0.9</span>, <span class="text-yellow-300">1.0</span>]
+
+train_errors = []
+val_errors = []
+
+<span class="text-purple-400">for</span> size <span class="text-purple-400">in</span> train_sizes:
+    <span class="text-slate-500"># Subset del training set</span>
+    subset = train_df.sample(fraction=size, seed=<span class="text-yellow-300">42</span>)
+
+    <span class="text-slate-500"># Entrenar modelo en subset</span>
+    model = pipeline.fit(subset)
+
+    <span class="text-slate-500"># Evaluar en subset (training error)</span>
+    train_pred = model.transform(subset)
+    train_error = evaluator.evaluate(train_pred, {evaluator.metricName: <span class="text-green-300">"rmse"</span>})
+    train_errors.append(train_error)
+
+    <span class="text-slate-500"># Evaluar en test set (validation error)</span>
+    test_pred = model.transform(test_df)
+    val_error = evaluator.evaluate(test_pred, {evaluator.metricName: <span class="text-green-300">"rmse"</span>})
+    val_errors.append(val_error)
+
+    <span class="text-blue-400">print</span>(<span class="text-green-300">f"Size: </span>{size:.1f}<span class="text-green-300"> | Train RMSE: $</span>{train_error:.0f}<span class="text-green-300"> | Val RMSE: $</span>{val_error:.0f}<span class="text-green-300">"</span>)
+
+<span class="text-slate-500"># Graficar</span>
+plt.figure(figsize=(<span class="text-yellow-300">10</span>, <span class="text-yellow-300">6</span>))
+plt.plot(train_sizes, train_errors, <span class="text-green-300">'o-'</span>, label=<span class="text-green-300">'Training Error'</span>, linewidth=<span class="text-yellow-300">2</span>)
+plt.plot(train_sizes, val_errors, <span class="text-green-300">'s--'</span>, label=<span class="text-green-300">'Validation Error'</span>, linewidth=<span class="text-yellow-300">2</span>)
+plt.xlabel(<span class="text-green-300">'Training Set Size (fraction)'</span>)
+plt.ylabel(<span class="text-green-300">'RMSE ($)'</span>)
+plt.title(<span class="text-green-300">'Learning Curves: Diagnosing Overfitting'</span>)
+plt.legend()
+plt.grid(<span class="text-yellow-300">True</span>, alpha=<span class="text-yellow-300">0.3</span>)
+plt.show()</code></pre>
+
+                <div class="bg-slate-900/50 p-6 rounded-xl mb-6">
+                    <h5 class="font-bold text-white mb-3 text-sm">Gráfico Esperado (Overfitting)</h5>
+                    <div class="text-xs font-tech text-slate-300">
+                        <pre>
+    RMSE ($)
+      ↑
+  60k │                 ● ● ● ● ● ● ● ● ●  Validation Error
+      │                                    (alto y constante)
+  50k │
+      │           Gap grande
+  40k │
+      │
+  20k │ ○ ○ ○ ○ ○ ○ ○ ○ ○  Training Error
+      │                      (bajo y mejorando)
+   0k └──────────────────────────────────→ Training Size
+       0.1  0.2  0.3  0.4  0.5  0.6  0.7  0.8  0.9  1.0
+
+       ○ Training Error
+       ● Validation Error
+                        </pre>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-red-900/20 border border-red-500/30 rounded text-sm">
+                        <strong class="text-red-400">Síntomas de Overfitting:</strong>
+                        <div class="text-slate-400 mt-2 space-y-1 text-xs">
+                            <div>✓ Training error disminuye con más datos</div>
+                            <div>✓ Validation error alto y casi constante</div>
+                            <div>✓ Gap grande entre ambas curvas</div>
+                            <div>✓ Agregar más datos NO ayuda</div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-green-900/20 border border-green-500/30 rounded text-sm">
+                        <strong class="text-green-400">Solución:</strong>
+                        <div class="text-slate-400 mt-2 space-y-1 text-xs">
+                            <div>✓ Reducir complejidad del modelo</div>
+                            <div>✓ Aplicar regularización (Ridge/Lasso)</div>
+                            <div>✓ Eliminar features polinómicas</div>
+                            <div>✓ Feature selection</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fase 3: Aplicar Regularización -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-green-400">04.</span> Fase 3: Aplicar Regularización L1/L2
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Estrategias a Probar</h4>
+
+                <div class="space-y-6">
+                    <!-- Estrategia 1: Ridge -->
+                    <div class="p-6 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                        <h5 class="font-bold text-blue-400 mb-3 flex items-center gap-2">
+                            <i data-lucide="shield" class="w-5 h-5"></i>
+                            Estrategia 1: Ridge Regression
+                        </h5>
+                        <pre class="font-tech text-xs bg-slate-900 p-3 rounded text-slate-300 mb-3"><code>lr_ridge = LinearRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"precio"</span>,
+    regParam=<span class="text-yellow-300">1.0</span>,  <span class="text-slate-500"># Probar: [0.1, 1.0, 10.0]</span>
+    elasticNetParam=<span class="text-yellow-300">0.0</span>  <span class="text-slate-500"># Ridge puro</span>
+)</code></pre>
+                        <div class="text-xs text-slate-400">
+                            <strong class="text-white">Objetivo:</strong> Reducir magnitud de coeficientes sin eliminarlos.
+                            Útil si crees que todas las features son relevantes.
+                        </div>
+                    </div>
+
+                    <!-- Estrategia 2: Lasso -->
+                    <div class="p-6 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                        <h5 class="font-bold text-purple-400 mb-3 flex items-center gap-2">
+                            <i data-lucide="filter" class="w-5 h-5"></i>
+                            Estrategia 2: Lasso Regression
+                        </h5>
+                        <pre class="font-tech text-xs bg-slate-900 p-3 rounded text-slate-300 mb-3"><code>lr_lasso = LinearRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"precio"</span>,
+    regParam=<span class="text-yellow-300">1.0</span>,  <span class="text-slate-500"># Probar: [0.1, 1.0, 10.0]</span>
+    elasticNetParam=<span class="text-yellow-300">1.0</span>  <span class="text-slate-500"># Lasso puro</span>
+)</code></pre>
+                        <div class="text-xs text-slate-400">
+                            <strong class="text-white">Objetivo:</strong> Selección automática de features.
+                            Elimina features polinómicas irrelevantes (→ 0).
+                        </div>
+                    </div>
+
+                    <!-- Estrategia 3: Elastic Net -->
+                    <div class="p-6 bg-green-900/20 border border-green-500/30 rounded-lg">
+                        <h5 class="font-bold text-green-400 mb-3 flex items-center gap-2">
+                            <i data-lucide="layers" class="w-5 h-5"></i>
+                            Estrategia 3: Elastic Net + Sin Polinómicas
+                        </h5>
+                        <pre class="font-tech text-xs bg-slate-900 p-3 rounded text-slate-300 mb-3"><code><span class="text-slate-500"># Eliminar PolynomialExpansion del pipeline</span>
+pipeline_simple = Pipeline(stages=[assembler, scaler, lr_elastic])
+
+lr_elastic = LinearRegression(
+    featuresCol=<span class="text-green-300">"features"</span>,
+    labelCol=<span class="text-green-300">"precio"</span>,
+    regParam=<span class="text-yellow-300">0.5</span>,
+    elasticNetParam=<span class="text-yellow-300">0.5</span>  <span class="text-slate-500"># 50% L1 + 50% L2</span>
+)</code></pre>
+                        <div class="text-xs text-slate-400">
+                            <strong class="text-white">Objetivo:</strong> Reducir complejidad estructural (sin polinómicas)
+                            + regularización balanceada.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Tarea 2: Comparación Sistemática</h4>
+                <p class="text-sm text-slate-400 mb-4">
+                    Crea una tabla comparando todas las estrategias:
+                </p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-slate-300">
+                        <thead class="border-b border-slate-700">
+                            <tr>
+                                <th class="text-left py-2 px-3">Modelo</th>
+                                <th class="text-right py-2 px-3">Train RMSE</th>
+                                <th class="text-right py-2 px-3">Test RMSE</th>
+                                <th class="text-right py-2 px-3">Gap (%)</th>
+                                <th class="text-right py-2 px-3"># Features ≠ 0</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xs">
+                            <tr class="border-b border-slate-800 bg-red-900/10">
+                                <td class="py-2 px-3">Sin Reg (Poly 5)</td>
+                                <td class="text-right text-green-400">$5,234</td>
+                                <td class="text-right text-red-400">$52,891</td>
+                                <td class="text-right text-red-400">910%</td>
+                                <td class="text-right">~10,000</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3">Ridge λ=1.0</td>
+                                <td class="text-right">???</td>
+                                <td class="text-right">???</td>
+                                <td class="text-right">???</td>
+                                <td class="text-right">~10,000</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3">Lasso λ=1.0</td>
+                                <td class="text-right">???</td>
+                                <td class="text-right">???</td>
+                                <td class="text-right">???</td>
+                                <td class="text-right">???</td>
+                            </tr>
+                            <tr class="border-b border-slate-800 bg-green-900/10">
+                                <td class="py-2 px-3">EN sin Poly</td>
+                                <td class="text-right text-blue-400">$12,500</td>
+                                <td class="text-right text-green-400">$14,200</td>
+                                <td class="text-right text-green-400">13.6%</td>
+                                <td class="text-right">85</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 p-3 bg-green-900/20 border border-green-500/30 rounded text-xs text-green-300">
+                    <strong>Meta:</strong> Gap &lt; 20%, Test RMSE &lt; $15,000
+                </div>
+            </div>
+        </section>
+
+        <!-- Fase 4: Validación Final -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-purple-400">05.</span> Fase 4: Validación Final
+            </h3>
+
+            <div class="glass-card p-8 rounded-xl mb-8">
+                <h4 class="text-xl font-bold text-white mb-4">Análisis de Residuales</h4>
+                <p class="text-sm text-slate-400 mb-6">
+                    Los residuales \(e_i = y_i - \hat{y}_i\) deben ser aleatorios (ruido blanco). Si hay patrones, el modelo no captura toda la información.
+                </p>
+
+                <pre class="font-tech text-sm bg-slate-900 p-4 rounded text-slate-300 mb-6"><code><span class="text-purple-400">import</span> matplotlib.pyplot <span class="text-purple-400">as</span> plt
+<span class="text-purple-400">from</span> scipy <span class="text-purple-400">import</span> stats
+
+<span class="text-slate-500"># Calcular residuales</span>
+predictions_pd = test_pred.select(<span class="text-green-300">"precio"</span>, <span class="text-green-300">"prediction"</span>).toPandas()
+residuals = predictions_pd[<span class="text-green-300">"precio"</span>] - predictions_pd[<span class="text-green-300">"prediction"</span>]
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Gráfico 1: Residuales vs Predicción</span>
+<span class="text-slate-500"># ======================================</span>
+plt.figure(figsize=(<span class="text-yellow-300">12</span>, <span class="text-yellow-300">5</span>))
+
+plt.subplot(<span class="text-yellow-300">1</span>, <span class="text-yellow-300">2</span>, <span class="text-yellow-300">1</span>)
+plt.scatter(predictions_pd[<span class="text-green-300">"prediction"</span>], residuals, alpha=<span class="text-yellow-300">0.5</span>)
+plt.axhline(y=<span class="text-yellow-300">0</span>, color=<span class="text-green-300">'r'</span>, linestyle=<span class="text-green-300">'--'</span>)
+plt.xlabel(<span class="text-green-300">'Predicted Price ($)'</span>)
+plt.ylabel(<span class="text-green-300">'Residuals ($)'</span>)
+plt.title(<span class="text-green-300">'Residual Plot'</span>)
+plt.grid(<span class="text-yellow-300">True</span>, alpha=<span class="text-yellow-300">0.3</span>)
+
+<span class="text-slate-500"># ======================================</span>
+<span class="text-slate-500"># Gráfico 2: Q-Q Plot (normalidad)</span>
+<span class="text-slate-500"># ======================================</span>
+plt.subplot(<span class="text-yellow-300">1</span>, <span class="text-yellow-300">2</span>, <span class="text-yellow-300">2</span>)
+stats.probplot(residuals, dist=<span class="text-green-300">"norm"</span>, plot=plt)
+plt.title(<span class="text-green-300">'Q-Q Plot'</span>)
+
+plt.tight_layout()
+plt.show()
+
+<span class="text-slate-500"># Estadísticas de residuales</span>
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Media residuales: $</span>{residuals.mean():.2f}<span class="text-green-300"> (debe ser ~0)"</span>)
+<span class="text-blue-400">print</span>(<span class="text-green-300">f"Std residuales: $</span>{residuals.std():.2f}<span class="text-green-300">"</span>)</code></pre>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-green-900/20 border border-green-500/30 rounded text-sm">
+                        <strong class="text-green-400">✅ Residuales Saludables:</strong>
+                        <div class="text-slate-400 mt-2 space-y-1 text-xs">
+                            <div>• Distribuidos aleatoriamente alrededor de 0</div>
+                            <div>• Sin patrones (bandas, curvas)</div>
+                            <div>• Varianza constante (homocedasticidad)</div>
+                            <div>• Q-Q plot lineal (normalidad)</div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-red-900/20 border border-red-500/30 rounded text-sm">
+                        <strong class="text-red-400">❌ Problemas Comunes:</strong>
+                        <div class="text-slate-400 mt-2 space-y-1 text-xs">
+                            <div>• Patrón en U → Relación no lineal faltante</div>
+                            <div>• Varianza creciente → Necesita transformación log(y)</div>
+                            <div>• Q-Q desviado → Outliers o distribución no normal</div>
+                            <div>• Clusters → Features categóricas mal codificadas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Interpretación de Coeficientes</h4>
+                <pre class="font-tech text-xs bg-slate-900 p-3 rounded text-slate-300 mb-4"><code><span class="text-slate-500"># Modelo final (mejor performance)</span>
+best_model = <span class="text-slate-500"># tu mejor modelo aquí</span>
+lr_model = best_model.stages[-<span class="text-yellow-300">1</span>]  <span class="text-slate-500"># LinearRegression es última etapa</span>
+
+coefs = lr_model.coefficients
+feature_names = [<span class="text-green-300">"area"</span>, <span class="text-green-300">"habitaciones"</span>, <span class="text-green-300">"baños"</span>, <span class="text-slate-500"># ...</span>]
+
+<span class="text-slate-500"># Crear DataFrame con coeficientes</span>
+coef_df = pd.DataFrame({
+    <span class="text-green-300">'feature'</span>: feature_names,
+    <span class="text-green-300">'coefficient'</span>: coefs
+}).sort_values(<span class="text-green-300">'coefficient'</span>, key=<span class="text-purple-400">lambda</span> x: <span class="text-yellow-300">abs</span>(x), ascending=<span class="text-yellow-300">False</span>)
+
+<span class="text-blue-400">print</span>(coef_df.head(<span class="text-yellow-300">10</span>))  <span class="text-slate-500"># Top 10 features más importantes</span>
+
+<span class="text-slate-500"># Ejemplo de interpretación:</span>
+<span class="text-slate-500"># Si coef["area"] = 150.5:</span>
+<span class="text-slate-500"># → Cada m² adicional incrementa el precio en $150.50 (ceteris paribus)</span></code></pre>
+
+                <div class="p-3 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                    💡 <strong>Insight:</strong> Con Lasso, muchos coeficientes serán exactamente 0.
+                    Las features con coef ≠ 0 son las que el modelo considera más importantes.
+                </div>
+            </div>
+        </section>
+
+        <!-- Criterios de Evaluación -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-8 flex items-center gap-3">
+                <span class="text-yellow-400">06.</span> Criterios de Evaluación
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
+                        Requisitos Obligatorios
+                    </h4>
+                    <ul class="text-sm text-slate-400 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400 font-bold">✓</span>
+                            <span><strong>Gap &lt; 20%:</strong> Cerrar brecha training-test</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400 font-bold">✓</span>
+                            <span><strong>Test RMSE &lt; $15,000:</strong> Error aceptable</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400 font-bold">✓</span>
+                            <span><strong>Curvas de aprendizaje:</strong> Graficar y analizar</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400 font-bold">✓</span>
+                            <span><strong>Comparación Ridge/Lasso:</strong> Probar ambos</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400 font-bold">✓</span>
+                            <span><strong>Análisis residuales:</strong> Gráfico + interpretación</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="star" class="w-5 h-5 text-yellow-400"></i>
+                        Puntos Bonus
+                    </h4>
+                    <ul class="text-sm text-slate-400 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-yellow-400 font-bold">★</span>
+                            <span><strong>Cross-Validation:</strong> Grid search λ y α (+10 pts)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-400 font-bold">★</span>
+                            <span><strong>Feature importance:</strong> Ranking de features (+10 pts)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-purple-400 font-bold">★</span>
+                            <span><strong>Regularization path:</strong> Graficar β vs λ (+15 pts)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-400 font-bold">★</span>
+                            <span><strong>Deployment:</strong> Guardar y cargar modelo (+10 pts)</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Objetivo Final -->
+        <section class="border-t border-slate-800 pt-16">
+            <div class="glass-card p-8 rounded-2xl bg-gradient-to-r from-yellow-900/20 to-green-900/20 border-2 border-yellow-500/30">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="trophy" class="w-10 h-10 text-yellow-400 mt-1"></i>
+                    <div>
+                        <h4 class="text-2xl font-bold text-white mb-4">🎯 Objetivo de Aprendizaje</h4>
+                        <p class="text-slate-300 mb-6 leading-relaxed">
+                            Al completar este reto, habrás dominado el ciclo completo de diagnóstico y corrección de overfitting:
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div class="p-4 bg-slate-900/50 rounded-lg">
+                                <div class="text-red-400 font-bold mb-2">1. Detectar</div>
+                                <div class="text-slate-400 text-xs">
+                                    • Identificar gap training-test<br>
+                                    • Analizar coeficientes inestables<br>
+                                    • Curvas de aprendizaje
+                                </div>
+                            </div>
+                            <div class="p-4 bg-slate-900/50 rounded-lg">
+                                <div class="text-blue-400 font-bold mb-2">2. Diagnosticar</div>
+                                <div class="text-slate-400 text-xs">
+                                    • Bias vs Variance tradeoff<br>
+                                    • Complejidad del modelo<br>
+                                    • Análisis de residuales
+                                </div>
+                            </div>
+                            <div class="p-4 bg-slate-900/50 rounded-lg">
+                                <div class="text-green-400 font-bold mb-2">3. Corregir</div>
+                                <div class="text-slate-400 text-xs">
+                                    • Aplicar regularización L1/L2<br>
+                                    • Selección de λ con CV<br>
+                                    • Validar mejora en test set
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                            <p class="text-sm text-slate-300">
+                                <strong class="text-yellow-400">💡 Aplicación real:</strong> Este flujo es idéntico al que usarás en producción.
+                                El 80% de proyectos de ML fallan por overfitting. Saber diagnosticarlo y corregirlo te hace un ingeniero de datos valioso.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion14_2.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-yellow-400 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span class="text-slate-400">Anterior: Regularización</span>
+                </a>
+
+                <a href="seccion_14.html" class="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-600 transition text-slate-400 hover:text-white">
+                    Volver al Hub
+                </a>
+
+                <a href="index.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-600 transition">
+                    <span class="text-slate-400">Hub Principal</span>
+                    <i data-lucide="home" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
+    </script>
+</body>
+</html>

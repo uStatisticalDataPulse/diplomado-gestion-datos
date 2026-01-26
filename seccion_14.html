@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capítulo 14: Regresión | Data Strategy</title>
+
+    <!-- Librerías Core -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <!-- MathJax para ecuaciones LaTeX -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Tipografía Técnica -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --reg-green: #10b981;
+            --reg-emerald: #059669;
+            --reg-dark: #047857;
+            --bg-deep: #050505;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+        }
+
+        .font-tech { font-family: 'JetBrains Mono', monospace; }
+
+        /* Tarjetas Glass */
+        .glass-card {
+            background: rgba(15, 17, 21, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: var(--reg-green);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+        }
+
+        /* Gradientes Regression */
+        .gradient-reg {
+            background: linear-gradient(135deg, var(--reg-emerald) 0%, var(--reg-green) 100%);
+        }
+
+        /* Bloques matemáticos */
+        .math-block {
+            background: rgba(30, 30, 40, 0.8);
+            border-left: 4px solid var(--reg-green);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="h-20 border-b border-slate-800 bg-[#020408]/90 backdrop-blur-md sticky top-0 z-50 flex items-center px-8 justify-between">
+        <div class="flex items-center gap-6">
+            <a href="index.html" class="text-slate-400 hover:text-white transition group flex items-center gap-2">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="font-bold tracking-wide">HUB CENTRAL</span>
+            </a>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+                <h1 class="font-tech font-bold text-white tracking-widest text-xl">SECCIÓN 14<span class="text-[var(--reg-green)]">.Regression()</span></h1>
+                <p class="text-xs text-slate-500 font-mono">MODELOS PREDICTIVOS Y REGULARIZACIÓN</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 px-4 py-2 gradient-reg rounded-full text-xs font-mono text-white font-bold">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+            PREDICTIVE MODELS
+        </div>
+    </header>
+
+    <main class="flex-grow p-8 lg:p-12 max-w-7xl mx-auto w-full space-y-16">
+
+        <!-- Intro Hero -->
+        <section class="text-center space-y-6">
+            <div class="inline-flex items-center justify-center p-4 rounded-full bg-green-500/10 border border-green-500/20 mb-4">
+                <i data-lucide="bar-chart-2" class="w-10 h-10 text-[var(--reg-green)]"></i>
+            </div>
+            <h2 class="text-5xl font-black text-white tracking-tight">De Mínimos Cuadrados a Optimización Distribuida</h2>
+            <p class="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
+                Domina regresión lineal y logística en Big Data. Desde la derivación matemática hasta implementación en Spark ML.
+                <br>Aprende a <strong>regularizar modelos</strong> para prevenir overfitting con L1/L2.
+            </p>
+        </section>
+
+        <!-- Bloque 1: ¿Por qué Regresión en Big Data? -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <h3 class="text-3xl font-bold text-white flex items-center gap-3">
+                    <span class="text-[var(--reg-green)]">01.</span> ¿Por qué Regresión en Big Data?
+                </h3>
+                <p class="text-slate-400 leading-relaxed">
+                    En estadística clásica, calculas \(\hat{\beta} = (X^T X)^{-1} X^T y\) en memoria.
+                    Con 10 mil millones de transacciones, \(X^T X\) requiere operaciones que no caben en RAM.
+                </p>
+
+                <div class="glass-card p-4 rounded-xl">
+                    <h4 class="font-bold text-white mb-3 text-sm">Ejemplo: Predicción de Demanda</h4>
+                    <div class="text-xs text-slate-400 space-y-2">
+                        <div class="p-3 bg-slate-900/50 rounded">
+                            <strong class="text-blue-400">Dataset:</strong> 10B transacciones, 500 features<br>
+                            <strong class="text-blue-400">Objetivo:</strong> Predecir demanda del próximo trimestre
+                        </div>
+                        <div class="p-3 bg-red-900/20 border border-red-500/30 rounded text-red-300">
+                            <strong>Problema:</strong> X^T X es 500×500, pero calcularlo con 10B filas requiere reducción masiva
+                        </div>
+                        <div class="p-3 bg-green-900/20 border border-green-500/30 rounded text-green-300">
+                            <strong>Solución Spark:</strong> Gradiente descendente distribuido en cluster de 100 nodos
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="math-block">
+                    <div class="text-sm text-slate-400 mb-2">Comparación: Solución Analítica vs Iterativa</div>
+                    <div class="text-white text-base">
+                        $$
+                        \begin{aligned}
+                        \text{Analítica: } & \hat{\beta} = (X^T X)^{-1} X^T y \\[0.5em]
+                        & \text{Complejidad: } O(np^2 + p^3) \\[1em]
+                        \text{Iterativa (GD): } & \beta^{(t+1)} = \beta^{(t)} - \alpha \nabla J(\beta^{(t)}) \\[0.5em]
+                        & \text{Complejidad por iter: } O(np)
+                        \end{aligned}
+                        $$
+                    </div>
+                    <div class="text-xs text-slate-500 mt-3">
+                        Con \(n = 10^{10}\), el método analítico falla. Gradiente descendente escala linealmente.
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl">
+                    <h4 class="font-bold text-white mb-3 text-sm">Cuándo usar cada enfoque</h4>
+                    <table class="w-full text-xs text-slate-300">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="text-left py-2">Método</th>
+                                <th class="text-left py-2">Mejor si...</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 text-blue-400">Analítica</td>
+                                <td class="py-2">n &lt; 10M, p &lt; 1000</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-green-400">Gradiente</td>
+                                <td class="py-2">n &gt; 100M, cualquier p</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 2: Tipos de Regresión -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                <span class="text-blue-400">02.</span> Tipos de Regresión en Spark ML
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass-card p-6 rounded-xl border-t-4 border-green-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-green-400"></i>
+                        <h4 class="text-lg font-bold text-white">Regresión Lineal</h4>
+                    </div>
+                    <div class="math-block text-sm mb-4">
+                        $$
+                        y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \epsilon
+                        $$
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3">
+                        <strong class="text-white">Variable objetivo:</strong> Continua (ℝ)<br>
+                        <strong class="text-white">Ejemplos:</strong> Precio, temperatura, demanda
+                    </p>
+                    <code class="block text-xs bg-slate-900 p-2 rounded text-green-300">
+                        LinearRegression(...)
+                    </code>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-t-4 border-blue-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="pie-chart" class="w-6 h-6 text-blue-400"></i>
+                        <h4 class="text-lg font-bold text-white">Regresión Logística</h4>
+                    </div>
+                    <div class="math-block text-sm mb-4">
+                        $$
+                        P(y=1|x) = \frac{1}{1 + e^{-\beta^T x}}
+                        $$
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3">
+                        <strong class="text-white">Variable objetivo:</strong> Binaria (0/1)<br>
+                        <strong class="text-white">Ejemplos:</strong> Compra/No compra, Fraude/Legítimo
+                    </p>
+                    <code class="block text-xs bg-slate-900 p-2 rounded text-blue-300">
+                        LogisticRegression(...)
+                    </code>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border-t-4 border-purple-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="layers" class="w-6 h-6 text-purple-400"></i>
+                        <h4 class="text-lg font-bold text-white">GLM (Generalizada)</h4>
+                    </div>
+                    <div class="math-block text-sm mb-4">
+                        $$
+                        g(\mu) = \beta^T x
+                        $$
+                    </div>
+                    <p class="text-xs text-slate-400 mb-3">
+                        <strong class="text-white">Variable objetivo:</strong> Diversas distribuciones<br>
+                        <strong class="text-white">Ejemplos:</strong> Counts (Poisson), Gamma
+                    </p>
+                    <code class="block text-xs bg-slate-900 p-2 rounded text-purple-300">
+                        GeneralizedLinearRegression(...)
+                    </code>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h4 class="font-bold text-white mb-4">Tabla Comparativa</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-slate-300">
+                        <thead class="border-b border-slate-700">
+                            <tr>
+                                <th class="text-left py-2 px-3">Modelo</th>
+                                <th class="text-left py-2 px-3">Función de Enlace</th>
+                                <th class="text-left py-2 px-3">Distribución Y</th>
+                                <th class="text-left py-2 px-3">Rango Y</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xs">
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3 text-green-400">Lineal</td>
+                                <td class="py-2 px-3">Identidad: g(μ) = μ</td>
+                                <td class="py-2 px-3">Normal</td>
+                                <td class="py-2 px-3">(-∞, +∞)</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3 text-blue-400">Logística</td>
+                                <td class="py-2 px-3">Logit: g(μ) = log(μ/(1-μ))</td>
+                                <td class="py-2 px-3">Bernoulli</td>
+                                <td class="py-2 px-3">{0, 1}</td>
+                            </tr>
+                            <tr class="border-b border-slate-800">
+                                <td class="py-2 px-3 text-purple-400">Poisson</td>
+                                <td class="py-2 px-3">Log: g(μ) = log(μ)</td>
+                                <td class="py-2 px-3">Poisson</td>
+                                <td class="py-2 px-3">{0, 1, 2, ...}</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-3 text-yellow-400">Gamma</td>
+                                <td class="py-2 px-3">Inversa: g(μ) = 1/μ</td>
+                                <td class="py-2 px-3">Gamma</td>
+                                <td class="py-2 px-3">(0, +∞)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bloque 3: El Problema del Overfitting -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                <span class="text-red-400">03.</span> El Problema del Overfitting
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="glass-card p-8 rounded-xl">
+                    <h4 class="text-xl font-bold text-white mb-4">Bias-Variance Tradeoff</h4>
+                    <div class="math-block mb-6">
+                        $$
+                        \begin{aligned}
+                        \text{Error Esperado} &= \text{Bias}^2 + \text{Variance} + \text{Irreducible Noise} \\[0.5em]
+                        \text{Bias}^2 &= (\mathbb{E}[\hat{f}(x)] - f(x))^2 \\[0.5em]
+                        \text{Variance} &= \mathbb{E}[(\hat{f}(x) - \mathbb{E}[\hat{f}(x)])^2]
+                        \end{aligned}
+                        $$
+                    </div>
+                    <div class="space-y-3 text-sm text-slate-400">
+                        <div class="p-3 bg-slate-900/50 rounded">
+                            <strong class="text-red-400">Alto Bias:</strong> Modelo muy simple (underfitting)<br>
+                            Ejemplo: Regresión lineal para relación cuadrática
+                        </div>
+                        <div class="p-3 bg-slate-900/50 rounded">
+                            <strong class="text-yellow-400">Alta Variance:</strong> Modelo muy complejo (overfitting)<br>
+                            Ejemplo: Polinomio grado 20 para 30 datos
+                        </div>
+                        <div class="p-3 bg-green-900/20 border border-green-500/30 rounded text-green-300">
+                            <strong>Balance Óptimo:</strong> Regularización (Ridge/Lasso)<br>
+                            Controla complejidad sin perder capacidad predictiva
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 rounded-xl">
+                    <h4 class="text-xl font-bold text-white mb-4">Gráfico Conceptual</h4>
+                    <div class="mermaid bg-slate-900/50 p-6 rounded-xl">
+                        graph TD
+                            A[Complejidad del Modelo] --> B{Balance}
+                            B -->|Muy Simple| C[Alto Bias<br/>Underfitting]
+                            B -->|Muy Complejo| D[Alta Variance<br/>Overfitting]
+                            B -->|Óptimo| E[Generalización<br/>✓ Balance]
+
+                            style C fill:#DC2626,stroke:#fff
+                            style D fill:#EAB308,stroke:#fff
+                            style E fill:#10b981,stroke:#fff
+                    </div>
+
+                    <div class="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded text-xs">
+                        <strong class="text-blue-400">Síntomas de Overfitting:</strong>
+                        <ul class="mt-2 text-slate-400 space-y-1">
+                            <li>• Training error ≈ 0, Test error alto</li>
+                            <li>• Coeficientes β muy grandes (inestables)</li>
+                            <li>• Sensible a pequeños cambios en datos</li>
+                            <li>• Modelo memoriza ruido, no patrones reales</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-8 rounded-xl bg-purple-900/10">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="lightbulb" class="w-6 h-6 text-purple-400 mt-1"></i>
+                    <div>
+                        <h4 class="font-bold text-white mb-2">🔗 Conexión con Regularización</h4>
+                        <p class="text-sm text-slate-400">
+                            En los próximos módulos aprenderás cómo <strong class="text-purple-400">Ridge (L2)</strong> y
+                            <strong class="text-purple-400">Lasso (L1)</strong> controlan variance penalizando coeficientes grandes.
+                            La regularización es la herramienta matemática que balancea bias-variance.
+                        </p>
+                        <div class="math-block text-sm mt-4">
+                            $$
+                            J_{\text{regularizado}}(\beta) = \underbrace{\text{MSE}(\beta)}_{\text{Ajuste a datos}} + \underbrace{\lambda \, \text{Penalty}(\beta)}_{\text{Controla complejidad}}
+                            $$
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Módulos de Aprendizaje -->
+        <section class="border-t border-slate-800 pt-16">
+            <h3 class="text-3xl font-bold text-white mb-12 text-center">
+                📚 Módulos de Aprendizaje
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Módulo 1 -->
+                <a href="seccion14_1.html" class="group glass-card p-6 rounded-xl hover:border-[var(--reg-green)] transition block">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-green-500/10 p-3 rounded-lg">
+                            <i data-lucide="trending-up" class="w-6 h-6 text-[var(--reg-green)] group-hover:scale-110 transition"></i>
+                        </div>
+                        <span class="text-[10px] bg-green-900/20 border border-green-500/30 text-green-400 px-2 py-1 rounded font-mono">CORE</span>
+                    </div>
+                    <h5 class="font-bold text-white text-lg mb-2">1. Regresión Lineal y Logística</h5>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Derivación completa desde función de costo hasta gradiente. Interpretación geométrica, métricas de evaluación, y solvers en Spark.
+                    </p>
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <i data-lucide="clock" class="w-3 h-3"></i>
+                        <span>6 bloques de contenido</span>
+                    </div>
+                </a>
+
+                <!-- Módulo 2 -->
+                <a href="seccion14_2.html" class="group glass-card p-6 rounded-xl hover:border-blue-500 transition block">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-blue-500/10 p-3 rounded-lg">
+                            <i data-lucide="shield" class="w-6 h-6 text-blue-400 group-hover:scale-110 transition"></i>
+                        </div>
+                        <span class="text-[10px] bg-blue-900/20 border border-blue-500/30 text-blue-400 px-2 py-1 rounded font-mono">REGULARIZACIÓN</span>
+                    </div>
+                    <h5 class="font-bold text-white text-lg mb-2">2. Regularización L1/L2</h5>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Ridge, Lasso, y Elastic Net. Geometría de restricciones, selección de λ con cross-validation, y comparación visual de paths.
+                    </p>
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <i data-lucide="clock" class="w-3 h-3"></i>
+                        <span>7 bloques de contenido</span>
+                    </div>
+                </a>
+
+                <!-- Módulo 3 (Reto) -->
+                <a href="seccion14_3.html" class="group glass-card p-6 rounded-xl hover:border-yellow-500 transition block border-2 border-yellow-500/20">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-yellow-500/10 p-3 rounded-lg">
+                            <i data-lucide="code-2" class="w-6 h-6 text-yellow-400 group-hover:scale-110 transition"></i>
+                        </div>
+                        <span class="text-[10px] bg-yellow-900/20 border border-yellow-500/30 text-yellow-400 px-2 py-1 rounded font-mono">RETO</span>
+                    </div>
+                    <h5 class="font-bold text-white text-lg mb-2">3. Reto: Bias-Variance</h5>
+                    <p class="text-xs text-slate-400 mb-4">
+                        Diagnostica y corrige overfitting en predicción de precios. Curvas de aprendizaje, aplicación de Ridge/Lasso, y análisis de residuales.
+                    </p>
+                    <div class="flex items-center gap-2 text-xs text-yellow-500">
+                        <i data-lucide="trophy" class="w-3 h-3"></i>
+                        <span>Reto de Ingeniería Completo</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Navigation Footer -->
+        <footer class="mt-20 border-t border-slate-800 pt-10">
+            <div class="flex justify-between items-center">
+                <a href="seccion_13.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--reg-green)] transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 text-slate-600 group-hover:text-[var(--reg-green)]"></i>
+                    <span class="text-slate-400 group-hover:text-white">Anterior: Spark ML</span>
+                </a>
+
+                <a href="index.html" class="px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-600 transition text-slate-400 hover:text-white">
+                    Volver al Hub
+                </a>
+
+                <a href="seccion_15.html" class="group flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-[var(--reg-green)] transition">
+                    <span class="text-slate-400 group-hover:text-white">Siguiente: Tuning</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-slate-600 group-hover:text-[var(--reg-green)]"></i>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', fontFamily: 'JetBrains Mono' });
+    </script>
+</body>
+</html>

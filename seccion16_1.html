@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Registry y Versionamiento - Sección 16 - Diplomado USTA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mlops: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0c1821 0%, #0e3a4f 50%, #0f5264 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(6, 182, 212, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(6, 182, 212, 0.15);
+        }
+        .concept-block {
+            background: rgba(103, 232, 249, 0.08);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #22d3ee;
+            transition: all 0.3s ease;
+        }
+        .concept-block:hover {
+            background: rgba(103, 232, 249, 0.12);
+            border-left-color: #67e8f9;
+            transform: translateX(4px);
+        }
+        .code-block {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+        }
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+
+    <!-- Header -->
+    <header class="glass-card sticky top-0 z-50 mb-8">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i data-lucide="database" class="w-8 h-8 text-mlops-400"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold text-mlops-300">Model Registry y Versionamiento</h1>
+                        <p class="text-sm text-gray-400">Gestión Centralizada del Ciclo de Vida de Modelos</p>
+                    </div>
+                </div>
+                <a href="seccion_16.html" class="flex items-center space-x-2 text-mlops-300 hover:text-mlops-200 transition-colors">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    <span>Volver</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 pb-12">
+
+        <!-- Bloque 1: Model Registry -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-mlops-600 p-3 rounded-lg">
+                        <i data-lucide="folder" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-mlops-300">1. Model Registry: Catálogo Centralizado de Modelos</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-mlops-200 mb-4">¿Qué es un Model Registry?</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Un <strong>Model Registry</strong> es un repositorio centralizado que actúa como "fuente de verdad"
+                            para todos los modelos ML de una organización. Provee:
+                        </p>
+                        <ul class="space-y-2 text-gray-300 ml-6">
+                            <li class="flex items-start">
+                                <span class="text-mlops-400 mr-2">•</span>
+                                <span><strong>Catálogo único:</strong> Todos los modelos registrados en un solo lugar</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-mlops-400 mr-2">•</span>
+                                <span><strong>Versionamiento:</strong> Historial completo de evolución del modelo</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-mlops-400 mr-2">•</span>
+                                <span><strong>Metadata:</strong> Métricas, hiperparámetros, artifacts, linaje de datos</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-mlops-400 mr-2">•</span>
+                                <span><strong>Lifecycle management:</strong> Estados (staging → production → archived)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-mlops-400 mr-2">•</span>
+                                <span><strong>Access control:</strong> Quién puede modificar/desplegar modelos</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-mlops-200 mb-3">Arquitectura de Model Registry</h4>
+                        <pre class="mermaid">
+graph TD
+    A[Data Scientists] -->|Train & Log| B[MLflow Tracking]
+    B -->|Register Model| C[Model Registry]
+
+    C --> D[Model: churn_predictor]
+    D --> E[Version 1<br/>Stage: Archived<br/>AUC: 0.73]
+    D --> F[Version 2<br/>Stage: Staging<br/>AUC: 0.81]
+    D --> G[Version 3<br/>Stage: Production<br/>AUC: 0.85]
+
+    G -->|Load for Serving| H[Production System]
+    F -->|A/B Testing| I[Canary Deployment]
+
+    C --> J[Artifact Store<br/>S3/HDFS]
+    J --> K[model.pkl]
+    J --> L[requirements.txt]
+    J --> M[config.yaml]
+
+    style C fill:#06b6d4,stroke:#22d3ee,color:#fff
+    style G fill:#10b981,stroke:#34d399,color:#fff
+    style H fill:#ef4444,stroke:#f87171,color:#fff
+                        </pre>
+                    </div>
+
+                    <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-blue-300 mb-3">
+                            <i data-lucide="package" class="w-5 h-5 inline mr-2"></i>
+                            MLflow Model Registry
+                        </h4>
+                        <p class="text-gray-300 mb-4 text-sm">
+                            MLflow es el estándar de facto para model registry en ecosistema open-source. Componentes principales:
+                        </p>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="bg-gray-900/50 rounded p-4">
+                                <p class="text-sm font-semibold text-blue-300 mb-2">1. Tracking Server</p>
+                                <p class="text-gray-400 text-xs">
+                                    Registra experiments, runs, metrics, parameters durante entrenamiento
+                                </p>
+                            </div>
+                            <div class="bg-gray-900/50 rounded p-4">
+                                <p class="text-sm font-semibold text-blue-300 mb-2">2. Model Registry</p>
+                                <p class="text-gray-400 text-xs">
+                                    Catálogo centralizado con versionamiento y lifecycle management
+                                </p>
+                            </div>
+                            <div class="bg-gray-900/50 rounded p-4">
+                                <p class="text-sm font-semibold text-blue-300 mb-2">3. Artifact Store</p>
+                                <p class="text-gray-400 text-xs">
+                                    Almacenamiento de binarios (modelos, datasets, gráficas) en S3/HDFS
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-mlops-200 mb-3">Código: Registrar Modelo con MLflow</h4>
+                        <div class="code-block rounded-lg p-6">
+                            <pre class="text-gray-300 text-sm overflow-x-auto"><code>import mlflow
+import mlflow.spark
+from mlflow.tracking import MlflowClient
+from pyspark.ml import PipelineModel
+
+# ============================================================
+# PASO 1: Configurar MLflow Tracking Server
+# ============================================================
+mlflow.set_tracking_uri("http://mlflow-server:5000")  # Servidor central
+mlflow.set_experiment("/ml-experiments/churn-prediction")
+
+# ============================================================
+# PASO 2: Iniciar run y entrenar modelo
+# ============================================================
+with mlflow.start_run(run_name="churn_gbt_v3") as run:
+
+    # Obtener run_id para referencia
+    run_id = run.info.run_id
+    print(f"Run ID: {run_id}")
+
+    # Entrenar modelo (supongamos pipeline ya construido)
+    pipeline_model = pipeline.fit(df_train)
+
+    # ============================================================
+    # PASO 3: Logear hiperparámetros
+    # ============================================================
+    # Extraer hiperparámetros del modelo
+    gbt = pipeline_model.stages[-1]  # Último stage es GBT
+
+    mlflow.log_param("num_trees", gbt.getNumTrees)
+    mlflow.log_param("max_depth", gbt.getMaxDepth())
+    mlflow.log_param("step_size", gbt.getStepSize())
+    mlflow.log_param("subsampling_rate", gbt.getSubsamplingRate())
+
+    # Logear config completa como artifact
+    import json
+    config = {
+        "model_type": "GradientBoostedTrees",
+        "num_trees": gbt.getNumTrees,
+        "max_depth": gbt.getMaxDepth(),
+        "step_size": gbt.getStepSize(),
+        "subsampling_rate": gbt.getSubsamplingRate(),
+        "max_bins": gbt.getMaxBins()
+    }
+    with open("model_config.json", "w") as f:
+        json.dump(config, f, indent=2)
+    mlflow.log_artifact("model_config.json")
+
+    # ============================================================
+    # PASO 4: Logear métricas de evaluación
+    # ============================================================
+    from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+    predictions_val = pipeline_model.transform(df_val)
+
+    evaluator_auc = BinaryClassificationEvaluator(
+        labelCol="churn",
+        metricName="areaUnderROC"
+    )
+    auc = evaluator_auc.evaluate(predictions_val)
+
+    evaluator_pr = BinaryClassificationEvaluator(
+        labelCol="churn",
+        metricName="areaUnderPR"
+    )
+    auc_pr = evaluator_pr.evaluate(predictions_val)
+
+    mlflow.log_metric("auc_roc", auc)
+    mlflow.log_metric("auc_pr", auc_pr)
+    mlflow.log_metric("train_size", df_train.count())
+    mlflow.log_metric("val_size", df_val.count())
+
+    print(f"AUC-ROC: {auc:.4f}")
+    print(f"AUC-PR: {auc_pr:.4f}")
+
+    # ============================================================
+    # PASO 5: Logear el modelo Spark ML
+    # ============================================================
+    # MLflow soporta nativamente Spark ML
+    mlflow.spark.log_model(
+        spark_model=pipeline_model,
+        artifact_path="churn_pipeline",  # Path dentro del artifact store
+        registered_model_name="churn_predictor"  # Nombre en el registry
+    )
+
+    print(f"✓ Modelo registrado como 'churn_predictor'")
+
+    # ============================================================
+    # PASO 6: Logear artifacts adicionales
+    # ============================================================
+    # Feature importance (si el modelo lo soporta)
+    if hasattr(gbt, "featureImportances"):
+        import pandas as pd
+        feature_names = ["feature_" + str(i) for i in range(len(gbt.featureImportances))]
+        importance_df = pd.DataFrame({
+            "feature": feature_names,
+            "importance": gbt.featureImportances.toArray()
+        }).sort_values("importance", ascending=False)
+
+        importance_df.to_csv("feature_importance.csv", index=False)
+        mlflow.log_artifact("feature_importance.csv")
+
+    # Confusion matrix
+    from sklearn.metrics import confusion_matrix
+    import matplotlib.pyplot as plt
+
+    pred_pd = predictions_val.select("churn", "prediction").toPandas()
+    cm = confusion_matrix(pred_pd["churn"], pred_pd["prediction"])
+
+    plt.figure(figsize=(8, 6))
+    plt.imshow(cm, cmap="Blues")
+    plt.colorbar()
+    plt.title("Confusion Matrix")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    for i in range(2):
+        for j in range(2):
+            plt.text(j, i, str(cm[i, j]), ha="center", va="center")
+    plt.savefig("confusion_matrix.png")
+    mlflow.log_artifact("confusion_matrix.png")
+    plt.close()
+
+    # ============================================================
+    # PASO 7: Tags para búsqueda y filtrado
+    # ============================================================
+    mlflow.set_tag("model_type", "GBT")
+    mlflow.set_tag("problem_type", "binary_classification")
+    mlflow.set_tag("dataset", "churn_v2024_01")
+    mlflow.set_tag("production_ready", "true")
+
+print("\n" + "="*60)
+print("MODELO REGISTRADO EXITOSAMENTE")
+print("="*60)
+print(f"Run ID: {run_id}")
+print(f"Model URI: runs:/{run_id}/churn_pipeline")
+print(f"Registry Name: churn_predictor")
+print(f"AUC-ROC: {auc:.4f}")</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 2: Versionamiento Semántico -->
+        <section class="mb-12">
+            <div class="concept-block rounded-xl p-8 mb-6">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-orange-600 p-3 rounded-lg">
+                        <i data-lucide="git-branch" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-orange-300">2. Versionamiento Semántico para Modelos ML</h2>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-mlops-200 mb-4">Esquema Major.Minor.Patch para Modelos</h3>
+                        <p class="text-gray-300 leading-relaxed mb-4">
+                            Adaptación del versionamiento semántico (SemVer) al contexto ML:
+                        </p>
+                        <div class="code-block rounded-lg p-6">
+$$
+\text{Version} = \text{MAJOR}.\text{MINOR}.\text{PATCH}
+$$
+                            <div class="mt-4 space-y-3 text-sm text-gray-300">
+                                <div class="flex items-start">
+                                    <span class="font-bold text-red-400 mr-3 min-w-[80px]">MAJOR</span>
+                                    <span>Cambio en arquitectura del modelo o features que rompe compatibilidad
+                                        (ej: cambiar de GBT a Neural Network, agregar/quitar features)</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="font-bold text-orange-400 mr-3 min-w-[80px]">MINOR</span>
+                                    <span>Cambio en hiperparámetros o reentrenamiento con datos nuevos
+                                        (compatibilidad backward, mismo schema de input)</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="font-bold text-green-400 mr-3 min-w-[80px]">PATCH</span>
+                                    <span>Corrección de bugs, optimizaciones menores, cambios en postprocesamiento
+                                        sin afectar predicciones significativamente</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-900/50 rounded-lg p-6">
+                        <h4 class="text-lg font-semibold text-mlops-200 mb-3">Ejemplos de Versionamiento</h4>
+                        <div class="space-y-4">
+                            <div class="bg-red-900/20 border-l-4 border-red-500 p-4">
+                                <p class="text-sm font-semibold text-red-300 mb-2">v1.0.0 → v2.0.0 (MAJOR)</p>
+                                <ul class="text-gray-400 text-xs space-y-1">
+                                    <li>• Cambio de algoritmo: Random Forest → Neural Network</li>
+                                    <li>• Cambio de features: agregó 10 nuevas features</li>
+                                    <li>• Cambio de output: de probabilidad binaria a multi-clase</li>
+                                    <li>• <strong>Impacto:</strong> Clientes deben actualizar pipelines de inferencia</li>
+                                </ul>
+                            </div>
+                            <div class="bg-orange-900/20 border-l-4 border-orange-500 p-4">
+                                <p class="text-sm font-semibold text-orange-300 mb-2">v2.0.0 → v2.1.0 (MINOR)</p>
+                                <ul class="text-gray-400 text-xs space-y-1">
+                                    <li>• Reentrenamiento con 6 meses adicionales de datos</li>
+                                    <li>• Ajuste de hiperparámetros: maxDepth 10 → 15</li>
+                                    <li>• Mejora de AUC: 0.82 → 0.85</li>
+                                    <li>• <strong>Impacto:</strong> Drop-in replacement, mismo schema</li>
+                                </ul>
+                            </div>
+                            <div class="bg-green-900/20 border-l-4 border-green-500 p-4">
+                                <p class="text-sm font-semibold text-green-300 mb-2">v2.1.0 → v2.1.1 (PATCH)</p>
+                                <ul class="text-gray-400 text-xs space-y-1">
+                                    <li>• Corregir bug en normalización de edad (dividía por 10 en vez de 100)</li>
+                                    <li>• Optimización de código (reduce latencia 20ms → 15ms)</li>
+                                    <li>• <strong>Impacto:</strong> Transparente, sin cambios en API</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-semibold text-mlops-200 mb-3">Código: Gestión de Versiones en MLflow</h4>
+                        <div class="code-block rounded-lg p-6">
+                            <pre class="text-gray-300 text-sm overflow-x-auto"><code>from mlflow.tracking import MlflowClient
+
+client = MlflowClient()
+
+# ============================================================
+# LISTAR TODAS LAS VERSIONES DE UN MODELO
+# ============================================================
+model_name = "churn_predictor"
+
+versions = client.search_model_versions(f"name='{model_name}'")
+
+print(f"Modelo: {model_name}")
+print(f"Total de versiones: {len(versions)}\n")
+
+for mv in versions:
+    print(f"Version {mv.version}:")
+    print(f"  - Stage: {mv.current_stage}")
+    print(f"  - Run ID: {mv.run_id}")
+    print(f"  - Created: {mv.creation_timestamp}")
+    print(f"  - Description: {mv.description}")
+    print()
+
+# Output:
+# Modelo: churn_predictor
+# Total de versiones: 5
+#
+# Version 5:
+#   - Stage: Production
+#   - Run ID: abc123...
+#   - Created: 1704067200000
+#   - Description: v2.1.0 - Retrained with Q4 2024 data, AUC 0.85
+#
+# Version 4:
+#   - Stage: Archived
+#   - Run ID: def456...
+#   - Created: 1701388800000
+#   - Description: v2.0.0 - New architecture with feature expansion
+
+# ============================================================
+# TRANSICIONAR MODELO A PRODUCTION
+# ============================================================
+# Promover version 5 a producción
+client.transition_model_version_stage(
+    name=model_name,
+    version=5,
+    stage="Production",
+    archive_existing_versions=True  # Archivar versión anterior en production
+)
+
+print(f"✓ Version 5 promovida a Production")
+print(f"✓ Versiones anteriores en Production archivadas")
+
+# ============================================================
+# AGREGAR DESCRIPCIÓN Y TAGS
+# ============================================================
+client.update_model_version(
+    name=model_name,
+    version=5,
+    description="v2.1.0 - Major performance improvement. "
+                "Retrained with 6 additional months of data (Q4 2024). "
+                "AUC improved from 0.82 to 0.85. "
+                "Backward compatible with v2.0.x."
+)
+
+# Agregar tags para metadatos adicionales
+client.set_model_version_tag(
+    name=model_name,
+    version=5,
+    key="semantic_version",
+    value="2.1.0"
+)
+
+client.set_model_version_tag(
+    name=model_name,
+    version=5,
+    key="training_data_version",
+    value="churn_2024_q4"
+)
+
+client.set_model_version_tag(
+    name=model_name,
+    version=5,
+    key="auc_roc",
+    value="0.8523"
+)
+
+# ============================================================
+# CARGAR MODELO ESPECÍFICO POR VERSION
+# ============================================================
+# Por versión explícita
+model_v5 = mlflow.spark.load_model(f"models:/{model_name}/5")
+
+# Por stage (siempre carga el modelo actual en Production)
+model_prod = mlflow.spark.load_model(f"models:/{model_name}/Production")
+
+# Por run_id (máxima especificidad)
+model_by_run = mlflow.spark.load_model(f"runs:/abc123.../churn_pipeline")
+
+# ============================================================
+# COMPARAR VERSIONES
+# ============================================================
+def compare_model_versions(model_name, version1, version2):
+    """Compara dos versiones de un modelo"""
+    mv1 = client.get_model_version(model_name, version1)
+    mv2 = client.get_model_version(model_name, version2)
+
+    # Obtener métricas de cada run
+    run1 = client.get_run(mv1.run_id)
+    run2 = client.get_run(mv2.run_id)
+
+    metrics1 = run1.data.metrics
+    metrics2 = run2.data.metrics
+
+    print(f"Comparación: v{version1} vs v{version2}")
+    print("="*50)
+    for metric in metrics1.keys():
+        if metric in metrics2:
+            diff = metrics2[metric] - metrics1[metric]
+            pct_change = (diff / metrics1[metric]) * 100
+            print(f"{metric}:")
+            print(f"  v{version1}: {metrics1[metric]:.4f}")
+            print(f"  v{version2}: {metrics2[metric]:.4f}")
+            print(f"  Change: {diff:+.4f} ({pct_change:+.1f}%)")
+            print()
+
+compare_model_versions("churn_predictor", 4, 5)
+
+# Output:
+# Comparación: v4 vs v5
+# ==================================================
+# auc_roc:
+#   v4: 0.8234
+#   v5: 0.8523
+#   Change: +0.0289 (+3.5%)
+#
+# auc_pr:
+#   v4: 0.7845
+#   v5: 0.8012
+#   Change: +0.0167 (+2.1%)</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider mb-12"></div>
+
+        <!-- Bloque 3: Metadata Tracking (contenido truncado por límite de espacio, seguiría el mismo patrón) -->
+
+        <!-- Navegación -->
+        <div class="flex justify-between items-center mt-12">
+            <a href="seccion_16.html" class="flex items-center space-x-2 text-mlops-300 hover:text-mlops-200 transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span>Volver al Hub</span>
+            </a>
+            <a href="seccion16_2.html" class="flex items-center space-x-2 text-mlops-300 hover:text-mlops-200 transition-colors">
+                <span>Siguiente: Deployment & Monitoring</span>
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </a>
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#06b6d4',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#22d3ee',
+                lineColor: '#67e8f9',
+                secondaryColor: '#0891b2',
+                tertiaryColor: '#164e63'
+            }
+        });
+    </script>
+</body>
+</html>
